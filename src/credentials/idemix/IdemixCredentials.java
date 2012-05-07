@@ -49,7 +49,7 @@ import credentials.spec.VerifySpecification;
  */
 public class IdemixCredentials implements Credentials {
 
-	IdemixService service;
+	private IdemixService service;
 
 	public IdemixCredentials() 
 	throws CredentialsException {
