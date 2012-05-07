@@ -19,6 +19,10 @@
 
 package credentials;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
 /**
  * A generic container class for attributes. Possibly this will just manage 
  * attribute id and value pairs.
@@ -26,5 +30,21 @@ package credentials;
 public class Attributes {
 
 	// TODO: provide an implementation for attribute storage.
+	private Map<String, byte[]> attributes;
 	
+	public Attributes() {
+		attributes = new HashMap<String, byte[]>();
+	}
+	
+	public void add(String id, byte[] value) {
+		attributes.put(id, value);
+	}
+	
+	public byte[] get(String id) {
+		return attributes.get(id);
+	}
+
+	public Set<String> getIdentifiers() {
+		return attributes.keySet();
+	}
 }

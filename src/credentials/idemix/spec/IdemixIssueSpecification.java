@@ -19,10 +19,14 @@
 
 package credentials.idemix.spec;
 
+import java.math.BigInteger;
+import java.util.Iterator;
+
 import com.ibm.zurich.idmx.dm.Values;
 import com.ibm.zurich.idmx.issuance.IssuanceSpec;
 import com.ibm.zurich.idmx.key.IssuerKeyPair;
 
+import credentials.Attributes;
 import credentials.spec.IssueSpecification;
 
 /**
@@ -59,11 +63,19 @@ public class IdemixIssueSpecification extends IssueSpecification {
 	/**
 	 * Get an Idemix flavoured list of the attribute values to issued.
 	 * 
+	 * @param attributes to be issued.
 	 * @return the attribute values.
 	 */
-	public Values getValues() {
-		// TODO: implement generation of Idemix attribute Values.
+	public Values getValues(Attributes attributes) {
+		Values values = new Values(
+				getIssuerKey().getPublicKey().getGroupParams().getSystemParams());
 		
-		return new Values(null);
+		Iterator<String> i = attributes.getIdentifiers().iterator();
+		while (i.hasNext()) {
+			String id = i.next();
+			values.add(id, new BigInteger(1, attributes.get(id)));
+		}
+		
+		return values;
 	}
 }
