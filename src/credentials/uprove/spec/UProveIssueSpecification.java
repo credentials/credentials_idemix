@@ -19,6 +19,12 @@
 
 package credentials.uprove.spec;
 
+import java.util.Iterator;
+
+import com.microsoft.uprove.IssuerProtocolParameters;
+import com.microsoft.uprove.ProverProtocolParameters;
+
+import credentials.Attributes;
 import credentials.spec.IssueSpecification;
 
 /**
@@ -29,6 +35,29 @@ import credentials.spec.IssueSpecification;
  */
 public class UProveIssueSpecification extends IssueSpecification {
 
-	// TODO: implement U-Prove specific getters.
+	public IssuerProtocolParameters getIssuerProtocolParameters() {		
+        return new IssuerProtocolParameters();
+	}
+
+	public ProverProtocolParameters getProverProtocolParameters() {
+		return new ProverProtocolParameters();
+	}
 	
+	public int[] getDisclosedAttributes() {
+		return null;
+	}
+	
+	public byte[][] getValues(Attributes attributes) {
+		byte[][] values = new byte[attributes.getIdentifiers().size()][];
+		
+		// TODO: Fix attribute order
+		Iterator<String> i = attributes.getIdentifiers().iterator();
+		int j = 0;
+		while (i.hasNext()) {
+			String id = i.next();
+			values[j++] = attributes.get(id);
+		}
+		
+		return values;
+	}
 }

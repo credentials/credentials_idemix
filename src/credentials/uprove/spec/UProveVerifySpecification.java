@@ -19,6 +19,8 @@
 
 package credentials.uprove.spec;
 
+import com.microsoft.uprove.IssuerParameters;
+
 import credentials.spec.VerifySpecification;
 
 /**
@@ -29,6 +31,15 @@ import credentials.spec.VerifySpecification;
  */
 public class UProveVerifySpecification extends VerifySpecification {
 
-	// TODO: implement U-Prove specific getters.
+	public int[] getDisclosed() {
+		return null;
+	}
 	
+	public byte[] getMessage() {
+		return null;
+	}
+	
+	public IssuerParameters getIssuerParameters() {
+		return null;
+	}
 }
