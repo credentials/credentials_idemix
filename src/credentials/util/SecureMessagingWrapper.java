@@ -242,10 +242,7 @@ public class SecureMessagingWrapper implements APDUWrapper, Serializable {
 
 		/* Compute cryptographic checksum... */
 		mac.init(ksMac);
-		System.out.println("key" + Hex.toHexString(ksMac.getEncoded()));
-		System.out.println("MAC in: " + Hex.toHexString(n));
 		byte[] cc = mac.doFinal(n);
-		System.out.println("MAC out: " + Hex.toHexString(cc));
 
 		bOut.reset();
 		bOut.write((byte) 0x8E);
