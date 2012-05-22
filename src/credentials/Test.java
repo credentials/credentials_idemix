@@ -18,6 +18,8 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import javax.smartcardio.CardException;
+import javax.smartcardio.TerminalFactory;
 
 import net.sourceforge.scuba.util.Hex;
 
@@ -26,6 +28,8 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import com.ibm.zurich.credsystem.utils.Locations;
 import com.ibm.zurich.idmx.dm.Values;
 import com.ibm.zurich.idmx.issuance.IssuanceSpec;
+import com.ibm.zurich.idmx.issuance.Issuer;
+import com.ibm.zurich.idmx.issuance.Message;
 import com.ibm.zurich.idmx.key.IssuerKeyPair;
 
 import service.IdemixService;
@@ -35,6 +39,7 @@ import credentials.util.SecureMessagingWrapper;
 import net.sourceforge.scuba.smartcards.CardService;
 import net.sourceforge.scuba.smartcards.CardServiceException;
 import net.sourceforge.scuba.smartcards.DummyAcceptingCardService;
+import net.sourceforge.scuba.smartcards.TerminalCardService;
 import net.sourceforge.scuba.smartcards.WrappingCardService;
 
 public class Test {
@@ -91,14 +96,33 @@ public class Test {
 	        values.add("attr3", BigInteger.valueOf(1315));
 	        values.add("attr4", BigInteger.valueOf(1316));
 			System.out.println("test");
-			CardService dummy = new DummyAcceptingCardService(System.out);
+			
+			// Terminal for communication with the actual card
+            CardService terminal = new TerminalCardService(TerminalFactory.getDefault().terminals().list().get(0));
+            
+            // Dummy in case there is no real card/terminal available
+            CardService dummy = new DummyAcceptingCardService(System.out);
+            
+            // Wrapper which performs secure messaging
 			SecureMessagingWrapper sm = new SecureMessagingWrapper(ksMac, ksMac);
-			WrappingCardService wrapper = new WrappingCardService(dummy, sm);
-			IdemixService service = new IdemixService(wrapper);			
+			
+			// Turn the terminal in a wrapping enabled service, wrapping is disabled by default, enable using wrapper.enable() 
+			WrappingCardService wrapper = new WrappingCardService(terminal, sm);
+			
+			// Finally make an idemix service out of all this.
+			IdemixService service = new IdemixService(wrapper);	
+			
+			// Some tests
             service.open();
             wrapper.enable();
             service.setIssuanceSpecification(issuanceSpec);
             service.setAttributes(issuanceSpec, values);
+            
+            Issuer issuer = new Issuer(issuerKey, issuanceSpec, null, null, values);
+            Message msgToRecipient1 = issuer.round0();
+            Message msgToIssuer1 = service.round1(msgToRecipient1);
+            Message msgToRecipient2 = issuer.round2(msgToIssuer1);
+            service.round3(msgToRecipient2);
 
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
@@ -118,7 +142,9 @@ public class Test {
 			e.printStackTrace();
         } catch (URISyntaxException e) {
             e.printStackTrace();
-        }
+        } catch (CardException e) {
+			e.printStackTrace();
+		}
 	}
 
 }
