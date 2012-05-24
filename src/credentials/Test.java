@@ -101,7 +101,8 @@ public class Test {
             CardService terminal = new TerminalCardService(TerminalFactory.getDefault().terminals().list().get(0));
             
             // Dummy in case there is no real card/terminal available
-            CardService dummy = new DummyAcceptingCardService(System.out);
+            @SuppressWarnings("unused")
+			CardService dummy = new DummyAcceptingCardService(System.out);
             
             // Wrapper which performs secure messaging
 			SecureMessagingWrapper sm = new SecureMessagingWrapper(ksMac, ksMac);
@@ -114,8 +115,9 @@ public class Test {
 			
 			// Some tests
             service.open();
-            wrapper.enable();
+            //wrapper.enable();
             service.setIssuanceSpecification(issuanceSpec);
+            service.generateMasterSecret();
             service.setAttributes(issuanceSpec, values);
             
             Issuer issuer = new Issuer(issuerKey, issuanceSpec, null, null, values);
