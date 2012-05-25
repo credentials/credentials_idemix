@@ -34,6 +34,7 @@ import com.ibm.zurich.idmx.key.IssuerKeyPair;
 
 import service.IdemixService;
 
+import credentials.util.CardHolderVerificationService;
 import credentials.util.SecureMessagingWrapper;
 
 import net.sourceforge.scuba.smartcards.CardService;
@@ -98,8 +99,8 @@ public class Test {
 			System.out.println("test");
 			
 			// Terminal for communication with the actual card
-            CardService terminal = new TerminalCardService(TerminalFactory.getDefault().terminals().list().get(0));
-            
+            TerminalCardService terminal = new TerminalCardService(TerminalFactory.getDefault().terminals().list().get(0));
+            CardHolderVerificationService pinpad = new CardHolderVerificationService(terminal);
             // Dummy in case there is no real card/terminal available
             @SuppressWarnings("unused")
 			CardService dummy = new DummyAcceptingCardService(System.out);
@@ -108,7 +109,7 @@ public class Test {
 			SecureMessagingWrapper sm = new SecureMessagingWrapper(ksMac, ksMac);
 			
 			// Turn the terminal in a wrapping enabled service, wrapping is disabled by default, enable using wrapper.enable() 
-			WrappingCardService wrapper = new WrappingCardService(terminal, sm);
+			WrappingCardService wrapper = new WrappingCardService(pinpad, sm);
 			
 			// Finally make an idemix service out of all this.
 			IdemixService service = new IdemixService(wrapper);	
@@ -116,8 +117,12 @@ public class Test {
 			// Some tests
             service.open();
             //wrapper.enable();
-            service.setIssuanceSpecification(issuanceSpec);
             service.generateMasterSecret();
+            int tries = pinpad.verifyPIN();
+            if (tries != CardHolderVerificationService.PIN_OK) {
+            	System.err.println("PIN verification failed. Tries left: " + tries);
+            }
+            service.setIssuanceSpecification(issuanceSpec);
             service.setAttributes(issuanceSpec, values);
             
             Issuer issuer = new Issuer(issuerKey, issuanceSpec, null, null, values);
