@@ -20,6 +20,7 @@
 package credentials.uprove;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.smartcardio.CardException;
 import javax.smartcardio.CardTerminal;
@@ -33,6 +34,7 @@ import com.microsoft.uprove.UProveToken;
 
 import net.sourceforge.scuba.smartcards.CardServiceException;
 import net.sourceforge.scuba.smartcards.TerminalCardService;
+import service.ProtocolCommand;
 import service.UProveService;
 import credentials.Attributes;
 import credentials.Credentials;
@@ -197,5 +199,19 @@ public class UProveCredentials implements Credentials {
 	 */
 	public VerifySpecification verifySpecification() {
 		return new UProveVerifySpecification();
+	}
+
+	@Override
+	public List<ProtocolCommand> requestProofCommands(
+	VerifySpecification specification) {
+	// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Attributes verifyProofResponses(VerifySpecification specification)
+	{
+	// TODO Auto-generated method stub
+		return null;
 	}
 }

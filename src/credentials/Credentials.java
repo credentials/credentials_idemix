@@ -19,8 +19,12 @@
 
 package credentials;
 
+import java.util.List;
+
 import credentials.spec.IssueSpecification;
 import credentials.spec.VerifySpecification;
+
+import service.ProtocolCommand;
 
 /**
  * A generic interface for interaction with a credentials system, abstracting 
@@ -55,7 +59,10 @@ public interface Credentials {
 	 */
 	public Attributes verify(VerifySpecification specification)
 	throws CredentialsException;
-	
+
+	public List<ProtocolCommand> requestProofCommands(VerifySpecification specification);
+	public Attributes verifyProofResponses(VerifySpecification specification);
+
 	/**
 	 * Get a blank VerifySpecification matching this Credentials provider.
 	 * 
