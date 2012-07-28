@@ -53,7 +53,8 @@ public class IdemixCredentials extends BaseCredentials {
 
 	public IdemixCredentials(CardService cs) {
 		super(cs);
-		service = new IdemixService(cs);
+		// FIXME: derive ID in better way
+		service = new IdemixService(cs, (short) 4);
 	}
 
 	/**

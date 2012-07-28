@@ -48,7 +48,7 @@ public class TestVerifyCredential {
         IdemixService prover = null;
         try {
             CardTerminal terminal = TerminalFactory.getDefault().terminals().list().get(0);
-			prover = new IdemixService(new TerminalCardService(terminal));
+			prover = new IdemixService(new TerminalCardService(terminal), TestSetup.CRED_NR);
             prover.open();
         } catch (Exception e) {
 			e.printStackTrace();

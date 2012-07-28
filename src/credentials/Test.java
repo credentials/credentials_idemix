@@ -89,6 +89,7 @@ public class Test {
 	        URI ISSUER_ID = new URI("http://www.issuer.com/");
 	        IssuerKeyPair issuerKey = Locations.initIssuer(BASE_LOCATION, BASE_ID.toString(),
 	                iskLocation, ipkLocation, ISSUER_ID.resolve("ipk.xml"));
+	        short CRED_NR = (short) 4;
 
 			Values values = new Values(issuerKey.getPublicKey().getGroupParams().getSystemParams());
 	        System.out.println("got val");
@@ -112,8 +113,8 @@ public class Test {
 			WrappingCardService wrapper = new WrappingCardService(pinpad, sm);
 			
 			// Finally make an idemix service out of all this.
-			IdemixService service = new IdemixService(wrapper);	
-			
+			IdemixService service = new IdemixService(wrapper, CRED_NR);
+
 			// Some tests
             service.open();
             //wrapper.enable();

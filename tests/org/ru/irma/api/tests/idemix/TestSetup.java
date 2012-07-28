@@ -55,6 +55,9 @@ public class TestSetup {
         }
     }
     
+    /** The identifier of the credential on the smartcard */
+    public static short CRED_NR = (short) 4;
+
     /** This one also sets up the system, but now it doesn't know the private key */
     public static void setupSystem() {
         Locations.initSystem(BASE_LOCATION, BASE_ID.toString());
