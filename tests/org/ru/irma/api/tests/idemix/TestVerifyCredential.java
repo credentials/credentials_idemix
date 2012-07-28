@@ -71,7 +71,7 @@ public class TestVerifyCredential {
 	public void verifyCredentialWithCardService() throws CredentialsException, CardException {
 		// Setup proof spec
 		IdemixVerifySpecification vspec = IdemixVerifySpecification
-				.fromIdemixProofSpec(TestSetup.PROOF_SPEC_LOCATION);
+				.fromIdemixProofSpec(TestSetup.PROOF_SPEC_LOCATION, TestSetup.CRED_NR);
 
 		CardService cs = TestSetup.getCardService();
 

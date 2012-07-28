@@ -35,9 +35,11 @@ import credentials.spec.VerifySpecification;
 public class IdemixVerifySpecification extends VerifySpecification {
 
 	private ProofSpec proofSpec;
+	private short credId;
 
-	public IdemixVerifySpecification(ProofSpec proofSpec) {
+	public IdemixVerifySpecification(ProofSpec proofSpec, short credId) {
 		this.proofSpec = proofSpec;
+		this.credId = credId;
 	}
 
 	/**
@@ -47,11 +49,14 @@ public class IdemixVerifySpecification extends VerifySpecification {
 	 * Note: for now we assume that the system parameters, group parameters
 	 * and issuer public key have already been loaded.
 	 */
-	public static IdemixVerifySpecification fromIdemixProofSpec(URI proofSpecLoc) {
-		ProofSpec proofSpec = (ProofSpec) StructureStore.getInstance().get(proofSpecLoc);
-		return new IdemixVerifySpecification(proofSpec);
+	public static IdemixVerifySpecification fromIdemixProofSpec(
+			URI proofSpecLoc, short credId) {
+		ProofSpec proofSpec = (ProofSpec) StructureStore.getInstance().get(
+				proofSpecLoc);
+
+		return new IdemixVerifySpecification(proofSpec, credId);
 	}
-	
+
 	/**
 	 * Get an Idemix flavoured proof specification that should be used to 
 	 * generate the proof.
@@ -60,7 +65,7 @@ public class IdemixVerifySpecification extends VerifySpecification {
 	 */
 	public ProofSpec getProofSpec() {
 		// TODO: implement generation of idemix IssuanceSpec
-		
+
 		return proofSpec;
 	}
 }
