@@ -4,6 +4,12 @@ import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import javax.smartcardio.CardException;
+import javax.smartcardio.CardTerminal;
+import javax.smartcardio.TerminalFactory;
+
+import net.sourceforge.scuba.smartcards.TerminalCardService;
+
 import com.ibm.zurich.credsystem.utils.Locations;
 import com.ibm.zurich.idmx.issuance.IssuanceSpec;
 import com.ibm.zurich.idmx.key.IssuerKeyPair;
@@ -72,6 +78,11 @@ public class TestSetup {
         return new IssuanceSpec(ISSUER_ID.resolve("ipk.xml"), CRED_STRUCT_ID);
     }
     
+    public static TerminalCardService getCardService() throws CardException {
+		CardTerminal terminal = TerminalFactory.getDefault().terminals().list().get(0);
+		return new TerminalCardService(terminal);
+    }
+
     // load the proof specification
     public static ProofSpec setupProofSpec() {
     	return (ProofSpec) StructureStore.getInstance().get(PROOF_SPEC_LOCATION);

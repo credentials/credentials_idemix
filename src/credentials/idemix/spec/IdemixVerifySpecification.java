@@ -19,8 +19,10 @@
 
 package credentials.idemix.spec;
 
-import com.ibm.zurich.idmx.key.IssuerKeyPair;
+import java.net.URI;
+
 import com.ibm.zurich.idmx.showproof.ProofSpec;
+import com.ibm.zurich.idmx.utils.StructureStore;
 
 import credentials.spec.VerifySpecification;
 
@@ -32,15 +34,22 @@ import credentials.spec.VerifySpecification;
  */
 public class IdemixVerifySpecification extends VerifySpecification {
 
+	private ProofSpec proofSpec;
+
+	public IdemixVerifySpecification(ProofSpec proofSpec) {
+		this.proofSpec = proofSpec;
+	}
+
 	/**
-	 * Get the IssuerKeyPair that should be used to verify the proof.
-	 *   
-	 * @return the issuer key pair.
+	 * Create an IdemixVerifySpecification based on an Idemix Proof
+	 * Specification XML file.
+	 *
+	 * Note: for now we assume that the system parameters, group parameters
+	 * and issuer public key have already been loaded.
 	 */
-	public IssuerKeyPair getIssuerKey() {
-		// TODO: implement generation/discovery of idemix IssuerKeyPair
-		
-		return new IssuerKeyPair(null);
+	public static IdemixVerifySpecification fromIdemixProofSpec(URI proofSpecLoc) {
+		ProofSpec proofSpec = (ProofSpec) StructureStore.getInstance().get(proofSpecLoc);
+		return new IdemixVerifySpecification(proofSpec);
 	}
 	
 	/**
@@ -52,6 +61,6 @@ public class IdemixVerifySpecification extends VerifySpecification {
 	public ProofSpec getProofSpec() {
 		// TODO: implement generation of idemix IssuanceSpec
 		
-		return new ProofSpec(null, null);
+		return proofSpec;
 	}
 }

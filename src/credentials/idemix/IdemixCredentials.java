@@ -23,12 +23,8 @@ import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import javax.smartcardio.CardException;
-import javax.smartcardio.CardTerminal;
-import javax.smartcardio.TerminalFactory;
-
+import net.sourceforge.scuba.smartcards.CardService;
 import net.sourceforge.scuba.smartcards.CardServiceException;
-import net.sourceforge.scuba.smartcards.TerminalCardService;
 import service.IdemixService;
 
 import com.ibm.zurich.idmx.issuance.Issuer;
@@ -37,7 +33,7 @@ import com.ibm.zurich.idmx.showproof.Proof;
 import com.ibm.zurich.idmx.showproof.Verifier;
 
 import credentials.Attributes;
-import credentials.Credentials;
+import credentials.BaseCredentials;
 import credentials.CredentialsException;
 import credentials.idemix.spec.IdemixIssueSpecification;
 import credentials.idemix.spec.IdemixVerifySpecification;
@@ -47,29 +43,28 @@ import credentials.spec.VerifySpecification;
 /**
  * An Idemix specific implementation of the credentials interface.
  */
-public class IdemixCredentials implements Credentials {
+public class IdemixCredentials extends BaseCredentials {
+	//TODO: remove later
+	IdemixService service;
 
-	private IdemixService service;
+	public IdemixCredentials() {
+		// TODO
+	}
 
-	public IdemixCredentials() 
-	throws CredentialsException {
-		try {
-	    	// TODO: implement a better solution to connect to the card 
-	        CardTerminal terminal = TerminalFactory.getDefault().terminals().list().get(0);
-	        service = new IdemixService(new TerminalCardService(terminal));
-		} catch (CardException e) {
-        	throw new CredentialsException("Failed to initialise the service");
-		}
+	public IdemixCredentials(CardService cs) {
+		super(cs);
+		service = new IdemixService(cs);
 	}
 
 	/**
 	 * Issue a credential to the user according to the provided specification
 	 * containing the specified values.
-	 * 
+	 *
 	 * @param specification of the issuer and the credential to be issued.
 	 * @param values to be stored in the credential.
 	 * @throws CredentialsException if the issuance process fails.
 	 */
+	@Override
 	public void issue(IssueSpecification specification, Attributes values)
 	throws CredentialsException {
 		if (!(specification instanceof IdemixIssueSpecification)) {
@@ -167,10 +162,12 @@ public class IdemixCredentials implements Credentials {
 	
 	/**
 	 * Get a blank VerifySpecification matching this Credentials provider.
-	 * 
+	 * TODO: proper implementation or remove it
+	 *
 	 * @return a blank specification matching this provider.
 	 */
+	@Override
 	public VerifySpecification verifySpecification() {
-		return new IdemixVerifySpecification();
+		return null;
 	}
 }
