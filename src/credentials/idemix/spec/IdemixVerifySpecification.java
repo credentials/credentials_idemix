@@ -68,4 +68,12 @@ public class IdemixVerifySpecification extends VerifySpecification {
 
 		return proofSpec;
 	}
+
+	/**
+	 * Returns the short identifier used by the card to locate and identify the
+	 * credential.
+	 */
+	public short getIdemixId() {
+		return credId;
+	}
 }

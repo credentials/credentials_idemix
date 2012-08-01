@@ -31,6 +31,8 @@ public class VerifySpecification extends Specification {
 	
 	/**
 	 * The credential that needs to be verified.
+	 *
+	 * TODO: WL: why is this a string? Might need to be something a bit more general.
 	 */
 	protected String credential;
 	

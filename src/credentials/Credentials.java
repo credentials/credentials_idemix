@@ -19,49 +19,98 @@
 
 package credentials;
 
+import java.util.HashMap;
 import java.util.List;
+
+import net.sourceforge.scuba.smartcards.IResponseAPDU;
 
 import credentials.spec.IssueSpecification;
 import credentials.spec.VerifySpecification;
+import credentials.Nonce;
 
 import service.ProtocolCommand;
+import service.ProtocolResponses;
 
 /**
- * A generic interface for interaction with a credentials system, abstracting 
- * from the low-level credential technology specifics. 
+ * A generic interface for interaction with a credentials system, abstracting
+ * from the low-level credential technology specifics.
  */
 public interface Credentials {
-	
+
 	/**
 	 * Issue a credential to the user according to the provided specification
 	 * containing the specified values.
 	 * 
-	 * @param specification of the issuer and the credential to be issued.
-	 * @param values to be stored in the credential.
-	 * @throws CredentialsException if the issuance process fails.
+	 * @param specification
+	 *            of the issuer and the credential to be issued.
+	 * @param values
+	 *            to be stored in the credential.
+	 * @throws CredentialsException
+	 *             if the issuance process fails.
 	 */
-	public void issue(IssueSpecification specification, Attributes values) 
-	throws CredentialsException;
-	
+	public void issue(IssueSpecification specification, Attributes values)
+			throws CredentialsException;
+
 	/**
 	 * Get a blank IssueSpecification matching this Credentials provider.
 	 * 
 	 * @return a blank specification matching this provider.
 	 */
 	public IssueSpecification issueSpecification();
-	
+
 	/**
-	 * Verify a number of attributes listed in the specification. 
+	 * Verify a number of attributes listed in the specification.
 	 * 
-	 * @param specification of the credential and attributes to be verified.
-	 * @return the attributes disclosed during the verification process.
-	 * @throws CredentialsException if the verification process fails.
+	 * @param specification
+	 *            of the credential and attributes to be verified.
+	 * @return the attributes disclosed during the verification process or null
+	 *         if verification failed
+	 * @throws CredentialsException
 	 */
 	public Attributes verify(VerifySpecification specification)
-	throws CredentialsException;
+			throws CredentialsException;
 
-	public List<ProtocolCommand> requestProofCommands(VerifySpecification specification);
-	public Attributes verifyProofResponses(VerifySpecification specification);
+	/**
+	 * Returns the ProtocolCommands necessary to request a proof from the card.
+	 * This is a lower-level entry-point to the API, that allows the user to
+	 * process the resulting APDU commands using a separate, possibly
+	 * asynchronous interface.
+	 *
+	 * @param specification
+	 *            specification of the credential and attributes to be verified.
+	 * @param nonce The nonce used as part of the challenge
+	 * @return
+	 * @throws CredentialsException
+	 */
+	public List<ProtocolCommand> requestProofCommands(
+			VerifySpecification specification, Nonce nonce) throws CredentialsException;
+
+	/**
+	 * Compile the cards responses into a proof and check this proof for correctness.
+	 * This is a lower-level entry-point to the API, that allows the user to
+	 * process the resulting APDU commands using a separate, possibly
+	 * asynchronous interface.
+	 *
+	 * @param specification
+	 *            specification of the credential and attributes to be verified.
+	 * @param nonce The nonce used when requesting the proof commands
+	 * @param responses The responses to the proof requests
+	 * @return the attributes disclosed during the verification process or null
+	 *         if verification failed
+	 * @throws CredentialsException
+	 */
+	public Attributes verifyProofResponses(VerifySpecification specification,
+			Nonce nonce, ProtocolResponses responses) throws CredentialsException;
+
+	/**
+	 * Generate a nonce for use in the asynchronous API. This nonce contains all the
+	 * randomness required in the proof run, and hence acts as an explicit state.
+	 *
+	 * @return The nonce
+	 * @throws CredentialsException
+	 */
+	public Nonce generateNonce(VerifySpecification specification)
+			throws CredentialsException;
 
 	/**
 	 * Get a blank VerifySpecification matching this Credentials provider.
@@ -69,5 +118,5 @@ public interface Credentials {
 	 * @return a blank specification matching this provider.
 	 */
 	public VerifySpecification verifySpecification();
-	
+
 }

@@ -1,12 +1,8 @@
 package credentials;
 
-import java.util.List;
-
 import net.sourceforge.scuba.smartcards.CardService;
 import credentials.spec.IssueSpecification;
 import credentials.spec.VerifySpecification;
-
-import service.ProtocolCommand;
 
 public abstract class BaseCredentials implements Credentials {
 	protected CardService cs = null;
@@ -41,17 +37,6 @@ public abstract class BaseCredentials implements Credentials {
 	public Attributes verify(VerifySpecification specification)
 			throws CredentialsException {
 		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public List<ProtocolCommand> requestProofCommands(VerifySpecification specification) {
-	// TODO Auto-generated method stub
-		 return null;
-	}
-
-	public Attributes verifyProofResponses(VerifySpecification specification)
-	{
-	// TODO Auto-generated method stub
 		return null;
 	}
 

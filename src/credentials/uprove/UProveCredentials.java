@@ -35,10 +35,12 @@ import com.microsoft.uprove.UProveToken;
 import net.sourceforge.scuba.smartcards.CardServiceException;
 import net.sourceforge.scuba.smartcards.TerminalCardService;
 import service.ProtocolCommand;
+import service.ProtocolResponses;
 import service.UProveService;
 import credentials.Attributes;
 import credentials.Credentials;
 import credentials.CredentialsException;
+import credentials.Nonce;
 import credentials.spec.IssueSpecification;
 import credentials.spec.VerifySpecification;
 import credentials.uprove.spec.UProveIssueSpecification;
@@ -203,15 +205,23 @@ public class UProveCredentials implements Credentials {
 
 	@Override
 	public List<ProtocolCommand> requestProofCommands(
-	VerifySpecification specification) {
+			VerifySpecification specification, Nonce nonce) {
 	// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Attributes verifyProofResponses(VerifySpecification specification)
-	{
+	public Attributes verifyProofResponses(VerifySpecification specification,
+			Nonce nonce, ProtocolResponses responses)
+			throws CredentialsException {
 	// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Nonce generateNonce(VerifySpecification specification)
+			throws CredentialsException {
+		// TODO Auto-generated method stub
 		return null;
 	}
 }

@@ -22,19 +22,25 @@ package credentials.idemix;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
 import net.sourceforge.scuba.smartcards.CardService;
 import net.sourceforge.scuba.smartcards.CardServiceException;
 import service.IdemixService;
+import service.IdemixSmartcard;
+import service.ProtocolCommand;
+import service.ProtocolResponses;
 
 import com.ibm.zurich.idmx.issuance.Issuer;
 import com.ibm.zurich.idmx.issuance.Message;
 import com.ibm.zurich.idmx.showproof.Proof;
 import com.ibm.zurich.idmx.showproof.Verifier;
+import com.ibm.zurich.idmx.utils.SystemParameters;
 
 import credentials.Attributes;
 import credentials.BaseCredentials;
 import credentials.CredentialsException;
+import credentials.Nonce;
 import credentials.idemix.spec.IdemixIssueSpecification;
 import credentials.idemix.spec.IdemixVerifySpecification;
 import credentials.spec.IssueSpecification;
@@ -118,8 +124,9 @@ public class IdemixCredentials extends BaseCredentials {
 	 * Verify a number of attributes listed in the specification. 
 	 * 
 	 * @param specification of the credential and attributes to be verified.
-	 * @return the attributes disclosed during the verification process.
-	 * @throws CredentialsException if the verification process fails.
+	 * @return the attributes disclosed during the verification process or null
+	 * 	if verification failed
+	 * @throws CredentialsException
 	 */
 	public Attributes verify(VerifySpecification specification)
 	throws CredentialsException {
@@ -146,10 +153,10 @@ public class IdemixCredentials extends BaseCredentials {
         // Initialise the verifier and verify the proof
         Verifier verifier = new Verifier(spec.getProofSpec(), proof, nonce);
         if (!verifier.verify()) {
-        	throw new CredentialsException("Failed to verify the attributes (invalid proof)");
+        	return null;
         }
 
-        // Return the attributes that have been revealed during the proof        
+        // Return the attributes that have been revealed during the proof
         Attributes attributes = new Attributes();
         HashMap<String, BigInteger> values = verifier.getRevealedValues();
         Iterator<String> i = values.keySet().iterator();
@@ -170,5 +177,71 @@ public class IdemixCredentials extends BaseCredentials {
 	@Override
 	public VerifySpecification verifySpecification() {
 		return null;
+	}
+
+	@Override
+	public List<ProtocolCommand> requestProofCommands(
+			VerifySpecification specification, Nonce nonce)
+			throws CredentialsException {
+		IdemixVerifySpecification spec = castSpecification(specification);
+		IdemixNonce n = castNonce(nonce);
+		return IdemixSmartcard.buildProofCommands(n.getNonce(),
+				spec.getProofSpec(), spec.getIdemixId());
+	}
+
+	@Override
+	public Attributes verifyProofResponses(VerifySpecification specification,
+			Nonce nonce, ProtocolResponses responses)
+			throws CredentialsException {
+		IdemixVerifySpecification spec = castSpecification(specification);
+		IdemixNonce n = castNonce(nonce);
+
+		// Create the proof
+		Proof proof = IdemixSmartcard.processBuildProofResponses(responses,
+				spec.getProofSpec());
+
+		// Initialize the verifier and verify the proof
+        Verifier verifier = new Verifier(spec.getProofSpec(), proof, n.getNonce());
+        if (!verifier.verify()) {
+        	return null;
+        }
+
+        // Return the attributes that have been revealed during the proof
+        Attributes attributes = new Attributes();
+        HashMap<String, BigInteger> values = verifier.getRevealedValues();
+        Iterator<String> i = values.keySet().iterator();
+        while (i.hasNext()) {
+        	String id = i.next();
+        	attributes.add(id, values.get(id).toByteArray());
+        }
+
+		return attributes;
+	}
+
+	@Override
+	public Nonce generateNonce(VerifySpecification specification)
+			throws CredentialsException {
+		IdemixVerifySpecification spec = castSpecification(specification);
+
+        SystemParameters sp = spec.getProofSpec().getGroupParams().getSystemParams();
+        BigInteger nonce = Verifier.getNonce(sp);
+
+        return new IdemixNonce(nonce);
+	}
+	
+	private static IdemixVerifySpecification castSpecification(
+			VerifySpecification spec) throws CredentialsException {
+		if (!(spec instanceof IdemixVerifySpecification)) {
+			throw new CredentialsException(
+					"specification is not an IdemixVerifySpecification");
+		}
+		return (IdemixVerifySpecification) spec;
+	}
+
+	private static IdemixNonce castNonce(Nonce nonce) throws CredentialsException {
+		if (!(nonce instanceof IdemixNonce)) {
+			throw new CredentialsException("nonce is not an IdemixNonce");
+		}
+		return (IdemixNonce) nonce;
 	}
 }
