@@ -50,8 +50,7 @@ import credentials.spec.VerifySpecification;
  * An Idemix specific implementation of the credentials interface.
  */
 public class IdemixCredentials extends BaseCredentials {
-	//TODO: remove later
-	IdemixService service;
+	IdemixService service = null;
 
 	public IdemixCredentials() {
 		// TODO
@@ -59,8 +58,6 @@ public class IdemixCredentials extends BaseCredentials {
 
 	public IdemixCredentials(CardService cs) {
 		super(cs);
-		// FIXME: derive ID in better way
-		service = new IdemixService(cs, (short) 4);
 	}
 
 	/**
@@ -136,6 +133,8 @@ public class IdemixCredentials extends BaseCredentials {
 		}
 		IdemixVerifySpecification spec = (IdemixVerifySpecification) specification;
 		
+		setupService(spec);
+
 		// Get a nonce from the verifier
         BigInteger nonce = Verifier.getNonce(
         		spec.getProofSpec().getGroupParams().getSystemParams());
@@ -243,5 +242,9 @@ public class IdemixCredentials extends BaseCredentials {
 			throw new CredentialsException("nonce is not an IdemixNonce");
 		}
 		return (IdemixNonce) nonce;
+	}
+
+	private void setupService(IdemixVerifySpecification spec) {
+		service = new IdemixService(cs, spec.getIdemixId());
 	}
 }
