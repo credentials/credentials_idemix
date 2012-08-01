@@ -71,11 +71,7 @@ public class IdemixCredentials extends BaseCredentials {
 	@Override
 	public void issue(IssueSpecification specification, Attributes values)
 	throws CredentialsException {
-		if (!(specification instanceof IdemixIssueSpecification)) {
-			throw new CredentialsException(
-					"specification is not an IdemixIssueSpecification");
-		}
-		IdemixIssueSpecification spec = (IdemixIssueSpecification) specification;
+		IdemixIssueSpecification spec = castIssueSpecification(specification);
 
 		// Initialise the issuer
 		Issuer issuer = new Issuer(spec.getIssuerKey(), spec.getIssuanceSpec(), null, null, spec.getValues(values));
@@ -127,11 +123,7 @@ public class IdemixCredentials extends BaseCredentials {
 	 */
 	public Attributes verify(VerifySpecification specification)
 	throws CredentialsException {
-		if (!(specification instanceof IdemixVerifySpecification)) {
-			throw new CredentialsException(
-					"specification is not an IdemixVerifySpecification");
-		}
-		IdemixVerifySpecification spec = (IdemixVerifySpecification) specification;
+		IdemixVerifySpecification spec = castVerifySpecification(specification);
 		
 		setupService(spec);
 
@@ -182,7 +174,7 @@ public class IdemixCredentials extends BaseCredentials {
 	public List<ProtocolCommand> requestProofCommands(
 			VerifySpecification specification, Nonce nonce)
 			throws CredentialsException {
-		IdemixVerifySpecification spec = castSpecification(specification);
+		IdemixVerifySpecification spec = castVerifySpecification(specification);
 		IdemixNonce n = castNonce(nonce);
 		return IdemixSmartcard.buildProofCommands(n.getNonce(),
 				spec.getProofSpec(), spec.getIdemixId());
@@ -192,7 +184,7 @@ public class IdemixCredentials extends BaseCredentials {
 	public Attributes verifyProofResponses(VerifySpecification specification,
 			Nonce nonce, ProtocolResponses responses)
 			throws CredentialsException {
-		IdemixVerifySpecification spec = castSpecification(specification);
+		IdemixVerifySpecification spec = castVerifySpecification(specification);
 		IdemixNonce n = castNonce(nonce);
 
 		// Create the proof
@@ -220,7 +212,7 @@ public class IdemixCredentials extends BaseCredentials {
 	@Override
 	public Nonce generateNonce(VerifySpecification specification)
 			throws CredentialsException {
-		IdemixVerifySpecification spec = castSpecification(specification);
+		IdemixVerifySpecification spec = castVerifySpecification(specification);
 
         SystemParameters sp = spec.getProofSpec().getGroupParams().getSystemParams();
         BigInteger nonce = Verifier.getNonce(sp);
@@ -228,13 +220,22 @@ public class IdemixCredentials extends BaseCredentials {
         return new IdemixNonce(nonce);
 	}
 	
-	private static IdemixVerifySpecification castSpecification(
+	private static IdemixVerifySpecification castVerifySpecification(
 			VerifySpecification spec) throws CredentialsException {
 		if (!(spec instanceof IdemixVerifySpecification)) {
 			throw new CredentialsException(
 					"specification is not an IdemixVerifySpecification");
 		}
 		return (IdemixVerifySpecification) spec;
+	}
+
+	private static IdemixIssueSpecification castIssueSpecification(
+			IssueSpecification spec) throws CredentialsException {
+		if (!(spec instanceof IdemixIssueSpecification)) {
+			throw new CredentialsException(
+					"specification is not an IdemixVerifySpecification");
+		}
+		return (IdemixIssueSpecification) spec;
 	}
 
 	private static IdemixNonce castNonce(Nonce nonce) throws CredentialsException {
