@@ -1,6 +1,7 @@
 package org.ru.irma.api.tests.idemix;
 
 import java.io.File;
+import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -13,6 +14,7 @@ import net.sourceforge.scuba.smartcards.TerminalCardService;
 import com.ibm.zurich.credsystem.utils.Locations;
 import com.ibm.zurich.idmx.issuance.IssuanceSpec;
 import com.ibm.zurich.idmx.key.IssuerKeyPair;
+import com.ibm.zurich.idmx.key.IssuerPrivateKey;
 import com.ibm.zurich.idmx.showproof.ProofSpec;
 import com.ibm.zurich.idmx.utils.StructureStore;
 
@@ -58,6 +60,17 @@ public class TestSetup {
     /** The identifier of the credential on the smartcard */
     public static short CRED_NR = (short) 4;
 
+    /** Attribute values */
+    public static final BigInteger ATTRIBUTE_VALUE_1 = BigInteger.valueOf(1313);
+    public static final BigInteger ATTRIBUTE_VALUE_2 = BigInteger.valueOf(1314);
+    public static final BigInteger ATTRIBUTE_VALUE_3 = BigInteger.valueOf(1315);
+    public static final BigInteger ATTRIBUTE_VALUE_4 = BigInteger.valueOf(1316);
+
+    /**
+     * Default PIN of card.
+     */
+    public static final byte[] DEFAULT_PIN = {0x30, 0x30, 0x30, 0x30};
+
     /** This one also sets up the system, but now it doesn't know the private key */
     public static void setupSystem() {
         Locations.initSystem(BASE_LOCATION, BASE_ID.toString());
@@ -66,7 +79,19 @@ public class TestSetup {
         Locations.init(ISSUER_ID.resolve("ipk.xml"), ISSUER_LOCATION.resolve("ipk.xml"));
     }
     
-    /** Setup the system including private key */
+    /** Setup the issuer's private key */
+    public static IssuerPrivateKey setupIssuerPrivateKey() {
+    	IssuerKeyPair ikp = (IssuerKeyPair) Locations.init(ISSUER_SK_LOCATION);
+    	return ikp.getPrivateKey();
+    }
+
+    /**
+	 * Setup the system including private key
+	 * 
+	 * For use with the credentials-api it is not advisable to use initIssuer.
+	 * Using the seperate functions for setting up the material gives a bit more
+	 * control.
+	 */
     public static IssuerKeyPair setupIssuer() {
     	return Locations.initIssuer(BASE_LOCATION, BASE_ID.toString(),
     			ISSUER_SK_LOCATION, ISSUER_PK_LOCATION, ISSUER_ID.resolve("ipk.xml"));

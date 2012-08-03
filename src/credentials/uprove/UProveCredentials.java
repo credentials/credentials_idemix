@@ -41,6 +41,7 @@ import credentials.Attributes;
 import credentials.Credentials;
 import credentials.CredentialsException;
 import credentials.Nonce;
+import credentials.keys.PrivateKey;
 import credentials.spec.IssueSpecification;
 import credentials.spec.VerifySpecification;
 import credentials.uprove.spec.UProveIssueSpecification;
@@ -68,11 +69,13 @@ public class UProveCredentials implements Credentials {
 	 * Issue a credential to the user according to the provided specification
 	 * containing the specified values.
 	 * 
+	 * TODO: WL: actually use the private key
+	 * 
 	 * @param specification of the issuer and the credential to be issued.
 	 * @param values to be stored in the credential.
 	 * @throws CredentialsException if the issuance process fails.
 	 */
-	public void issue(IssueSpecification specification, Attributes values)
+	public void issue(IssueSpecification specification, PrivateKey pkey, Attributes values)
 	throws CredentialsException {
 		if (!(specification instanceof UProveIssueSpecification)) {
 			throw new CredentialsException(

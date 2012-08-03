@@ -1,6 +1,7 @@
 package credentials;
 
 import net.sourceforge.scuba.smartcards.CardService;
+import credentials.keys.PrivateKey;
 import credentials.spec.IssueSpecification;
 import credentials.spec.VerifySpecification;
 
@@ -21,7 +22,7 @@ public abstract class BaseCredentials implements Credentials {
 	}
 
 	@Override
-	public void issue(IssueSpecification specification, Attributes values)
+	public void issue(IssueSpecification specification, PrivateKey isk, Attributes values)
 			throws CredentialsException {
 		// TODO Auto-generated method stub
 

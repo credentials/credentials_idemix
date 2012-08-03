@@ -24,6 +24,7 @@ import java.util.List;
 
 import net.sourceforge.scuba.smartcards.IResponseAPDU;
 
+import credentials.keys.PrivateKey;
 import credentials.spec.IssueSpecification;
 import credentials.spec.VerifySpecification;
 import credentials.Nonce;
@@ -43,12 +44,14 @@ public interface Credentials {
 	 * 
 	 * @param specification
 	 *            of the issuer and the credential to be issued.
+	 * @param secretkey
+	 * 			  of the issuer, to be used when issueing credential.
 	 * @param values
 	 *            to be stored in the credential.
 	 * @throws CredentialsException
 	 *             if the issuance process fails.
 	 */
-	public void issue(IssueSpecification specification, Attributes values)
+	public void issue(IssueSpecification specification, PrivateKey pkey, Attributes values)
 			throws CredentialsException;
 
 	/**

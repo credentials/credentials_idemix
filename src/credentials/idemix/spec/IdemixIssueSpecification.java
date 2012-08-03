@@ -20,11 +20,14 @@
 package credentials.idemix.spec;
 
 import java.math.BigInteger;
+import java.net.URI;
 import java.util.Iterator;
 
 import com.ibm.zurich.idmx.dm.Values;
 import com.ibm.zurich.idmx.issuance.IssuanceSpec;
 import com.ibm.zurich.idmx.key.IssuerKeyPair;
+import com.ibm.zurich.idmx.showproof.ProofSpec;
+import com.ibm.zurich.idmx.utils.StructureStore;
 
 import credentials.Attributes;
 import credentials.spec.IssueSpecification;
@@ -36,6 +39,28 @@ import credentials.spec.IssueSpecification;
  * Idemix specific one which can be used as input for the terminal and library. 
  */
 public class IdemixIssueSpecification extends IssueSpecification {
+	private IssuanceSpec issueSpec;
+	private short credId;
+
+	public IdemixIssueSpecification(IssuanceSpec issueSpec, short credId) {
+		this.issueSpec = issueSpec;
+		this.credId = credId;
+	}
+
+	/**
+	 * Create an IdemixIssueSpecification based on an Idemix Issuance
+	 * Specification XML file.
+	 *
+	 * Note: for now we assume that the system parameters, group parameters
+	 * and issuer public key have already been loaded if you use this version.
+	 */
+	public static IdemixIssueSpecification fromIdemixIssuanceSpec(
+			URI issueSpecLoc, short credId) {
+		IssuanceSpec issueSpec = (IssuanceSpec) StructureStore.getInstance().get(
+				issueSpecLoc);
+
+		return new IdemixIssueSpecification(issueSpec, credId);
+	}
 
 	/**
 	 * Get the IssuerKeyPair that should be used to issue the credential.
@@ -77,5 +102,13 @@ public class IdemixIssueSpecification extends IssueSpecification {
 		}
 		
 		return values;
+	}
+
+	/**
+	 * Returns the short identifier used by the card to locate and identify the
+	 * credential.
+	 */
+	public short getIdemixId() {
+		return credId;
 	}
 }

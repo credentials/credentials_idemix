@@ -1,7 +1,6 @@
 package org.ru.irma.api.tests.idemix;
 
 import java.math.BigInteger;
-import java.util.HashMap;
 import java.util.List;
 
 import javax.smartcardio.CardException;
