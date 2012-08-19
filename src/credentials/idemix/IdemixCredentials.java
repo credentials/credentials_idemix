@@ -76,14 +76,15 @@ public class IdemixCredentials extends BaseCredentials {
 	 *             if the issuance process fails.
 	 */
 	@Override
-	public void issue(IssueSpecification specification, PrivateKey isk,
+	public void issue(IssueSpecification specification, PrivateKey sk,
 			Attributes values) throws CredentialsException {
 		IdemixIssueSpecification spec = castIssueSpecification(specification);
+		IdemixPrivateKey isk = castIdemixPrivateKey(sk);
 
 		setupService(spec);
 
 		// Initialise the issuer
-		Issuer issuer = new Issuer(spec.getIssuerKey(), spec.getIssuanceSpec(),
+		Issuer issuer = new Issuer(isk.getIssuerKeyPair(), spec.getIssuanceSpec(),
 				null, null, spec.getValues(values));
 
 		// Initialise the recipient
@@ -314,6 +315,15 @@ public class IdemixCredentials extends BaseCredentials {
 			throw new CredentialsException("nonce is not an IdemixNonce");
 		}
 		return (IdemixNonce) nonce;
+	}
+
+	private IdemixPrivateKey castIdemixPrivateKey(PrivateKey sk)
+			throws CredentialsException {
+		if (!(sk instanceof IdemixPrivateKey)) {
+			throw new CredentialsException(
+					"PrivateKey is not an IdemixPrivateKey");
+		}
+		return (IdemixPrivateKey) sk;
 	}
 
 	private void setupService(IdemixVerifySpecification spec) {

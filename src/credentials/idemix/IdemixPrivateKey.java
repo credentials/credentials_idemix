@@ -32,8 +32,12 @@ public class IdemixPrivateKey implements PrivateKey {
 		
 		return new IdemixPrivateKey(ikp.getPrivateKey());
 	}
-	
+
 	public IssuerPrivateKey getPrivateKey() {
 		return privateKey;
+	}
+
+	public IssuerKeyPair getIssuerKeyPair() {
+		return new IssuerKeyPair(privateKey);
 	}
 }
