@@ -55,9 +55,8 @@ public class IdemixIssueSpecification extends IssueSpecification {
 	 * and issuer public key have already been loaded if you use this version.
 	 */
 	public static IdemixIssueSpecification fromIdemixIssuanceSpec(
-			URI issueSpecLoc, short credId) {
-		IssuanceSpec issueSpec = (IssuanceSpec) StructureStore.getInstance().get(
-				issueSpecLoc);
+			URI ipkLoc, URI credStructLoc, short credId) {
+		IssuanceSpec issueSpec = new IssuanceSpec(ipkLoc, credStructLoc);
 
 		return new IdemixIssueSpecification(issueSpec, credId);
 	}
@@ -80,9 +79,7 @@ public class IdemixIssueSpecification extends IssueSpecification {
 	 * @return the issuance specification.
 	 */
 	public IssuanceSpec getIssuanceSpec() {
-		// TODO: implement generation of Idemix IssuanceSpec.
-		
-		return new IssuanceSpec(null, null);
+		return issueSpec;
 	}
 	
 	/**
@@ -93,7 +90,7 @@ public class IdemixIssueSpecification extends IssueSpecification {
 	 */
 	public Values getValues(Attributes attributes) {
 		Values values = new Values(
-				getIssuerKey().getPublicKey().getGroupParams().getSystemParams());
+				getIssuanceSpec().getPublicKey().getGroupParams().getSystemParams());
 		
 		Iterator<String> i = attributes.getIdentifiers().iterator();
 		while (i.hasNext()) {
