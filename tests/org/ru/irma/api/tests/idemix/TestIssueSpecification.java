@@ -105,7 +105,10 @@ public class TestIssueSpecification {
 	@Test
 	public void issueCredentialWithCardService() throws CardException, CredentialsException {
 		IdemixIssueSpecification spec = IdemixIssueSpecification
-				.fromIdemixIssuanceSpec(TestSetup.CRED_STRUCT_LOCATION, TestSetup.CRED_NR);
+				.fromIdemixIssuanceSpec(
+						TestSetup.ISSUER_PK_LOCATION,
+						TestSetup.CRED_STRUCT_ID,
+						(short) (TestSetup.CRED_NR + 1));
 
 		IdemixPrivateKey isk = IdemixPrivateKey.fromIdemixPrivateKey(TestSetup.ISSUER_SK_LOCATION);
 
@@ -121,25 +124,34 @@ public class TestIssueSpecification {
 	public void issueCredentialAsync() throws CardException,
 			CredentialsException, CardServiceException {
 		IdemixIssueSpecification spec = IdemixIssueSpecification
-				.fromIdemixIssuanceSpec(TestSetup.CRED_STRUCT_LOCATION, TestSetup.CRED_NR);
+				.fromIdemixIssuanceSpec(
+						TestSetup.ISSUER_PK_LOCATION,
+						TestSetup.CRED_STRUCT_ID,
+						(short) (TestSetup.CRED_NR + 2));
 
-		TestSetup.setupIssuerPrivateKey();
+		IdemixPrivateKey isk = new IdemixPrivateKey(TestSetup.setupIssuerPrivateKey());
 
 		Attributes attributes = getIssuanceAttributes();
 		IdemixCredentials ic = new IdemixCredentials();
 		
 		// Initialize the issuer
-		Issuer issuer = new Issuer(spec.getIssuerKey(), spec.getIssuanceSpec(),
+		Issuer issuer = new Issuer(isk.getIssuerKeyPair(), spec.getIssuanceSpec(),
 				null, null, spec.getValues(attributes));
 		
+		// Handling service here as we need to maintain connection.
+		CardService service = TestSetup.getCardService();
+		service.open();
+
 		List<ProtocolCommand> commands = ic.requestIssueRound1Commands(spec, attributes, issuer);
-		ProtocolResponses responses = executeCommands(commands);
+		ProtocolResponses responses = executeCommands(commands, service);
 		commands = ic.requestIssueRound3Commands(spec, attributes, issuer, responses);
-		responses = executeCommands(commands);
+		responses = executeCommands(commands, service);
+
+		service.close();
 		// Note: no processing of the commands is necessary generally, as long
 		// as errors propagate back up the change
 	}
-	
+
     private Values getIssuanceValues(SystemParameters syspars) {
         Values values = new Values(syspars);
         values.add("attr1", TestSetup.ATTRIBUTE_VALUE_1);
@@ -169,13 +181,9 @@ public class TestIssueSpecification {
         
         return attributes;
     }
-    
-	private ProtocolResponses executeCommands(List<ProtocolCommand> commands)
-			throws CardServiceException, CardException {
-		CardService service = TestSetup.getCardService();
 
-		service.open();
-
+	private ProtocolResponses executeCommands(List<ProtocolCommand> commands,
+			CardService service) throws CardServiceException {
 		ProtocolResponses responses = new ProtocolResponses();
 		for (ProtocolCommand c : commands) {
 			IResponseAPDU response = IdemixService.transmit(service, c.command);
@@ -192,7 +200,6 @@ public class TestIssueSpecification {
 			}
 		}
 
-		service.close();
 		return responses;
 	}
 }
