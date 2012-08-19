@@ -38,14 +38,18 @@ import credentials.idemix.spec.IdemixIssueSpecification;
 public class TestIssueSpecification {
 	
 	@BeforeClass
-	public void trySetMasterSecret() throws CardException, CardServiceException {
+	public static void trySetMasterSecret() throws CardException, CardServiceException {
 		CardService cs = TestSetup.getCardService();
 		
 		IdemixService service = new IdemixService(cs, TestSetup.CRED_NR);
 		
-		service.open();
-		service.generateMasterSecret();
-		service.close();
+		try {
+			service.open();
+			service.generateMasterSecret();
+			service.close();
+		} catch (CardServiceException e) {
+			System.out.println("Setting master secret failed, this is normal except for the first run.");
+		}
 	}
 	
 	@Before
