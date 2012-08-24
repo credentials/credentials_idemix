@@ -120,6 +120,7 @@ public class IdemixCredentials extends BaseCredentials {
 
 	/**
 	 * Get a blank IssueSpecification matching this Credentials provider.
+	 * TODO: Proper implementation or remove it.
 	 * 
 	 * @return a blank specification matching this provider.
 	 */

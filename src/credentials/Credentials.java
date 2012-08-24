@@ -56,6 +56,7 @@ public interface Credentials {
 
 	/**
 	 * Get a blank IssueSpecification matching this Credentials provider.
+	 * TODO: WL: would suggest to remove this.
 	 * 
 	 * @return a blank specification matching this provider.
 	 */
@@ -117,6 +118,7 @@ public interface Credentials {
 
 	/**
 	 * Get a blank VerifySpecification matching this Credentials provider.
+	 * TODO: WL: Would suggest to remove this.
 	 * 
 	 * @return a blank specification matching this provider.
 	 */
