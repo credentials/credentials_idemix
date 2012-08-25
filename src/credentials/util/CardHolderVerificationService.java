@@ -159,23 +159,35 @@ public class CardHolderVerificationService extends CardService {
     	}
     }
 
+    private JDialog createEnterOnPinpadDialog() {
+        JDialog dialog;
+
+        JLabel label = new JLabel("<html>The server requests to authenticate your identity.<br><br>Please enter your PIN using the pinpad of the reader.</html>");
+        JOptionPane pane = new JOptionPane(label, JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION);
+
+        dialog = pane.createDialog("PIN");
+        dialog.setModal(false);
+        dialog.pack();
+        dialog.setVisible(true);
+
+        return dialog;
+    }
+
     private int verifyPinUsingPinpad() 
     throws CardServiceException {
-    	JDialog dialog;
         try {
             setUpReader();
-            JLabel label = new JLabel("<html>The server requests to authenticate your identity.<br><br>Please enter your PIN using the pinpad of the reader.</html>");
-            JOptionPane pane = new JOptionPane(label, JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION);
-            dialog = pane.createDialog("PIN");
-            dialog.setModal(false);
-            dialog.pack();
-            dialog.setVisible(true);
         } catch (Exception e) {
         	e.printStackTrace();
         	throw new CardServiceException("PIN verification failed: " + e.getMessage());
         }
+
+        JDialog dialog = createEnterOnPinpadDialog();
+
         int sw = Integer.parseInt(Hex.toHexString(VERIFY_PIN_DIRECT()), 16);
+
         dialog.setVisible(false);
+
         if (sw == 0x9000) {
             return PIN_OK;
         } else if ((sw & 0xFFF0) == 0x63C0) {
