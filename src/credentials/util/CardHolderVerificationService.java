@@ -69,6 +69,11 @@ public class CardHolderVerificationService extends CardService {
 	private TerminalCardService service;
 	private List<IPinVerificationListener> pinCallbacks;
 	
+	/* Invariant: when no false PIN was entered in the last attempt
+	 * value is null. Otherwise equal to the number of tries left.
+	 */
+	private Integer nrTriesLeft = null;
+
 	public CardHolderVerificationService(TerminalCardService service) {
 		this.service = service;
 	}
@@ -148,8 +153,7 @@ public class CardHolderVerificationService extends CardService {
 
     	if (pinNotifiersPresent()) {
     		for(IPinVerificationListener l : pinCallbacks) {
-    			// TODO: Gracefully handle number of tries left
-    			pinString = l.userPinRequest(null);
+    			pinString = l.userPinRequest(nrTriesLeft);
     		}
     	} else {
     		pinString = requestPinViaDialog();
@@ -159,13 +163,8 @@ public class CardHolderVerificationService extends CardService {
         System.out.println("C: " + Hex.toHexString(c.getBytes()));
         IResponseAPDU r = service.transmit(c);
         System.out.println("R: " + Hex.toHexString(r.getBytes()));
-        if(r.getSW() == 0x9000) {
-        	return PIN_OK;
-        } else if ((r.getSW() & 0xFFF0) == 0x63C0) {
-    		return (r.getSW() & 0x000F);
-    	} else {
-    		throw new CardServiceException("PIN verification failed: " + Hex.bytesToHexString(r.getBytes()));
-    	}
+
+        return processPinResponse(r.getSW());
     }
 
     private JDialog createEnterOnPinpadDialog() {
@@ -195,8 +194,7 @@ public class CardHolderVerificationService extends CardService {
 
         if (pinNotifiersPresent()) {
         	for(IPinVerificationListener l : pinCallbacks) {
-        		// TODO: gracefully handle number of tries left
-        		l.pinPadPinRequired(null);
+        		l.pinPadPinRequired(nrTriesLeft);
         	}
         } else {
         	dialog = createEnterOnPinpadDialog();
@@ -212,17 +210,23 @@ public class CardHolderVerificationService extends CardService {
         	dialog.setVisible(false);
         }
 
-        if (sw == 0x9000) {
-            return PIN_OK;
-        } else if ((sw & 0xFFF0) == 0x63C0) {
-    		return (sw & 0x000F);
-    	} else {
-    		throw new CardServiceException("PIN verification failed: " + Hex.intToHexString(sw));
-    	}
+        return processPinResponse(sw);
     }
 
     private boolean pinNotifiersPresent() {
     	return pinCallbacks.isEmpty();
+    }
+
+    private int processPinResponse(int sw) throws CardServiceException {
+        if(sw == 0x9000) {
+        	nrTriesLeft = null;
+        	return PIN_OK;
+        } else if ((sw & 0xFFF0) == 0x63C0) {
+        	nrTriesLeft = sw & 0x000F;
+    		return nrTriesLeft;
+    	} else {
+    		throw new CardServiceException("PIN verification failed: " + Hex.intToHexString(sw));
+    	}
     }
 
     private static int SCARD_CTL_CODE(int code) {
