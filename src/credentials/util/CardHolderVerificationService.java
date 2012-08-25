@@ -117,7 +117,7 @@ public class CardHolderVerificationService extends CardService {
         }
     }
 
-    private int verifyPinUsingDialog() 
+    private String requestPinViaDialog()
     throws CardServiceException {
         // ask for pin, inform the user
         JPasswordField pinField=new JPasswordField(6);
@@ -132,10 +132,20 @@ public class CardHolderVerificationService extends CardService {
         cc.gridy++;
         panel.add(pinField, cc);
         int result = JOptionPane.showConfirmDialog(null, panel, "PIN", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+
+        // Verify the result
         String pinString = new String(pinField.getPassword());
         if(result != 0 || pinString.length() != 4) {
             throw new CardServiceException("PIN not entered or does not meet requirements");                                        
         }
+
+        return pinString;
+    }
+
+    private int verifyPinUsingDialog()
+    throws CardServiceException {
+    	String pinString = requestPinViaDialog();
+
         ICommandAPDU c = new CommandAPDU(0, 0x20, 0, 0, pinString.getBytes());
         System.out.println("C: " + Hex.toHexString(c.getBytes()));
         IResponseAPDU r = service.transmit(c);
