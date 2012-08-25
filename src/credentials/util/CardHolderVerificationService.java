@@ -7,6 +7,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
+import java.util.List;
 
 import javax.smartcardio.CardException;
 import javax.swing.JDialog;
@@ -66,9 +67,26 @@ public class CardHolderVerificationService extends CardService {
     byte wPINMaxExtraDigitMax = 0x04;         // max pin length 12 digits
     
 	private TerminalCardService service;
+	private List<IPinVerificationListener> pinCallbacks;
 	
 	public CardHolderVerificationService(TerminalCardService service) {
 		this.service = service;
+	}
+
+	/**
+	 * Adds a new listener
+	 * @param cb The listener to add
+	 */
+	public void addPinVerificationListener(IPinVerificationListener cb) {
+		pinCallbacks.add(cb);
+	}
+
+	/**
+	 * Removes a listener
+	 * @param cb The listener to remove
+	 */
+	public void removePinVerificationListener(IPinVerificationListener cb) {
+		pinCallbacks.remove(cb);
 	}
 
 	public void open() throws CardServiceException {
