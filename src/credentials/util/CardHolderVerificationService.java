@@ -144,7 +144,16 @@ public class CardHolderVerificationService extends CardService {
 
     private int verifyPinUsingDialog()
     throws CardServiceException {
-    	String pinString = requestPinViaDialog();
+    	String pinString = null;
+
+    	if (pinNotifiersPresent()) {
+    		for(IPinVerificationListener l : pinCallbacks) {
+    			// TODO: Gracefully handle number of tries left
+    			pinString = l.userPinRequest(null);
+    		}
+    	} else {
+    		pinString = requestPinViaDialog();
+    	}
 
         ICommandAPDU c = new CommandAPDU(0, 0x20, 0, 0, pinString.getBytes());
         System.out.println("C: " + Hex.toHexString(c.getBytes()));
@@ -175,6 +184,8 @@ public class CardHolderVerificationService extends CardService {
 
     private int verifyPinUsingPinpad() 
     throws CardServiceException {
+    	JDialog dialog = null;
+
         try {
             setUpReader();
         } catch (Exception e) {
@@ -182,11 +193,24 @@ public class CardHolderVerificationService extends CardService {
         	throw new CardServiceException("PIN verification failed: " + e.getMessage());
         }
 
-        JDialog dialog = createEnterOnPinpadDialog();
+        if (pinNotifiersPresent()) {
+        	for(IPinVerificationListener l : pinCallbacks) {
+        		// TODO: gracefully handle number of tries left
+        		l.pinPadPinRequired(null);
+        	}
+        } else {
+        	dialog = createEnterOnPinpadDialog();
+        }
 
         int sw = Integer.parseInt(Hex.toHexString(VERIFY_PIN_DIRECT()), 16);
 
-        dialog.setVisible(false);
+        if (pinNotifiersPresent()) {
+        	for(IPinVerificationListener l : pinCallbacks) {
+        		l.pinPadPinEntered();
+        	}
+        } else {
+        	dialog.setVisible(false);
+        }
 
         if (sw == 0x9000) {
             return PIN_OK;
@@ -195,6 +219,10 @@ public class CardHolderVerificationService extends CardService {
     	} else {
     		throw new CardServiceException("PIN verification failed: " + Hex.intToHexString(sw));
     	}
+    }
+
+    private boolean pinNotifiersPresent() {
+    	return pinCallbacks.isEmpty();
     }
 
     private static int SCARD_CTL_CODE(int code) {
