@@ -28,6 +28,8 @@ import com.ibm.zurich.idmx.issuance.Message;
 import com.ibm.zurich.idmx.key.IssuerKeyPair;
 import com.ibm.zurich.idmx.key.IssuerPrivateKey;
 import com.ibm.zurich.idmx.utils.SystemParameters;
+import java.lang.reflect.Field;
+import java.math.BigInteger;
 
 import credentials.Attributes;
 import credentials.CredentialsException;
@@ -150,6 +152,93 @@ public class TestIssuance {
 		service.close();
 		// Note: no processing of the commands is necessary generally, as long
 		// as errors propagate back up the change
+	}
+
+	private BigInteger nonce1;
+
+	@Test
+	public void issueCredentialAsyncSplit() throws CardException,
+			CredentialsException, CardServiceException {
+		// Handling service here as we need to maintain connection.
+		CardService service = TestSetup.getCardService();
+		service.open();
+
+		List<ProtocolCommand> commands = issueCredentialAsyncPart1(service);
+
+		ProtocolResponses responses = executeCommands(commands, service);
+
+		responses = issueCredentialAsyncPart2(service, responses);
+
+		service.close();
+		// Note: no processing of the commands is necessary generally, as long
+		// as errors propagate back up the change
+	}
+
+	private List<ProtocolCommand> issueCredentialAsyncPart1(CardService service)
+			throws CredentialsException, CardServiceException {
+		IdemixIssueSpecification spec = IdemixIssueSpecification
+				.fromIdemixIssuanceSpec(
+						TestSetup.ISSUER_PK_LOCATION,
+						TestSetup.CRED_STRUCT_ID,
+						(short) (TestSetup.CRED_NR + 3));
+
+		IdemixPrivateKey isk = new IdemixPrivateKey(TestSetup.setupIssuerPrivateKey());
+
+		Attributes attributes = getIssuanceAttributes();
+		IdemixCredentials ic = new IdemixCredentials();
+
+		// Initialize the issuer
+		Issuer issuer = new Issuer(isk.getIssuerKeyPair(), spec.getIssuanceSpec(),
+				null, null, spec.getValues(attributes));
+
+		// Run part one of protocol
+		List<ProtocolCommand> commands = ic.requestIssueRound1Commands(spec, attributes, issuer);
+
+		// Save state, this is the nasty part
+		try {
+			Field nonce1Field = Issuer.class.getDeclaredField("nonce1");
+			nonce1Field.setAccessible(true);
+			nonce1 = (BigInteger) nonce1Field.get(issuer);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return commands;
+	}
+
+	private ProtocolResponses issueCredentialAsyncPart2(CardService service,
+			ProtocolResponses responses) throws CredentialsException,
+			CardServiceException {
+		// Setup for next part
+		IdemixIssueSpecification spec = IdemixIssueSpecification
+				.fromIdemixIssuanceSpec(
+						TestSetup.ISSUER_PK_LOCATION,
+						TestSetup.CRED_STRUCT_ID,
+						(short) (TestSetup.CRED_NR + 3));
+
+		IdemixPrivateKey isk = new IdemixPrivateKey(TestSetup.setupIssuerPrivateKey());
+
+		Attributes attributes = getIssuanceAttributes();
+		IdemixCredentials ic = new IdemixCredentials();
+
+		// Initialize the issuer
+		Issuer issuer = new Issuer(isk.getIssuerKeyPair(), spec.getIssuanceSpec(),
+				null, null, spec.getValues(attributes));
+
+		// Restore the state, this is the nasty part
+		try {
+			Field nonce1Field = Issuer.class.getDeclaredField("nonce1");
+			nonce1Field.setAccessible(true);
+			nonce1Field.set(issuer, nonce1);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		// Run next part of protocol
+		List<ProtocolCommand> commands = ic.requestIssueRound3Commands(spec, attributes, issuer, responses);
+		responses = executeCommands(commands, service);
+
+		return responses;
 	}
 
     private Values getIssuanceValues(SystemParameters syspars) {
