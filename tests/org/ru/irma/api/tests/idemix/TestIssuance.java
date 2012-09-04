@@ -35,7 +35,7 @@ import credentials.idemix.IdemixCredentials;
 import credentials.idemix.IdemixPrivateKey;
 import credentials.idemix.spec.IdemixIssueSpecification;
 
-public class TestIssueSpecification {
+public class TestIssuance {
 	
 	@BeforeClass
 	public static void trySetMasterSecret() throws CardException, CardServiceException {
