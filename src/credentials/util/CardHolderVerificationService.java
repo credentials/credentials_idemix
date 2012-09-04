@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Vector;
 
 import javax.smartcardio.CardException;
 import javax.swing.JDialog;
@@ -67,7 +68,7 @@ public class CardHolderVerificationService extends CardService {
     byte wPINMaxExtraDigitMax = 0x04;         // max pin length 12 digits
     
 	private TerminalCardService service;
-	private List<IPinVerificationListener> pinCallbacks;
+	private List<IPinVerificationListener> pinCallbacks = new Vector<IPinVerificationListener>();
 	
 	/* Invariant: when no false PIN was entered in the last attempt
 	 * value is null. Otherwise equal to the number of tries left.
