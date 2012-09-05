@@ -47,4 +47,10 @@ public class Attributes {
 	public Set<String> getIdentifiers() {
 		return attributes.keySet();
 	}
+
+	public void print() {
+		for(String k : attributes.keySet() ) {
+			System.out.println(k + ": " + new String(get(k)));
+		}
+	}
 }
