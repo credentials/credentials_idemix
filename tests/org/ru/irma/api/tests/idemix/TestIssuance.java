@@ -18,6 +18,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import service.IdemixService;
+import service.IdemixSmartcard;
 import service.ProtocolCommand;
 import service.ProtocolResponses;
 
@@ -145,6 +146,9 @@ public class TestIssuance {
 		service.open();
 
 		List<ProtocolCommand> commands = ic.requestIssueRound1Commands(spec, attributes, issuer);
+		commands.add(0, IdemixSmartcard.selectAppletCommand);
+		commands.add(1, IdemixSmartcard.sendPinCommand(TestSetup.DEFAULT_PIN));
+
 		ProtocolResponses responses = executeCommands(commands, service);
 		commands = ic.requestIssueRound3Commands(spec, attributes, issuer, responses);
 		responses = executeCommands(commands, service);
@@ -193,6 +197,8 @@ public class TestIssuance {
 
 		// Run part one of protocol
 		List<ProtocolCommand> commands = ic.requestIssueRound1Commands(spec, attributes, issuer);
+		commands.add(0, IdemixSmartcard.selectAppletCommand);
+		commands.add(1, IdemixSmartcard.sendPinCommand(TestSetup.DEFAULT_PIN));
 
 		// Save state, this is the nasty part
 		try {

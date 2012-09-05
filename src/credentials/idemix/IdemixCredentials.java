@@ -242,12 +242,6 @@ public class IdemixCredentials extends BaseCredentials {
 		ArrayList<ProtocolCommand> commands = new ArrayList<ProtocolCommand>();
 		IdemixIssueSpecification spec = castIssueSpecification(ispec);
 
-		// FIXME: It is very likely that these commands have to be moved to
-		// the client side, especially in asynchronous settings.
-		// FIXME: Client should handle setting the PIN.
-		commands.add(IdemixSmartcard.selectAppletCommand);
-		commands.add(IdemixSmartcard.sendPinCommand(TestSetup.DEFAULT_PIN));
-
 		commands.addAll(IdemixSmartcard.setIssuanceSpecificationCommands(
 				spec.getIssuanceSpec(), spec.getIdemixId()));
 
