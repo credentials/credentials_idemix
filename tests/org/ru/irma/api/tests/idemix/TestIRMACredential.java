@@ -67,7 +67,6 @@ public class TestIRMACredential {
 	@Test
 	public void issueStudentCredential() throws CardException, CredentialsException {
 		IssueCredentialInformation ici = new IssueCredentialInformation("RU", "studentCard");
-		ici.setCredentialNr((short) 11);
 		IdemixIssueSpecification spec = ici.getIdemixIssueSpecification();
 		IdemixPrivateKey isk = ici.getIdemixPrivateKey();
 		
@@ -83,7 +82,6 @@ public class TestIRMACredential {
 	public void verifyStudentCredential() throws CardException, CredentialsException {
 		VerifyCredentialInformation vci = new VerifyCredentialInformation("RU",
 				"studentCard", "RU", "studentCardAll");
-		vci.setCredentialNr((short) 11);
 		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
 
 		CardService cs = TestSetup.getCardService();
@@ -103,7 +101,6 @@ public class TestIRMACredential {
 	@Test
 	public void issueAgeCredential() throws CardException, CredentialsException {
 		IssueCredentialInformation ici = new IssueCredentialInformation("MijnOverheid", "ageLower");
-		ici.setCredentialNr((short) 24);
 		IdemixIssueSpecification spec = ici.getIdemixIssueSpecification();
 		IdemixPrivateKey isk = ici.getIdemixPrivateKey();
 		
@@ -118,7 +115,6 @@ public class TestIRMACredential {
 	public void verifyAgeCredential() throws CardException, CredentialsException {
 		VerifyCredentialInformation vci = new VerifyCredentialInformation("MijnOverheid",
 				"ageLower", "MijnOverheid", "ageLowerAll");
-		vci.setCredentialNr((short) 24);
 		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
 
 		CardService cs = TestSetup.getCardService();
