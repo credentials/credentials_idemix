@@ -14,7 +14,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  * 
- * Copyright (C) Pim Vullers, Radboud University Nijmegen, May 2012.
+ * Copyright (C) Pim Vullers, Radboud University Nijmegen, May 2012
+ * Copyright (C) Wouter Lueks, Radboud University Nijmegen, August 2012.
  */
 
 package credentials.uprove;
