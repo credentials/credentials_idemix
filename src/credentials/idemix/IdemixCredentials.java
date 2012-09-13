@@ -90,6 +90,7 @@ public class IdemixCredentials extends BaseCredentials {
 		// Initialise the recipient
 		try {
 			service.open();
+			// FIXME: Change this!
 			service.sendPin(TestSetup.DEFAULT_PIN);
 			service.setIssuanceSpecification(spec.getIssuanceSpec());
 			service.setAttributes(spec.getIssuanceSpec(),
