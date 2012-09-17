@@ -30,11 +30,16 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Vector;
 
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
+
+import service.ProtocolCommand;
+import service.ProtocolResponse;
 
 import net.sourceforge.scuba.smartcards.APDUWrapper;
 import net.sourceforge.scuba.smartcards.CommandAPDU;
@@ -147,6 +152,18 @@ public class SecureMessagingWrapper implements APDUWrapper, Serializable {
 		}
 	}
 
+	public void wrapAsync(List<ProtocolCommand> commands) {
+		List<ICommandAPDU> result = new Vector<ICommandAPDU>();
+
+		for(ProtocolCommand c : commands) {
+			c.command = (CommandAPDU) wrap(c.command);
+
+			// Perform additional increment of the send sequence counter
+			// as we will decrypt the response at a later point in time.
+			ssc++;
+		}
+	}
+
 	/**
 	 * Unwraps the apdu buffer <code>rapdu</code> of a response apdu.
 	 * 
@@ -173,6 +190,20 @@ public class SecureMessagingWrapper implements APDUWrapper, Serializable {
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
 			throw new IllegalStateException(ioe.toString());
+		}
+	}
+
+	public void unWrapAsync(List<ProtocolResponse> responses, long initial_ssc) {
+		// Restore send sequence counter
+		ssc = initial_ssc;
+
+		for(ProtocolResponse r : responses) {
+			IResponseAPDU rapdu = r.getResponse();
+			r.setResponse(unwrap(rapdu, rapdu.getBytes().length));
+
+			// Perform additional increment of the send sequence counter
+			// as we will decrypt the response at a later point in time.
+			ssc++;
 		}
 	}
 
