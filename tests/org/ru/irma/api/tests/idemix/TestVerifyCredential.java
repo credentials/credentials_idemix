@@ -36,6 +36,7 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 import service.IdemixService;
+import service.IdemixSmartcard;
 import service.ProtocolCommand;
 import service.ProtocolResponses;
 
@@ -121,6 +122,8 @@ public class TestVerifyCredential {
 		System.out.println("Running ASync test now");
 		Nonce nonce = ic.generateNonce(vspec);
 		List<ProtocolCommand> commands = ic.requestProofCommands(vspec, nonce);
+		// FIXME: verify that this actually helps
+		commands.add(0, IdemixSmartcard.selectAppletCommand);
 		ProtocolResponses responses = executeCommands(commands);
 		Attributes attr = ic.verifyProofResponses(vspec, nonce, responses);
 
