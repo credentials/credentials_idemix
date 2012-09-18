@@ -27,9 +27,13 @@ import java.io.File;
 import javax.smartcardio.CardException;
 
 import net.sourceforge.scuba.smartcards.CardService;
+import net.sourceforge.scuba.smartcards.CardServiceException;
+import net.sourceforge.scuba.smartcards.CommandAPDU;
 
 import org.junit.Test;
 import org.junit.BeforeClass;
+
+import service.IdemixService;
 
 import credentials.Attributes;
 import credentials.CredentialsException;
@@ -85,6 +89,19 @@ public class TestIRMACredential {
 	}
 
 	@Test
+	public void removeRootCredential() throws CardException, CredentialsException, CardServiceException {
+		IssueCredentialInformation ici = new IssueCredentialInformation("Surfnet", "root");
+		IdemixIssueSpecification spec = ici.getIdemixIssueSpecification();
+		
+		IdemixService cs = TestSetup.getIdemixService();
+		cs.open();
+		cs.selectApplet();
+		cs.sendPin(TestSetup.DEFAULT_PIN);
+		cs.transmit(new CommandAPDU(0x80, 0x30, 0x00, spec.getIdemixId()));
+		cs.transmit(new CommandAPDU(0x80, 0x31, 0x00, spec.getIdemixId()));
+	}
+
+	@Test
 	public void issueStudentCredential() throws CardException, CredentialsException {
 		IssueCredentialInformation ici = new IssueCredentialInformation("RU", "studentCard");
 		IdemixIssueSpecification spec = ici.getIdemixIssueSpecification();
@@ -119,6 +136,19 @@ public class TestIRMACredential {
 	}
 	
 	@Test
+	public void removeStudentCredential() throws CardException, CredentialsException, CardServiceException {
+		IssueCredentialInformation ici = new IssueCredentialInformation("RU", "studentCard");
+		IdemixIssueSpecification spec = ici.getIdemixIssueSpecification();
+		
+		IdemixService cs = TestSetup.getIdemixService();
+		cs.open();
+		cs.selectApplet();
+		cs.sendPin(TestSetup.DEFAULT_PIN);
+		cs.transmit(new CommandAPDU(0x80, 0x30, 0x00, spec.getIdemixId()));
+		cs.transmit(new CommandAPDU(0x80, 0x31, 0x00, spec.getIdemixId()));
+	}
+
+	@Test
 	public void issueAgeCredential() throws CardException, CredentialsException {
 		IssueCredentialInformation ici = new IssueCredentialInformation("MijnOverheid", "ageLower");
 		IdemixIssueSpecification spec = ici.getIdemixIssueSpecification();
@@ -149,6 +179,19 @@ public class TestIRMACredential {
 		}
 		
 		attr.print();
+	}
+
+	@Test
+	public void removeAgeCredential() throws CardException, CredentialsException, CardServiceException {
+		IssueCredentialInformation ici = new IssueCredentialInformation("MijnOverheid", "ageLower");
+		IdemixIssueSpecification spec = ici.getIdemixIssueSpecification();
+		
+		IdemixService cs = TestSetup.getIdemixService();
+		cs.open();
+		cs.selectApplet();
+		cs.sendPin(TestSetup.DEFAULT_PIN);
+		cs.transmit(new CommandAPDU(0x80, 0x30, 0x00, spec.getIdemixId()));
+		cs.transmit(new CommandAPDU(0x80, 0x31, 0x00, spec.getIdemixId()));
 	}
 
     private Attributes getStudentCardAttributes() {
