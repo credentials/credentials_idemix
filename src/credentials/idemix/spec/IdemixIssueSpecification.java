@@ -27,8 +27,6 @@ import java.util.Iterator;
 import com.ibm.zurich.idmx.dm.Values;
 import com.ibm.zurich.idmx.issuance.IssuanceSpec;
 import com.ibm.zurich.idmx.key.IssuerKeyPair;
-import com.ibm.zurich.idmx.showproof.ProofSpec;
-import com.ibm.zurich.idmx.utils.StructureStore;
 
 import credentials.Attributes;
 import credentials.spec.IssueSpecification;

@@ -21,15 +21,12 @@ package org.ru.irma.api.tests.idemix;
 
 import static org.junit.Assert.*;
 
-import java.util.List;
-
 import javax.smartcardio.CardException;
 import javax.smartcardio.CardTerminal;
 import javax.smartcardio.TerminalFactory;
 
 import net.sourceforge.scuba.smartcards.CardService;
 import net.sourceforge.scuba.smartcards.CardServiceException;
-import net.sourceforge.scuba.smartcards.IResponseAPDU;
 import net.sourceforge.scuba.smartcards.TerminalCardService;
 
 import org.junit.Before;
@@ -38,7 +35,7 @@ import org.junit.Test;
 
 import service.IdemixService;
 import service.IdemixSmartcard;
-import service.ProtocolCommand;
+import service.ProtocolCommands;
 import service.ProtocolResponses;
 
 import com.ibm.zurich.idmx.dm.Values;
@@ -161,16 +158,16 @@ public class TestIssuance {
 				null, null, spec.getValues(attributes));
 		
 		// Handling service here as we need to maintain connection.
-		CardService service = TestSetup.getCardService();
+		IdemixService service = TestSetup.getIdemixService();
 		service.open();
 
-		List<ProtocolCommand> commands = ic.requestIssueRound1Commands(spec, attributes, issuer);
+		ProtocolCommands commands = ic.requestIssueRound1Commands(spec, attributes, issuer);
 		commands.add(0, IdemixSmartcard.selectAppletCommand);
 		commands.add(1, IdemixSmartcard.sendPinCommand(TestSetup.DEFAULT_PIN));
 
-		ProtocolResponses responses = executeCommands(commands, service);
+		ProtocolResponses responses = service.execute(commands);
 		commands = ic.requestIssueRound3Commands(spec, attributes, issuer, responses);
-		responses = executeCommands(commands, service);
+		responses = service.execute(commands);
 
 		service.close();
 		// Note: no processing of the commands is necessary generally, as long
@@ -183,12 +180,12 @@ public class TestIssuance {
 	public void issueCredentialAsyncSplit() throws CardException,
 			CredentialsException, CardServiceException {
 		// Handling service here as we need to maintain connection.
-		CardService service = TestSetup.getCardService();
+		IdemixService service = TestSetup.getIdemixService();
 		service.open();
 
-		List<ProtocolCommand> commands = issueCredentialAsyncPart1(service);
+		ProtocolCommands commands = issueCredentialAsyncPart1(service);
 
-		ProtocolResponses responses = executeCommands(commands, service);
+		ProtocolResponses responses = service.execute(commands);
 
 		responses = issueCredentialAsyncPart2(service, responses);
 
@@ -197,7 +194,7 @@ public class TestIssuance {
 		// as errors propagate back up the change
 	}
 
-	private List<ProtocolCommand> issueCredentialAsyncPart1(CardService service)
+	private ProtocolCommands issueCredentialAsyncPart1(CardService service)
 			throws CredentialsException, CardServiceException {
 		IdemixIssueSpecification spec = IdemixIssueSpecification
 				.fromIdemixIssuanceSpec(
@@ -215,7 +212,7 @@ public class TestIssuance {
 				null, null, spec.getValues(attributes));
 
 		// Run part one of protocol
-		List<ProtocolCommand> commands = ic.requestIssueRound1Commands(spec, attributes, issuer);
+		ProtocolCommands commands = ic.requestIssueRound1Commands(spec, attributes, issuer);
 		commands.add(0, IdemixSmartcard.selectAppletCommand);
 		commands.add(1, IdemixSmartcard.sendPinCommand(TestSetup.DEFAULT_PIN));
 
@@ -231,7 +228,7 @@ public class TestIssuance {
 		return commands;
 	}
 
-	private ProtocolResponses issueCredentialAsyncPart2(CardService service,
+	private ProtocolResponses issueCredentialAsyncPart2(IdemixService service,
 			ProtocolResponses responses) throws CredentialsException,
 			CardServiceException {
 		// Setup for next part
@@ -260,8 +257,8 @@ public class TestIssuance {
 		}
 
 		// Run next part of protocol
-		List<ProtocolCommand> commands = ic.requestIssueRound3Commands(spec, attributes, issuer, responses);
-		responses = executeCommands(commands, service);
+		ProtocolCommands commands = ic.requestIssueRound3Commands(spec, attributes, issuer, responses);
+		responses = service.execute(commands);
 
 		return responses;
 	}
@@ -295,25 +292,4 @@ public class TestIssuance {
         
         return attributes;
     }
-
-	private ProtocolResponses executeCommands(List<ProtocolCommand> commands,
-			CardService service) throws CardServiceException {
-		ProtocolResponses responses = new ProtocolResponses();
-		for (ProtocolCommand c : commands) {
-			IResponseAPDU response = IdemixService.transmit(service, c.command);
-			responses.put(c.key, response);
-			if (response.getSW() != 0x00009000) {
-				// don't bother with the rest of the commands...
-				// TODO: get error message from global table
-				String errorMessage = c.errorMap != null
-						&& c.errorMap.containsKey(response.getSW()) ? c.errorMap
-						.get(response.getSW()) : "";
-				throw new CardServiceException(String.format(
-						"Command failed: \"%s\", SW: %04x (%s)", c.description,
-						response.getSW(), errorMessage));
-			}
-		}
-
-		return responses;
-	}
 }

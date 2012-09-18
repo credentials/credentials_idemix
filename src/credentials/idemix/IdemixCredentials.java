@@ -21,10 +21,8 @@
 package credentials.idemix;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 
 import org.ru.irma.api.tests.idemix.TestSetup;
 
@@ -32,7 +30,7 @@ import net.sourceforge.scuba.smartcards.CardService;
 import net.sourceforge.scuba.smartcards.CardServiceException;
 import service.IdemixService;
 import service.IdemixSmartcard;
-import service.ProtocolCommand;
+import service.ProtocolCommands;
 import service.ProtocolResponses;
 
 import com.ibm.zurich.idmx.issuance.Issuer;
@@ -190,7 +188,7 @@ public class IdemixCredentials extends BaseCredentials {
 	}
 
 	@Override
-	public List<ProtocolCommand> requestProofCommands(
+	public ProtocolCommands requestProofCommands(
 			VerifySpecification specification, Nonce nonce)
 			throws CredentialsException {
 		IdemixVerifySpecification spec = castVerifySpecification(specification);
@@ -238,10 +236,10 @@ public class IdemixCredentials extends BaseCredentials {
 	 *  - We need to deal with the selectApplet and sendPinCommands better.
 	 * @throws CredentialsException
 	 */
-	public List<ProtocolCommand> requestIssueRound1Commands(
+	public ProtocolCommands requestIssueRound1Commands(
 			IssueSpecification ispec, Attributes attributes, Issuer issuer)
 			throws CredentialsException {
-		ArrayList<ProtocolCommand> commands = new ArrayList<ProtocolCommand>();
+		ProtocolCommands commands = new ProtocolCommands();
 		IdemixIssueSpecification spec = castIssueSpecification(ispec);
 
 		commands.addAll(IdemixSmartcard.setIssuanceSpecificationCommands(
@@ -268,8 +266,8 @@ public class IdemixCredentials extends BaseCredentials {
 	 * 
 	 * @throws CredentialsException
 	 */
-	public List<ProtocolCommand> requestIssueRound3Commands(IssueSpecification ispec, Attributes attributes, Issuer issuer, ProtocolResponses responses)
-			throws CredentialsException {
+	public ProtocolCommands requestIssueRound3Commands(IssueSpecification ispec, Attributes attributes, Issuer issuer, ProtocolResponses responses)
+	throws CredentialsException {
 		IdemixIssueSpecification spec = castIssueSpecification(ispec);
 		Message msgToIssuer = IdemixSmartcard.processRound1Responses(responses);
 		Message msgToRecipient2 = issuer.round2(msgToIssuer);

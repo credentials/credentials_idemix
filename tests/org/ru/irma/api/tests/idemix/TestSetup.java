@@ -28,6 +28,8 @@ import javax.smartcardio.CardException;
 import javax.smartcardio.CardTerminal;
 import javax.smartcardio.TerminalFactory;
 
+import service.IdemixService;
+
 import net.sourceforge.scuba.smartcards.TerminalCardService;
 
 import com.ibm.zurich.credsystem.utils.Locations;
@@ -128,6 +130,10 @@ public class TestSetup {
     public static TerminalCardService getCardService() throws CardException {
 		CardTerminal terminal = TerminalFactory.getDefault().terminals().list().get(0);
 		return new TerminalCardService(terminal);
+    }
+    
+    public static IdemixService getIdemixService() throws CardException {
+    	return new IdemixService(getCardService());
     }
 
     // load the proof specification

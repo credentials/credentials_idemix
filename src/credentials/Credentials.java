@@ -20,10 +20,7 @@
 
 package credentials;
 
-import java.util.HashMap;
 import java.util.List;
-
-import net.sourceforge.scuba.smartcards.IResponseAPDU;
 
 import credentials.keys.PrivateKey;
 import credentials.spec.IssueSpecification;

@@ -20,7 +20,6 @@
 package org.ru.irma.api.tests.idemix;
 
 import java.math.BigInteger;
-import java.util.List;
 
 import javax.smartcardio.CardException;
 import javax.smartcardio.CardTerminal;
@@ -28,7 +27,6 @@ import javax.smartcardio.TerminalFactory;
 
 import net.sourceforge.scuba.smartcards.CardService;
 import net.sourceforge.scuba.smartcards.CardServiceException;
-import net.sourceforge.scuba.smartcards.IResponseAPDU;
 import net.sourceforge.scuba.smartcards.TerminalCardService;
 
 import org.junit.Before;
@@ -37,7 +35,7 @@ import static org.junit.Assert.*;
 
 import service.IdemixService;
 import service.IdemixSmartcard;
-import service.ProtocolCommand;
+import service.ProtocolCommands;
 import service.ProtocolResponses;
 
 import com.ibm.zurich.idmx.showproof.Proof;
@@ -119,12 +117,15 @@ public class TestVerifyCredential {
 		IdemixVerifySpecification vspec = IdemixVerifySpecification
 				.fromIdemixProofSpec(TestSetup.PROOF_SPEC_LOCATION, TestSetup.CRED_NR);
 
+		IdemixService service = TestSetup.getIdemixService();
+		service.open();
+
 		System.out.println("Running ASync test now");
 		Nonce nonce = ic.generateNonce(vspec);
-		List<ProtocolCommand> commands = ic.requestProofCommands(vspec, nonce);
+		ProtocolCommands commands = ic.requestProofCommands(vspec, nonce);
 		// FIXME: verify that this actually helps
 		commands.add(0, IdemixSmartcard.selectAppletCommand);
-		ProtocolResponses responses = executeCommands(commands);
+		ProtocolResponses responses = service.execute(commands);
 		Attributes attr = ic.verifyProofResponses(vspec, nonce, responses);
 
 		if (attr == null) {
@@ -134,29 +135,4 @@ public class TestVerifyCredential {
 		}
 	}
 
-	private ProtocolResponses executeCommands(List<ProtocolCommand> commands)
-			throws CardServiceException, CardException {
-		CardService service = TestSetup.getCardService();
-
-		service.open();
-
-		ProtocolResponses responses = new ProtocolResponses();
-		for (ProtocolCommand c : commands) {
-			IResponseAPDU response = IdemixService.transmit(service, c.command);
-			responses.put(c.key, response);
-			if (response.getSW() != 0x00009000) {
-				// don't bother with the rest of the commands...
-				// TODO: get error message from global table
-				String errorMessage = c.errorMap != null
-						&& c.errorMap.containsKey(response.getSW()) ? c.errorMap
-						.get(response.getSW()) : "";
-				throw new CardServiceException(String.format(
-						"Command failed: \"%s\", SW: %04x (%s)", c.description,
-						response.getSW(), errorMessage));
-			}
-		}
-
-		service.close();
-		return responses;
-	}
 }

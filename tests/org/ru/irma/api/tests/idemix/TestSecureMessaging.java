@@ -28,9 +28,6 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Security;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -42,9 +39,7 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.smartcardio.CardException;
 
-import net.sourceforge.scuba.smartcards.CardService;
 import net.sourceforge.scuba.smartcards.CardServiceException;
-import net.sourceforge.scuba.smartcards.IResponseAPDU;
 import net.sourceforge.scuba.smartcards.TerminalCardService;
 import net.sourceforge.scuba.smartcards.WrappingCardService;
 import net.sourceforge.scuba.util.Hex;
@@ -55,9 +50,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import service.IdemixService;
-import service.IdemixSmartcard;
-import service.ProtocolCommand;
-import service.ProtocolResponse;
+import service.ProtocolCommands;
 import service.ProtocolResponses;
 
 import credentials.Attributes;
@@ -127,14 +120,12 @@ public class TestSecureMessaging {
 		CardHolderVerificationService pinpad = new CardHolderVerificationService(terminal);
 		SecureMessagingWrapper sm = new SecureMessagingWrapper(getKey() , getKey() );
 		WrappingCardService wrapper = new WrappingCardService(pinpad, sm);
-		
+		IdemixService idemix = new IdemixService(wrapper);
 		IdemixCredentials ic = new IdemixCredentials(wrapper);
-		wrapper.open();
+		idemix.open();
 
 		// Select Applet
-		List<ProtocolCommand> select_applet = new ArrayList<ProtocolCommand>();
-		select_applet.add(IdemixSmartcard.selectAppletCommand);
-		executeCommands(select_applet, wrapper);
+		idemix.selectApplet();
 
 		// Enable Secure Messaging
 		wrapper.enable();
@@ -142,8 +133,8 @@ public class TestSecureMessaging {
 		// FIXME: We are using async here as well, since we need control over
 		// the open command. This should actually be fixed in the API.
 		Nonce nonce = ic.generateNonce(vspec);
-		List<ProtocolCommand> commands = ic.requestProofCommands(vspec, nonce);
-		ProtocolResponses responses = executeCommands(commands, wrapper);
+		ProtocolCommands commands = ic.requestProofCommands(vspec, nonce);
+		ProtocolResponses responses = idemix.execute(commands);
 		Attributes attr = ic.verifyProofResponses(vspec, nonce, responses);
 
 		if (attr == null) {
@@ -170,14 +161,12 @@ public class TestSecureMessaging {
 		pinpad.open();
 
 		// Select Applet
-		List<ProtocolCommand> select_applet = new ArrayList<ProtocolCommand>();
-		select_applet.add(IdemixSmartcard.selectAppletCommand);
-		executeCommands(select_applet, pinpad);
-	
+		IdemixService idemix = new IdemixService(pinpad);
+		idemix.selectApplet();		
 		System.out.println("Applet selected");
 
 		Nonce nonce = ic.generateNonce(vspec);
-		List<ProtocolCommand> commands = ic.requestProofCommands(vspec, nonce);
+		ProtocolCommands commands = ic.requestProofCommands(vspec, nonce);
 		
 		// Store send sequence counter
 		long ssc = sm.getSendSequenceCounter();
@@ -185,16 +174,10 @@ public class TestSecureMessaging {
 		//Wrap the commands
 		sm.wrapAsync(commands);
 		
-		List<ProtocolResponse> responsesList = executeCommandsList(commands, pinpad);
+		ProtocolResponses responses = idemix.execute(commands);
 		
 		// Unwrap the commands, here we need the send sequence counter
-		sm.unWrapAsync(responsesList, ssc + 1);
-		
-		// Convert responses back for now
-		ProtocolResponses responses = new ProtocolResponses();
-		for(ProtocolResponse r : responsesList) {
-			responses.put(r.getKey(), r.getResponse());
-		}
+		sm.unWrapAsync(commands, responses, ssc + 1);
 		
 		Attributes attr = ic.verifyProofResponses(vspec, nonce, responses);
 
@@ -205,45 +188,5 @@ public class TestSecureMessaging {
 		}
 		
 		attr.print();
-	}
-	
-	private ProtocolResponses executeCommands(List<ProtocolCommand> commands, CardService service)
-			throws CardServiceException, CardException {
-
-		ProtocolResponses responses = new ProtocolResponses();
-		for (ProtocolCommand c : commands) {
-			IResponseAPDU response = executeCommand(c, service);
-			responses.put(c.key, response);
-		}
-
-		return responses;
-	}
-	
-	private List<ProtocolResponse> executeCommandsList(
-			List<ProtocolCommand> commands, CardService service)
-			throws CardServiceException {
-		List<ProtocolResponse> responses = new LinkedList<ProtocolResponse>();
-		for (ProtocolCommand c : commands) {
-			IResponseAPDU response = executeCommand(c, service);
-			responses.add(new ProtocolResponse(c.key, response));
-		}
-
-		return responses;
-	}
-	
-	private IResponseAPDU executeCommand(ProtocolCommand c, CardService service)
-			throws CardServiceException {
-		IResponseAPDU response = IdemixService.transmit(service, c.command);
-		if (response.getSW() != 0x00009000) {
-			// don't bother with the rest of the commands...
-			// TODO: get error message from global table
-			String errorMessage = c.errorMap != null
-					&& c.errorMap.containsKey(response.getSW()) ? c.errorMap
-					.get(response.getSW()) : "";
-			throw new CardServiceException(String.format(
-					"Command failed: \"%s\", SW: %04x (%s)", c.description,
-					response.getSW(), errorMessage));
-		}
-		return response;
 	}
 }

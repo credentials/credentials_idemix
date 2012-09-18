@@ -30,8 +30,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
-import java.util.List;
-import java.util.Vector;
 
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
@@ -39,7 +37,9 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 
 import service.ProtocolCommand;
+import service.ProtocolCommands;
 import service.ProtocolResponse;
+import service.ProtocolResponses;
 
 import net.sourceforge.scuba.smartcards.APDUWrapper;
 import net.sourceforge.scuba.smartcards.CommandAPDU;
@@ -152,11 +152,9 @@ public class SecureMessagingWrapper implements APDUWrapper, Serializable {
 		}
 	}
 
-	public void wrapAsync(List<ProtocolCommand> commands) {
-		List<ICommandAPDU> result = new Vector<ICommandAPDU>();
-
+	public void wrapAsync(ProtocolCommands commands) {
 		for(ProtocolCommand c : commands) {
-			c.command = (CommandAPDU) wrap(c.command);
+			c.setAPDU(wrap(c.getAPDU()));
 
 			// Perform additional increment of the send sequence counter
 			// as we will decrypt the response at a later point in time.
@@ -193,14 +191,19 @@ public class SecureMessagingWrapper implements APDUWrapper, Serializable {
 		}
 	}
 
-	public void unWrapAsync(List<ProtocolResponse> responses, long initial_ssc) {
+	public void unWrapAsync(ProtocolCommands commands, ProtocolResponses responses, long initial_ssc) {
 		// Restore send sequence counter
 		ssc = initial_ssc;
 
-		for(ProtocolResponse r : responses) {
-			IResponseAPDU rapdu = r.getResponse();
-			r.setResponse(unwrap(rapdu, rapdu.getBytes().length));
+		for(ProtocolCommand c : commands) {
+			ProtocolResponse r = responses.get(c.getKey());
+			IResponseAPDU rapdu = r.getAPDU();
+			r.setAPDU(unwrap(rapdu, rapdu.getBytes().length));
 
+			// TODO(PV): Not sure whether this is needed 
+			responses.remove(c.getKey());
+			responses.put(r.getKey(), r);
+			
 			// Perform additional increment of the send sequence counter
 			// as we will decrypt the response at a later point in time.
 			ssc++;
