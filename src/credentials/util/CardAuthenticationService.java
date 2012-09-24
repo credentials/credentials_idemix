@@ -86,7 +86,7 @@ public class CardAuthenticationService extends CardService {
 			macKey = desKeyFactory.generateSecret(new DESedeKeySpec(key));			
 			System.arraycopy(hash, 16, sscBytes, 4, 4);
 			
-			for (int i = 0; i < sscBytes.length; i--) {
+			for (int i = 0; i < sscBytes.length; i++) {
 				ssc = (ssc << 8) | (sscBytes[i] & 0x000000ff);
 			}
 		} catch (Exception e) {
@@ -101,16 +101,4 @@ public class CardAuthenticationService extends CardService {
     		throw new CardServiceException("Secure messaging setup failed: " + e.getMessage());
 		}
     }
-
-	/**
-	 * Derives the ENC or MAC key from the keySeed.
-	 *
-	 * @param keySeed the key seed.
-	 * @param mode either <code>ENC_MODE</code> or <code>MAC_MODE</code>.
-	 * 
-	 * @return the key.
-	 */
-	public static SecretKey deriveKey(byte[] keySeed, int mode)
-	throws CardServiceException {
-	}
 }
