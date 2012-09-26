@@ -157,6 +157,9 @@ public class IdemixCredentials extends BaseCredentials {
 
 		// Construct the proof
 		Proof proof = service.buildProof(nonce, spec.getProofSpec());
+		if (proof == null) {
+			throw new CredentialsException("Failed to generate proof.");
+		}
 
 		// Initialise the verifier and verify the proof
 		Verifier verifier = new Verifier(spec.getProofSpec(), proof, nonce);
@@ -207,7 +210,9 @@ public class IdemixCredentials extends BaseCredentials {
 		// Create the proof
 		Proof proof = IdemixSmartcard.processBuildProofResponses(responses,
 				spec.getProofSpec());
-
+		if (proof == null) {
+			throw new CredentialsException("Failed to generate proof.");
+		}
 		// Initialize the verifier and verify the proof
 		Verifier verifier = new Verifier(spec.getProofSpec(), proof,
 				n.getNonce());
