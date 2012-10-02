@@ -2,9 +2,7 @@ package credentials.util;
 
 import java.math.BigInteger;
 
-import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Random;
 
 import javax.crypto.SecretKey;
