@@ -43,8 +43,6 @@ import service.ProtocolResponses;
 
 import net.sourceforge.scuba.smartcards.APDUWrapper;
 import net.sourceforge.scuba.smartcards.CommandAPDU;
-import net.sourceforge.scuba.smartcards.ICommandAPDU;
-import net.sourceforge.scuba.smartcards.IResponseAPDU;
 import net.sourceforge.scuba.smartcards.ISO7816;
 import net.sourceforge.scuba.smartcards.ResponseAPDU;
 import net.sourceforge.scuba.tlv.TLVUtil;
@@ -140,7 +138,7 @@ public class SecureMessagingWrapper implements APDUWrapper, Serializable {
 	 *
 	 * @return length of the command apdu after wrapping.
 	 */
-	public ICommandAPDU wrap(ICommandAPDU commandAPDU) {
+	public CommandAPDU wrap(CommandAPDU commandAPDU) {
 		try {
 			return wrapCommandAPDU(commandAPDU);
 		} catch (GeneralSecurityException gse) {
@@ -173,7 +171,7 @@ public class SecureMessagingWrapper implements APDUWrapper, Serializable {
 	 * @return a new byte array containing the unwrapped buffer.
 	 */
 	@Override
-	public IResponseAPDU unwrap(IResponseAPDU responseAPDU, int len) {
+	public ResponseAPDU unwrap(ResponseAPDU responseAPDU, int len) {
 		try {
 			byte[] rapdu =  responseAPDU.getBytes();
 			if (rapdu.length == 2) {
@@ -197,7 +195,7 @@ public class SecureMessagingWrapper implements APDUWrapper, Serializable {
 
 		for(ProtocolCommand c : commands) {
 			ProtocolResponse r = responses.get(c.getKey());
-			IResponseAPDU rapdu = r.getAPDU();
+			ResponseAPDU rapdu = r.getAPDU();
 			r.setAPDU(unwrap(rapdu, rapdu.getBytes().length));
 
 			// TODO(PV): Not sure whether this is needed 
@@ -222,7 +220,7 @@ public class SecureMessagingWrapper implements APDUWrapper, Serializable {
 	 */
 	/*@ requires apdu != null && 4 <= len && len <= apdu.length;
 	 */
-	private ICommandAPDU wrapCommandAPDU(ICommandAPDU cAcc)
+	private CommandAPDU wrapCommandAPDU(CommandAPDU cAcc)
 	throws GeneralSecurityException, IOException {
 		int lc = cAcc.getNc();
 		int le = cAcc.getNe();

@@ -12,8 +12,7 @@ import javax.crypto.spec.DESedeKeySpec;
 import net.sourceforge.scuba.smartcards.CardService;
 import net.sourceforge.scuba.smartcards.CardServiceException;
 import net.sourceforge.scuba.smartcards.CommandAPDU;
-import net.sourceforge.scuba.smartcards.ICommandAPDU;
-import net.sourceforge.scuba.smartcards.IResponseAPDU;
+import net.sourceforge.scuba.smartcards.ResponseAPDU;
 
 public class CardAuthenticationService extends CardService {
 
@@ -35,7 +34,7 @@ public class CardAuthenticationService extends CardService {
 		return service.isOpen();
 	}
 
-	public IResponseAPDU transmit(ICommandAPDU capdu)
+	public ResponseAPDU transmit(CommandAPDU capdu)
 	throws CardServiceException {
 		return service.transmit(capdu);
 	}
@@ -52,8 +51,8 @@ public class CardAuthenticationService extends CardService {
     	byte[] terminalSeedBytes = terminalSeedInt.toByteArray();
     	byte[] terminalSeed = new byte[128];
     	System.arraycopy(terminalSeedBytes, 0, terminalSeed, terminalSeed.length - terminalSeedBytes.length, terminalSeedBytes.length);
-    	ICommandAPDU command = new CommandAPDU(CLA_ISO7816, INS_ISO7816_INTERNAL_AUTHENTICATE, 0x00, 0x00, terminalSeed);
-    	IResponseAPDU response = service.transmit(command);
+    	CommandAPDU command = new CommandAPDU(CLA_ISO7816, INS_ISO7816_INTERNAL_AUTHENTICATE, 0x00, 0x00, terminalSeed);
+    	ResponseAPDU response = service.transmit(command);
     	if (response.getSW() != 0x9000) {
     		throw new CardServiceException("Card authentication failed.");
     	}
