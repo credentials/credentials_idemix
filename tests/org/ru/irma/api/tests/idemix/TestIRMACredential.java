@@ -116,7 +116,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
-	public void verifyStudentCredential() throws CardException, CredentialsException {
+	public void verifyStudentCredentialAll() throws CardException, CredentialsException {
 		VerifyCredentialInformation vci = new VerifyCredentialInformation("RU",
 				"studentCard", "RU", "studentCardAll");
 		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
@@ -134,7 +134,26 @@ public class TestIRMACredential {
 		
 		attr.print();
 	}
-	
+
+	@Test
+	public void verifyStudentCredentialNone() throws CardException, CredentialsException {
+		VerifyCredentialInformation vci = new VerifyCredentialInformation("RU",
+				"studentCard", "RU", "studentCardNone");
+		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
+
+		CardService cs = TestSetup.getCardService();
+		IdemixCredentials ic = new IdemixCredentials(cs);
+
+		Attributes attr = ic.verify(vspec);
+		
+		if (attr == null) {
+			fail("The proof does not verify");
+		} else {
+			System.out.println("Proof verified");
+		}
+		
+		attr.print();
+	}
 	@Test
 	public void removeStudentCredential() throws CardException, CredentialsException, CardServiceException {
 		IssueCredentialInformation ici = new IssueCredentialInformation("RU", "studentCard");
@@ -162,7 +181,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
-	public void verifyAgeCredential() throws CardException, CredentialsException {
+	public void verifyAgeCredentialAll() throws CardException, CredentialsException {
 		VerifyCredentialInformation vci = new VerifyCredentialInformation("MijnOverheid",
 				"ageLower", "MijnOverheid", "ageLowerAll");
 		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
@@ -181,6 +200,26 @@ public class TestIRMACredential {
 		attr.print();
 	}
 
+	@Test
+	public void verifyAgeCredentialNone() throws CardException, CredentialsException {
+		VerifyCredentialInformation vci = new VerifyCredentialInformation("MijnOverheid",
+				"ageLower", "MijnOverheid", "ageLowerNone");
+		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
+
+		CardService cs = TestSetup.getCardService();
+		IdemixCredentials ic = new IdemixCredentials(cs);
+
+		Attributes attr = ic.verify(vspec);
+		
+		if (attr == null) {
+			fail("The proof does not verify");
+		} else {
+			System.out.println("Proof verified");
+		}
+		
+		attr.print();
+	}
+	
 	@Test
 	public void removeAgeCredential() throws CardException, CredentialsException, CardServiceException {
 		IssueCredentialInformation ici = new IssueCredentialInformation("MijnOverheid", "ageLower");
