@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project name="Idemix terminal service" default="all">
+<project name="Credentials API" default="all">
   
   <property file="build.properties" />
 
@@ -11,6 +11,12 @@
 
   <target name="clean">
     <delete dir="${bin.dir}" />
+  </target>
+
+  <target name="distclean" depends="clean">
+    <delete file="${jar.development.dir}/${jar.development.archive}" />
+    <delete file="${jar.library.dir}/${jar.library.archive}" />
+    <delete file="${jar.source.dir}/${jar.source.archive}" />
   </target>
 
   <target name="compile">
