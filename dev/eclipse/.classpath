@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="tests"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/idemix_terminal"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/idemix_library"/>
-	<classpathentry kind="src" path="/uprove_terminal"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/uprove_sdk"/>
 	<classpathentry kind="src" path="/scuba_smartcards"/>
 	<classpathentry kind="src" path="/scuba_sc_j2se"/>
 	<classpathentry kind="lib" path="lib/bcprov-jdk15on-147.jar"/>
