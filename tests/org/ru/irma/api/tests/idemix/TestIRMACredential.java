@@ -45,7 +45,6 @@ import credentials.idemix.util.CredentialInformation;
 import credentials.idemix.util.IssueCredentialInformation;
 import credentials.idemix.util.VerifyCredentialInformation;
 
-
 public class TestIRMACredential {
 	@BeforeClass
 	public static void initializeInformation() {
@@ -69,9 +68,29 @@ public class TestIRMACredential {
 	}
 
 	@Test
-	public void verifyRootCredential() throws CardException, CredentialsException {
+	public void verifyRootCredentialAll() throws CardException, CredentialsException {
 		VerifyCredentialInformation vci = new VerifyCredentialInformation(
 				"Surfnet", "root", "Surfnet", "rootAll");
+		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
+
+		CardService cs = TestSetup.getCardService();
+		IdemixCredentials ic = new IdemixCredentials(cs);
+
+		Attributes attr = ic.verify(vspec);
+		
+		if (attr == null) {
+			fail("The proof does not verify");
+		} else {
+			System.out.println("Proof verified");
+		}
+		
+		attr.print();
+	}
+
+	@Test
+	public void verifyRootCredentialNone() throws CardException, CredentialsException {
+		VerifyCredentialInformation vci = new VerifyCredentialInformation(
+				"Surfnet", "root", "Surfnet", "rootNone");
 		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
 
 		CardService cs = TestSetup.getCardService();
