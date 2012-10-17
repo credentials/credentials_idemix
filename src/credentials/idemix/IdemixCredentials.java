@@ -179,6 +179,12 @@ public class IdemixCredentials extends BaseCredentials {
 			attributes.add(id, values.get(id).toByteArray());
 		}
 
+		long expiryWeek = new BigInteger(1, attributes.get("expiry")).longValue();
+		
+		if (expiryWeek <= Timestamp.getWeek()) {
+			throw new CredentialsException("The credential has expired.");
+		}
+		
 		return attributes;
 	}
 
