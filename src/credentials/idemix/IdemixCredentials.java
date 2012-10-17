@@ -48,6 +48,7 @@ import credentials.idemix.spec.IdemixVerifySpecification;
 import credentials.keys.PrivateKey;
 import credentials.spec.IssueSpecification;
 import credentials.spec.VerifySpecification;
+import credentials.util.Timestamp;
 
 /**
  * An Idemix specific implementation of the credentials interface.
@@ -79,6 +80,8 @@ public class IdemixCredentials extends BaseCredentials {
 			Attributes values) throws CredentialsException {
 		IdemixIssueSpecification spec = castIssueSpecification(specification);
 		IdemixPrivateKey isk = castIdemixPrivateKey(sk);
+
+        values.add("expiry", BigInteger.valueOf(Timestamp.getWeekOffset(52)).toByteArray());
 
 		setupService(spec);
 
