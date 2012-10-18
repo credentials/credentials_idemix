@@ -37,6 +37,10 @@ import com.ibm.zurich.idmx.issuance.Issuer;
 import com.ibm.zurich.idmx.issuance.Message;
 import com.ibm.zurich.idmx.showproof.Proof;
 import com.ibm.zurich.idmx.showproof.Verifier;
+import com.ibm.zurich.idmx.showproof.predicates.CLPredicate;
+import com.ibm.zurich.idmx.showproof.predicates.Predicate;
+import com.ibm.zurich.idmx.showproof.predicates.Predicate.PredicateType;
+import com.ibm.zurich.idmx.utils.Constants;
 import com.ibm.zurich.idmx.utils.SystemParameters;
 
 import credentials.Attributes;
@@ -173,16 +177,27 @@ public class IdemixCredentials extends BaseCredentials {
 		// Return the attributes that have been revealed during the proof
 		Attributes attributes = new Attributes();
 		HashMap<String, BigInteger> values = verifier.getRevealedValues();
-		Iterator<String> i = values.keySet().iterator();
-		while (i.hasNext()) {
-			String id = i.next();
-			attributes.add(id, values.get(id).toByteArray());
-		}
-
-		long expiryWeek = new BigInteger(1, attributes.get("expiry")).longValue();
 		
-		if (expiryWeek <= Timestamp.getWeek()) {
-			throw new CredentialsException("The credential has expired.");
+		// First determine the prefix that needs to be stripped from the name
+		String prefix = "";
+		for (Predicate pred : spec.getProofSpec().getPredicates()) {
+			if (pred.getPredicateType() == PredicateType.CL) {
+				prefix = ((CLPredicate) pred).getTempCredName() + Constants.DELIMITER;
+				break;
+			}
+		}
+		
+		// Verify the expiry attribute, and store the other attributes
+		for (String id : values.keySet()) {
+			String name = id.replace(prefix, "");
+			if (name.equalsIgnoreCase("expiry")) {
+				if (values.get(id).longValue() <= Timestamp.getWeek()) {
+					System.err.println("Credential expired!");
+					throw new CredentialsException("The credential has expired.");
+				}
+			} else {
+				attributes.add(name, values.get(id).toByteArray());
+			}
 		}
 		
 		return attributes;
@@ -282,9 +297,13 @@ public class IdemixCredentials extends BaseCredentials {
 	 */
 	public ProtocolCommands requestIssueRound3Commands(IssueSpecification ispec, Attributes attributes, Issuer issuer, ProtocolResponses responses)
 	throws CredentialsException {
+		return requestIssueRound3Commands(ispec, attributes, issuer, responses, null);
+	}
+	public ProtocolCommands requestIssueRound3Commands(IssueSpecification ispec, Attributes attributes, Issuer issuer, ProtocolResponses responses, BigInteger nonce)
+	throws CredentialsException {
 		IdemixIssueSpecification spec = castIssueSpecification(ispec);
 		Message msgToIssuer = IdemixSmartcard.processRound1Responses(responses);
-		Message msgToRecipient2 = issuer.round2(msgToIssuer);
+		Message msgToRecipient2 = nonce == null ? issuer.round2(msgToIssuer) : issuer.round2(nonce, msgToIssuer);
 		return IdemixSmartcard.round3Commands(spec.getIssuanceSpec(), msgToRecipient2);
 	}
 
