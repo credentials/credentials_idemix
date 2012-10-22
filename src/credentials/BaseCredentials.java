@@ -19,10 +19,14 @@
 
 package credentials;
 
+import java.util.List;
+import java.util.Vector;
+
 import net.sourceforge.scuba.smartcards.CardService;
 import credentials.keys.PrivateKey;
 import credentials.spec.IssueSpecification;
 import credentials.spec.VerifySpecification;
+import credentials.util.LogEntry;
 
 public abstract class BaseCredentials implements Credentials {
 	protected CardService cs = null;
@@ -40,6 +44,40 @@ public abstract class BaseCredentials implements Credentials {
 		this.cs = cs;
 	}
 
+	/**
+	 * Get a list of credentials available on the card.
+	 * 
+	 * @return list of credential identifiers.
+	 */
+	public List<Integer> getCredentials() {
+		List<Integer> list = new Vector<Integer>();
+		
+		return list;
+	}
+	
+	/**
+	 * Get the attribute values stored on the card for the given credential.
+	 *  
+	 * @param credential identifier.
+	 * @return attributes for the given credential.
+	 */
+	public Attributes getAttributes(short credentialID) {
+		Attributes attributes = new Attributes();
+		
+		return attributes;
+	}
+	
+	/**
+	 * Get the transaction log from the card.
+	 * 
+	 * @return list of log entries from the card.
+	 */
+	public List<LogEntry> getLog() {
+		List<LogEntry> log = new Vector<LogEntry>();
+		
+		return log;
+	}
+	
 	@Override
 	public void issue(IssueSpecification specification, PrivateKey isk, Attributes values)
 			throws CredentialsException {
