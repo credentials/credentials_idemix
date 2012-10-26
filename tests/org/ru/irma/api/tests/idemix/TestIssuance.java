@@ -122,7 +122,7 @@ public class TestIssuance {
 	}
 	
 	@Test
-	public void issueCredentialWithCardService() throws CardException, CredentialsException {
+	public void issueCredentialWithCardService() throws CardException, CredentialsException, CardServiceException {
 		IdemixIssueSpecification spec = IdemixIssueSpecification
 				.fromIdemixIssuanceSpec(
 						TestSetup.ISSUER_PK_LOCATION,
@@ -131,9 +131,10 @@ public class TestIssuance {
 
 		IdemixPrivateKey isk = IdemixPrivateKey.fromIdemixPrivateKey(TestSetup.ISSUER_SK_LOCATION);
 
-		CardService cs = TestSetup.getCardService();
-		IdemixCredentials ic = new IdemixCredentials(cs);
-		
+		IdemixService is = new IdemixService(TestSetup.getCardService());
+		IdemixCredentials ic = new IdemixCredentials(is);
+		ic.issuePrepare();
+		is.sendPin(TestSetup.DEFAULT_PIN);
 		Attributes attributes = getIssuanceAttributes();
 
 		ic.issue(spec, isk, attributes, null);

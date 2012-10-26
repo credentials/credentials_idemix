@@ -54,14 +54,15 @@ public class TestIRMACredential {
 	}
 
 	@Test
-	public void issueRootCredential() throws CardException, CredentialsException {
+	public void issueRootCredential() throws CardException, CredentialsException, CardServiceException {
 		IssueCredentialInformation ici = new IssueCredentialInformation("Surfnet", "root");
 		IdemixIssueSpecification spec = ici.getIdemixIssueSpecification();
 		IdemixPrivateKey isk = ici.getIdemixPrivateKey();
 		
-		CardService cs = TestSetup.getCardService();
-		IdemixCredentials ic = new IdemixCredentials(cs);
-		
+		IdemixService is = new IdemixService(TestSetup.getCardService());
+		IdemixCredentials ic = new IdemixCredentials(is);
+		ic.issuePrepare();
+		is.sendPin(TestSetup.DEFAULT_PIN);
 		Attributes attributes = getSurfnetAttributes();
 
 		ic.issue(spec, isk, attributes, null);
@@ -121,14 +122,15 @@ public class TestIRMACredential {
 	}
 
 	@Test
-	public void issueStudentCredential() throws CardException, CredentialsException {
+	public void issueStudentCredential() throws CardException, CredentialsException, CardServiceException {
 		IssueCredentialInformation ici = new IssueCredentialInformation("RU", "studentCard");
 		IdemixIssueSpecification spec = ici.getIdemixIssueSpecification();
 		IdemixPrivateKey isk = ici.getIdemixPrivateKey();
 		
-		CardService cs = TestSetup.getCardService();
-		IdemixCredentials ic = new IdemixCredentials(cs);
-		
+		IdemixService is = new IdemixService(TestSetup.getCardService());
+		IdemixCredentials ic = new IdemixCredentials(is);
+		ic.issuePrepare();
+		is.sendPin(TestSetup.DEFAULT_PIN);
 		Attributes attributes = getStudentCardAttributes();
 
 		ic.issue(spec, isk, attributes, null);
@@ -187,15 +189,16 @@ public class TestIRMACredential {
 	}
 
 	@Test
-	public void issueAgeCredential() throws CardException, CredentialsException {
+	public void issueAgeCredential() throws CardException, CredentialsException, CardServiceException {
 		IssueCredentialInformation ici = new IssueCredentialInformation("MijnOverheid", "ageLower");
 		IdemixIssueSpecification spec = ici.getIdemixIssueSpecification();
 		IdemixPrivateKey isk = ici.getIdemixPrivateKey();
 		
-		CardService cs = TestSetup.getCardService();
-		IdemixCredentials ic = new IdemixCredentials(cs);
+		IdemixService is = new IdemixService(TestSetup.getCardService());
+		IdemixCredentials ic = new IdemixCredentials(is);
+		ic.issuePrepare();
+		is.sendPin(TestSetup.DEFAULT_PIN);
 		Attributes attributes = getAgeAttributes();
-
 		ic.issue(spec, isk, attributes, null);
 	}
 
