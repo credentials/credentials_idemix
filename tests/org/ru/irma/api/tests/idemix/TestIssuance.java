@@ -136,7 +136,7 @@ public class TestIssuance {
 		
 		Attributes attributes = getIssuanceAttributes();
 
-		ic.issue(spec, isk, attributes);
+		ic.issue(spec, isk, attributes, null);
 	}
 	
 	@Test
@@ -151,7 +151,7 @@ public class TestIssuance {
 		IdemixPrivateKey isk = new IdemixPrivateKey(TestSetup.setupIssuerPrivateKey());
 
 		Attributes attributes = getIssuanceAttributes();
-		IdemixCredentials ic = new IdemixCredentials();
+		IdemixCredentials ic = new IdemixCredentials(null);
 		
 		// Initialize the issuer
 		Issuer issuer = new Issuer(isk.getIssuerKeyPair(), spec.getIssuanceSpec(),
@@ -205,7 +205,7 @@ public class TestIssuance {
 		IdemixPrivateKey isk = new IdemixPrivateKey(TestSetup.setupIssuerPrivateKey());
 
 		Attributes attributes = getIssuanceAttributes();
-		IdemixCredentials ic = new IdemixCredentials();
+		IdemixCredentials ic = new IdemixCredentials(null);
 
 		// Initialize the issuer
 		Issuer issuer = new Issuer(isk.getIssuerKeyPair(), spec.getIssuanceSpec(),
@@ -241,7 +241,7 @@ public class TestIssuance {
 		IdemixPrivateKey isk = new IdemixPrivateKey(TestSetup.setupIssuerPrivateKey());
 
 		Attributes attributes = getIssuanceAttributes();
-		IdemixCredentials ic = new IdemixCredentials();
+		IdemixCredentials ic = new IdemixCredentials(null);
 
 		// Initialize the issuer
 		Issuer issuer = new Issuer(isk.getIssuerKeyPair(), spec.getIssuanceSpec(),

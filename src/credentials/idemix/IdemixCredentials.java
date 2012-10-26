@@ -21,10 +21,10 @@
 package credentials.idemix;
 
 import java.math.BigInteger;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
-
-import org.ru.irma.api.tests.idemix.TestSetup;
 
 import net.sourceforge.scuba.smartcards.CardService;
 import net.sourceforge.scuba.smartcards.CardServiceException;
@@ -52,42 +52,62 @@ import credentials.idemix.spec.IdemixVerifySpecification;
 import credentials.keys.PrivateKey;
 import credentials.spec.IssueSpecification;
 import credentials.spec.VerifySpecification;
-import credentials.util.Timestamp;
 
 /**
  * An Idemix specific implementation of the credentials interface.
  */
 public class IdemixCredentials extends BaseCredentials {
+	/**
+	 * Precision factor for the expiry attribute, 1 means millisecond precision.
+	 */
+	final static long EXPIRY_FACTOR = 1000 * 60 * 60 * 24;
+	
 	IdemixService service = null;
-
-	public IdemixCredentials() {
-		// TODO
-	}
 
 	public IdemixCredentials(CardService cs) {
 		super(cs);
 	}
 
+	public void issuePrepare() 
+	throws CredentialsException {
+		try {
+			service = new IdemixService(cs);
+			service.open();
+		} catch (CardServiceException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	/**
 	 * Issue a credential to the user according to the provided specification
 	 * containing the specified values.
+	 * 
+	 * This method requires the Idemix application to be selected and the card 
+	 * holder to be verified (if this is required by the card).
 	 *
 	 * @param specification
 	 *            of the issuer and the credential to be issued.
 	 * @param values
 	 *            to be stored in the credential.
+	 * @param expires
+	 *            at this date, or after 6 months if null.
 	 * @throws CredentialsException
 	 *             if the issuance process fails.
 	 */
 	@Override
 	public void issue(IssueSpecification specification, PrivateKey sk,
-			Attributes values) throws CredentialsException {
+			Attributes values, Date expiry) throws CredentialsException {
 		IdemixIssueSpecification spec = castIssueSpecification(specification);
 		IdemixPrivateKey isk = castIdemixPrivateKey(sk);
 
-        values.add("expiry", BigInteger.valueOf(Timestamp.getWeekOffset(52)).toByteArray());
-
-		setupService(spec);
+		Calendar expires = Calendar.getInstance();
+		if (expiry != null) {
+			expires.setTime(expiry);
+		} else {
+			expires.add(Calendar.MONTH, 6);
+		}
+        values.add("expiry", BigInteger.valueOf(
+        		expires.getTimeInMillis() / EXPIRY_FACTOR).toByteArray());
 
 		// Initialise the issuer
 		Issuer issuer = new Issuer(isk.getIssuerKeyPair(), spec.getIssuanceSpec(),
@@ -95,12 +115,9 @@ public class IdemixCredentials extends BaseCredentials {
 
 		// Initialise the recipient
 		try {
-			service.open();
-			// FIXME: Change this!
-			service.sendPin(TestSetup.DEFAULT_PIN);
+			service.setCredential(spec.getIdemixId());
 			service.setIssuanceSpecification(spec.getIssuanceSpec());
-			service.setAttributes(spec.getIssuanceSpec(),
-					spec.getValues(values));
+			service.setAttributes(spec.getIssuanceSpec(), spec.getValues(values));
 		} catch (CardServiceException e) {
 			throw new CredentialsException(
 					"Failed to issue the credential (SCUBA)");
@@ -148,21 +165,12 @@ public class IdemixCredentials extends BaseCredentials {
 			throws CredentialsException {
 		IdemixVerifySpecification spec = castVerifySpecification(specification);
 
-		setupService(spec);
-
 		// Get a nonce from the verifier
 		BigInteger nonce = Verifier.getNonce(spec.getProofSpec()
 				.getGroupParams().getSystemParams());
 
-		// Initialise the prover
-		try {
-			service.open();
-		} catch (CardServiceException e) {
-			throw new CredentialsException(
-					"Failed to verify the attributes (SCUBA)");
-		}
-
 		// Construct the proof
+		service.setCredential(spec.getIdemixId());
 		Proof proof = service.buildProof(nonce, spec.getProofSpec());
 		if (proof == null) {
 			throw new CredentialsException("Failed to generate proof.");
@@ -191,7 +199,9 @@ public class IdemixCredentials extends BaseCredentials {
 		for (String id : values.keySet()) {
 			String name = id.replace(prefix, "");
 			if (name.equalsIgnoreCase("expiry")) {
-				if (values.get(id).longValue() <= Timestamp.getWeek()) {
+				Calendar expires = Calendar.getInstance();
+				expires.setTimeInMillis(values.get(id).longValue() * EXPIRY_FACTOR);
+				if (Calendar.getInstance().after(expires)) {
 					System.err.println("Credential expired!");
 					throw new CredentialsException("The credential has expired.");
 				}
@@ -352,13 +362,5 @@ public class IdemixCredentials extends BaseCredentials {
 					"PrivateKey is not an IdemixPrivateKey");
 		}
 		return (IdemixPrivateKey) sk;
-	}
-
-	private void setupService(IdemixVerifySpecification spec) {
-		service = new IdemixService(cs, spec.getIdemixId());
-	}
-
-	private void setupService(IdemixIssueSpecification spec) {
-		service = new IdemixService(cs, spec.getIdemixId());
 	}
 }

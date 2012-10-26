@@ -19,6 +19,7 @@
 
 package credentials;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Vector;
 
@@ -79,7 +80,7 @@ public abstract class BaseCredentials implements Credentials {
 	}
 	
 	@Override
-	public void issue(IssueSpecification specification, PrivateKey isk, Attributes values)
+	public void issue(IssueSpecification specification, PrivateKey isk, Attributes values, Date expires)
 			throws CredentialsException {
 		// TODO Auto-generated method stub
 

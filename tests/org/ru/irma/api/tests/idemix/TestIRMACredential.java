@@ -64,7 +64,7 @@ public class TestIRMACredential {
 		
 		Attributes attributes = getSurfnetAttributes();
 
-		ic.issue(spec, isk, attributes);
+		ic.issue(spec, isk, attributes, null);
 	}
 
 	@Test
@@ -131,7 +131,7 @@ public class TestIRMACredential {
 		
 		Attributes attributes = getStudentCardAttributes();
 
-		ic.issue(spec, isk, attributes);
+		ic.issue(spec, isk, attributes, null);
 	}
 
 	@Test
@@ -196,7 +196,7 @@ public class TestIRMACredential {
 		IdemixCredentials ic = new IdemixCredentials(cs);
 		Attributes attributes = getAgeAttributes();
 
-		ic.issue(spec, isk, attributes);
+		ic.issue(spec, isk, attributes, null);
 	}
 
 	@Test

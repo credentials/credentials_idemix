@@ -112,7 +112,7 @@ public class TestVerifyCredential {
 
 	@Test
 	public void verifyCredentialAsync() throws CredentialsException, CardException, CardServiceException {
-		IdemixCredentials ic = new IdemixCredentials();
+		IdemixCredentials ic = new IdemixCredentials(null);
 
 		IdemixVerifySpecification vspec = IdemixVerifySpecification
 				.fromIdemixProofSpec(TestSetup.PROOF_SPEC_LOCATION, TestSetup.CRED_NR);

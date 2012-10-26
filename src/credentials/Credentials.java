@@ -20,6 +20,7 @@
 
 package credentials;
 
+import java.util.Date;
 import java.util.List;
 
 import credentials.keys.PrivateKey;
@@ -49,7 +50,7 @@ public interface Credentials {
 	 * @throws CredentialsException
 	 *             if the issuance process fails.
 	 */
-	public void issue(IssueSpecification specification, PrivateKey pkey, Attributes values)
+	public void issue(IssueSpecification specification, PrivateKey pkey, Attributes values, Date expires)
 			throws CredentialsException;
 
 	/**
