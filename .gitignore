@@ -3,4 +3,4 @@ bin
 .project
 irma_configuration
 lib/*.jar
-credentials_api.*jar
+credentials_idemix.*jar
