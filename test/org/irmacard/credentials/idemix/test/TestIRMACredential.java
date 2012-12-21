@@ -43,6 +43,7 @@ import org.junit.Test;
 import org.junit.BeforeClass;
 
 import service.IdemixService;
+import service.IdemixSmartcard;
 
 
 public class TestIRMACredential {
@@ -116,9 +117,9 @@ public class TestIRMACredential {
 		IdemixService cs = TestSetup.getIdemixService();
 		cs.open();
 		cs.selectApplet();
-		cs.sendPin(TestSetup.DEFAULT_PIN);
-		cs.transmit(new CommandAPDU(0x80, 0x30, 0x00, spec.getIdemixId()));
-		cs.transmit(new CommandAPDU(0x80, 0x31, 0x00, spec.getIdemixId()));
+		cs.sendPin(IdemixSmartcard.PIN_CARD, TestSetup.DEFAULT_MASTER_PIN);
+		cs.transmit(new CommandAPDU(0x80, 0x30, spec.getIdemixId() >> 8, spec.getIdemixId()));
+		cs.removeCredential(spec.getIdemixId());
 	}
 
 	@Test

@@ -91,6 +91,7 @@ public class TestSetup {
      * Default PIN of card.
      */
     public static final byte[] DEFAULT_PIN = {0x30, 0x30, 0x30, 0x30};
+    public static final byte[] DEFAULT_MASTER_PIN = {0x30, 0x30, 0x30, 0x30, 0x30, 0x30};
 
     /** This one also sets up the system, but now it doesn't know the private key */
     public static void setupSystem() {
