@@ -43,6 +43,7 @@ import org.junit.Test;
 import org.junit.BeforeClass;
 
 import service.IdemixService;
+import service.IdemixSmartcard;
 
 
 public class TestIRMACredential {
@@ -116,9 +117,9 @@ public class TestIRMACredential {
 		IdemixService cs = TestSetup.getIdemixService();
 		cs.open();
 		cs.selectApplet();
-		cs.sendPin(TestSetup.DEFAULT_PIN);
-		cs.transmit(new CommandAPDU(0x80, 0x30, 0x00, spec.getIdemixId()));
-		cs.transmit(new CommandAPDU(0x80, 0x31, 0x00, spec.getIdemixId()));
+		cs.sendPin(IdemixSmartcard.PIN_CARD, TestSetup.DEFAULT_MASTER_PIN);
+		cs.transmit(new CommandAPDU(0x80, 0x30, spec.getIdemixId() >> 8, spec.getIdemixId()));
+		cs.removeCredential(spec.getIdemixId());
 	}
 
 	@Test
@@ -182,9 +183,22 @@ public class TestIRMACredential {
 		IdemixService cs = TestSetup.getIdemixService();
 		cs.open();
 		cs.selectApplet();
-		cs.sendPin(TestSetup.DEFAULT_PIN);
-		cs.transmit(new CommandAPDU(0x80, 0x30, 0x00, spec.getIdemixId()));
-		cs.transmit(new CommandAPDU(0x80, 0x31, 0x00, spec.getIdemixId()));
+		cs.sendPin(IdemixSmartcard.PIN_CARD, TestSetup.DEFAULT_MASTER_PIN);
+		cs.transmit(new CommandAPDU(0x80, 0x30, spec.getIdemixId() >> 8, spec.getIdemixId()));
+		cs.removeCredential(spec.getIdemixId());
+	}
+
+	@Test
+	public void removeAddressCredential() throws CardException, CredentialsException, CardServiceException {
+		IssueCredentialInformation ici = new IssueCredentialInformation("MijnOverheid", "address");
+		IdemixIssueSpecification spec = ici.getIdemixIssueSpecification();
+		
+		IdemixService cs = TestSetup.getIdemixService();
+		cs.open();
+		cs.selectApplet();
+		cs.sendPin(IdemixSmartcard.PIN_CARD, TestSetup.DEFAULT_MASTER_PIN);
+		cs.transmit(new CommandAPDU(0x80, 0x30, spec.getIdemixId() >> 8, spec.getIdemixId()));
+		cs.removeCredential(spec.getIdemixId());
 	}
 
 	@Test
@@ -200,6 +214,35 @@ public class TestIRMACredential {
 		Attributes attributes = getAgeAttributes();
 		ic.issue(spec, isk, attributes, null);
 	}
+
+	@Test
+	public void issueAddressNijmegenCredential() throws CardException, CredentialsException, CardServiceException {
+		IssueCredentialInformation ici = new IssueCredentialInformation("MijnOverheid", "address");
+		IdemixIssueSpecification spec = ici.getIdemixIssueSpecification();
+		IdemixPrivateKey isk = ici.getIdemixPrivateKey();
+		
+		IdemixService is = new IdemixService(TestSetup.getCardService());
+		IdemixCredentials ic = new IdemixCredentials(is);
+		ic.issuePrepare();
+		is.sendPin(TestSetup.DEFAULT_PIN);
+		Attributes attributes = getAddressNijmegenAttributes();
+		ic.issue(spec, isk, attributes, null);
+	}
+	
+	@Test
+	public void issueAddressReuverCredential() throws CardException, CredentialsException, CardServiceException {
+		IssueCredentialInformation ici = new IssueCredentialInformation("MijnOverheid", "address");
+		IdemixIssueSpecification spec = ici.getIdemixIssueSpecification();
+		IdemixPrivateKey isk = ici.getIdemixPrivateKey();
+		
+		IdemixService is = new IdemixService(TestSetup.getCardService());
+		IdemixCredentials ic = new IdemixCredentials(is);
+		ic.issuePrepare();
+		is.sendPin(TestSetup.DEFAULT_PIN);
+		Attributes attributes = getAddressReuverAttributes();
+		ic.issue(spec, isk, attributes, null);
+	}
+	
 
 	@Test
 	public void verifyAgeCredentialAll() throws CardException, CredentialsException {
@@ -221,6 +264,46 @@ public class TestIRMACredential {
 		attr.print();
 	}
 
+	@Test
+	public void verifyAddressCredentialAll() throws CardException, CredentialsException {
+		VerifyCredentialInformation vci = new VerifyCredentialInformation("MijnOverheid",
+				"address", "MijnOverheid", "addressAll");
+		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
+
+		CardService cs = TestSetup.getCardService();
+		IdemixCredentials ic = new IdemixCredentials(cs);
+
+		Attributes attr = ic.verify(vspec);
+		
+		if (attr == null) {
+			fail("The proof does not verify");
+		} else {
+			System.out.println("Proof verified");
+		}
+		
+		attr.print();
+	}
+
+	@Test
+	public void verifyAddressCredentialNone() throws CardException, CredentialsException {
+		VerifyCredentialInformation vci = new VerifyCredentialInformation("MijnOverheid",
+				"address", "MijnOverheid", "addressNone");
+		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
+
+		CardService cs = TestSetup.getCardService();
+		IdemixCredentials ic = new IdemixCredentials(cs);
+
+		Attributes attr = ic.verify(vspec);
+		
+		if (attr == null) {
+			fail("The proof does not verify");
+		} else {
+			System.out.println("Proof verified");
+		}
+		
+		attr.print();
+	}
+	
 	@Test
 	public void verifyAgeCredentialNone() throws CardException, CredentialsException {
 		VerifyCredentialInformation vci = new VerifyCredentialInformation("MijnOverheid",
@@ -249,9 +332,9 @@ public class TestIRMACredential {
 		IdemixService cs = TestSetup.getIdemixService();
 		cs.open();
 		cs.selectApplet();
-		cs.sendPin(TestSetup.DEFAULT_PIN);
-		cs.transmit(new CommandAPDU(0x80, 0x30, 0x00, spec.getIdemixId()));
-		cs.transmit(new CommandAPDU(0x80, 0x31, 0x00, spec.getIdemixId()));
+		cs.sendPin(IdemixSmartcard.PIN_CARD, TestSetup.DEFAULT_MASTER_PIN);
+		cs.transmit(new CommandAPDU(0x80, 0x30, spec.getIdemixId() >> 8, spec.getIdemixId()));
+		cs.removeCredential(spec.getIdemixId());
 	}
 
     private Attributes getStudentCardAttributes() {
@@ -272,7 +355,7 @@ public class TestIRMACredential {
         // Return the attributes that have been revealed during the proof
         Attributes attributes = new Attributes();
 
-		attributes.add("userID", "s123456@ru.nl".getBytes());
+		attributes.add("userID", "u921154@ru.nl".getBytes());
 		attributes.add("securityHash", "DEADBEEF".getBytes());
 		
 		return attributes;
@@ -283,8 +366,30 @@ public class TestIRMACredential {
 
 		attributes.add("over12", "yes".getBytes());
 		attributes.add("over16", "yes".getBytes());
-		attributes.add("over18", "no".getBytes());
+		attributes.add("over18", "yes".getBytes());
 		attributes.add("over21", "no".getBytes());
+		
+		return attributes;
+    }
+    
+    private Attributes getAddressNijmegenAttributes () {
+        Attributes attributes = new Attributes();
+
+		attributes.add("country", "Nederland".getBytes());
+		attributes.add("city", "Nijmegen".getBytes());
+		attributes.add("street", "Heyendaalseweg 135".getBytes());
+		attributes.add("zipcode", "6525 AJ".getBytes());
+		
+		return attributes;
+    }
+
+    private Attributes getAddressReuverAttributes () {
+        Attributes attributes = new Attributes();
+
+		attributes.add("country", "Nederland".getBytes());
+		attributes.add("city", "Reuver".getBytes());
+		attributes.add("street", "Snavelbies 19".getBytes());
+		attributes.add("zipcode", "5953 MR".getBytes());
 		
 		return attributes;
     }
