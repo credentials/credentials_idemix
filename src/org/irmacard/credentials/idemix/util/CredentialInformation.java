@@ -22,6 +22,8 @@ package org.irmacard.credentials.idemix.util;
 import java.net.URI;
 import java.util.Scanner;
 
+import org.irmacard.credentials.idemix.spec.IdemixIssueSpecification;
+
 import com.ibm.zurich.credsystem.utils.Locations;
 
 public class CredentialInformation {
@@ -59,8 +61,13 @@ public class CredentialInformation {
 		setupSystem();
 		setupCredentialStructure();
 	}
+
+	public IdemixIssueSpecification getIdemixIssueSpecification() {
+		return IdemixIssueSpecification.fromIdemixIssuanceSpec(
+				issuerPKLocation, credStructID, credNr);
+	}
 	
-	public void readBaseURL() {
+	private void readBaseURL() {
 		Scanner sc = null;
 		try {
 			sc = new Scanner(baseLocation.resolve("baseURL.txt").toURL().openStream());
@@ -72,7 +79,7 @@ public class CredentialInformation {
 		}
 	}
 	
-	public void readCredID() {
+	private void readCredID() {
 		Scanner sc = null;
 		try {
 			sc = new Scanner(credStructBaseLocation.resolve("id.txt").toURL().openStream());
@@ -84,20 +91,12 @@ public class CredentialInformation {
 		}
 	}
 
-	public void setupSystem() {
+	private void setupSystem() {
 	    Locations.initSystem(baseLocation, issuerBaseID.toString());
 	    Locations.init(issuerBaseID.resolve("ipk.xml"), issuerPKLocation);
 	}
     
-    public void setupCredentialStructure() {
+    private void setupCredentialStructure() {
     	Locations.init(credStructID, credStructLocation);
-    }
-    
-    /**
-     * You should use this. It is here only for testing. TODO
-     * @param nr
-     */
-    public void setCredentialNr(short nr) {
-    	credNr = nr;
     }
 }
