@@ -25,6 +25,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Vector;
 
 import org.irmacard.credentials.Attributes;
 import org.irmacard.credentials.BaseCredentials;
@@ -32,6 +34,10 @@ import org.irmacard.credentials.CredentialsException;
 import org.irmacard.credentials.Nonce;
 import org.irmacard.credentials.idemix.spec.IdemixIssueSpecification;
 import org.irmacard.credentials.idemix.spec.IdemixVerifySpecification;
+import org.irmacard.credentials.idemix.util.CredentialInformation;
+import org.irmacard.credentials.info.CredentialDescription;
+import org.irmacard.credentials.info.DescriptionStore;
+import org.irmacard.credentials.info.InfoException;
 import org.irmacard.credentials.keys.PrivateKey;
 import org.irmacard.credentials.spec.IssueSpecification;
 import org.irmacard.credentials.spec.VerifySpecification;
@@ -340,6 +346,55 @@ public class IdemixCredentials extends BaseCredentials {
 		BigInteger nonce = Verifier.getNonce(sp);
 
 		return new IdemixNonce(nonce);
+	}
+	
+	/**
+	 * Get the attribute values stored on the card for the given credential.
+	 *  
+	 * @param credential identifier.
+	 * @return attributes for the given credential.
+	 * @throws CardServiceException 
+	 */
+	public Attributes getAttributes(CredentialDescription cd) throws CardServiceException {
+		// FIXME: for now retrieve this here, but this does mean that these files get
+		// loaded over and over again.
+		CredentialInformation ci = new CredentialInformation(cd.getPath());
+
+		service.selectCredential(ci.getIdemixIssueSpecification().getIdemixId());
+		HashMap<String, BigInteger> attr_map = service.getAttributes(ci
+				.getIdemixIssueSpecification().getIssuanceSpec());
+
+		// FIXME: it is highly doubtful that this should happen here
+		Attributes attr = new Attributes();
+		for(String k : attr_map.keySet()) {
+			attr.add(k, attr_map.get(k).toByteArray());
+		}
+		return attr;
+	}
+	
+	/**
+	 * Get a list of credentials available on the card.
+	 * 
+	 * @return list of credential identifiers.
+	 * @throws CardServiceException 
+	 * @throws InfoException 
+	 */
+	public List<CredentialDescription> getCredentials() throws CardServiceException, InfoException {
+		Vector<Integer> credentialIDs = service.getCredentials();
+		
+		List<CredentialDescription> credentialList = new Vector<CredentialDescription>();;
+		DescriptionStore ds = DescriptionStore.getInstance();
+		
+		for(Integer id : credentialIDs) {
+			CredentialDescription cd = ds.getCredentialDescription(id.shortValue());
+			if(cd != null) {
+				credentialList.add(cd);
+			} else {
+				throw new InfoException("Description for credential with ID=" + id + " not found");
+			}
+		}
+		
+		return credentialList;
 	}
 
 	private static IdemixVerifySpecification castVerifySpecification(

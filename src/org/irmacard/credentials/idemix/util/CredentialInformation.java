@@ -21,6 +21,8 @@ package org.irmacard.credentials.idemix.util;
 
 import java.net.URI;
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.irmacard.credentials.idemix.spec.IdemixIssueSpecification;
 
@@ -45,8 +47,19 @@ public class CredentialInformation {
 	}
 	
 	public CredentialInformation(String issuer, String credName) {
-
-
+		completeSetup(issuer, credName);
+	}
+	
+	public CredentialInformation(URI path) {
+		// FIXME: this is a bit of a hack, as it is not really robust,
+		// but for now it serves our purpose
+		String p = path.toString();
+		
+		Matcher m = Pattern.compile(".*/([^/]*)/([^/]*)/([^/]*)/$").matcher(p);
+		completeSetup(m.replaceFirst("$1"), m.replaceFirst("$3"));
+	}
+	
+	private void completeSetup(String issuer, String credName) {
 		baseLocation = CORE_LOCATION.resolve(issuer + "/");
 		issuerPKLocation = baseLocation.resolve("ipk.xml");
 
