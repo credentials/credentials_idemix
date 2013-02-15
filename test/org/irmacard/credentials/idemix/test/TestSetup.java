@@ -70,8 +70,8 @@ public class TestSetup {
     static {
         try {
             BASE_ID = new URI("http://www.irmacard.org/credentials/phase1/RU/");
-            ISSUER_ID = new URI("http://www.issuer.com/");
-            CRED_STRUCT_ID = new URI("http://www.ngo.org/" + CRED_STRUCT_NAME + ".xml");
+            ISSUER_ID = new URI("http://www.irmacard.org/credentials/phase1/RU/");
+            CRED_STRUCT_ID = new URI("http://www.irmacard.org/credentials/phase1/RU/" + CRED_STRUCT_NAME + "/structure.xml");
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }

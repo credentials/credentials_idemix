@@ -81,12 +81,9 @@ public class TestIssuance {
 	@Test
 	public void issueCredentialWithoutAPI() {
     	IssuanceSpec issuanceSpec = TestSetup.setupIssuanceSpec();
-    	
 		Values values = getIssuanceValues(issuanceSpec.getPublicKey()
 				.getGroupParams().getSystemParams());
-		
 		IssuerPrivateKey isk = TestSetup.setupIssuerPrivateKey();
-
         // run the issuance protocol.
         Issuer issuer = new Issuer(new IssuerKeyPair(isk), issuanceSpec, null, null, values);
 
@@ -266,10 +263,11 @@ public class TestIssuance {
 
     private Values getIssuanceValues(SystemParameters syspars) {
         Values values = new Values(syspars);
-        values.add("attr1", TestSetup.ATTRIBUTE_VALUE_1);
-        values.add("attr2", TestSetup.ATTRIBUTE_VALUE_2);
-        values.add("attr3", TestSetup.ATTRIBUTE_VALUE_3);
-        values.add("attr4", TestSetup.ATTRIBUTE_VALUE_4);
+        values.add("expiry", TestSetup.ATTRIBUTE_VALUE_1);
+        values.add("university", TestSetup.ATTRIBUTE_VALUE_2);
+        values.add("studentCardNumber", TestSetup.ATTRIBUTE_VALUE_3);
+        values.add("studentID", TestSetup.ATTRIBUTE_VALUE_4);
+        values.add("level", TestSetup.ATTRIBUTE_VALUE_5);
         
         return values;
     }
@@ -286,10 +284,11 @@ public class TestIssuance {
         // Return the attributes that have been revealed during the proof
         Attributes attributes = new Attributes();
 
-        attributes.add("attr1", TestSetup.ATTRIBUTE_VALUE_1.toByteArray());
-        attributes.add("attr2", TestSetup.ATTRIBUTE_VALUE_2.toByteArray());
-        attributes.add("attr3", TestSetup.ATTRIBUTE_VALUE_3.toByteArray());
-        attributes.add("attr4", TestSetup.ATTRIBUTE_VALUE_4.toByteArray());
+        attributes.add("expiry", TestSetup.ATTRIBUTE_VALUE_1.toByteArray());
+        attributes.add("university", TestSetup.ATTRIBUTE_VALUE_2.toByteArray());
+        attributes.add("studentCardNumber", TestSetup.ATTRIBUTE_VALUE_3.toByteArray());
+        attributes.add("studentID", TestSetup.ATTRIBUTE_VALUE_4.toByteArray());
+        attributes.add("level", TestSetup.ATTRIBUTE_VALUE_4.toByteArray());
         
         return attributes;
     }
