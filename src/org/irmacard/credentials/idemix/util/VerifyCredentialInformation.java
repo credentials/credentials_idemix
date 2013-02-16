@@ -20,8 +20,12 @@
 package org.irmacard.credentials.idemix.util;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 
 import org.irmacard.credentials.idemix.spec.IdemixVerifySpecification;
+import org.irmacard.credentials.info.InfoException;
+
+import com.sun.org.apache.xml.internal.security.Init;
 
 
 public class VerifyCredentialInformation extends CredentialInformation {
@@ -32,12 +36,24 @@ public class VerifyCredentialInformation extends CredentialInformation {
 			String verifier, String verifySpecName) {
 		super(issuer, credName);
 	
-		verifierBaseLocation = CORE_LOCATION.resolve(verifier + "/");
+		try {
+			verifierBaseLocation = new URI(verifier + "/");
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		proofSpecLocation = verifierBaseLocation.resolve("Verifies/"
 				+ verifySpecName + "/specification.xml");
 	}
 	
 	public IdemixVerifySpecification getIdemixVerifySpecification() {
+		try {
+			init(proofSpecLocation, proofSpecLocation);
+		} catch (InfoException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
 		return IdemixVerifySpecification.fromIdemixProofSpec(proofSpecLocation, credNr);
 	}
 }

@@ -55,8 +55,8 @@ public class IdemixIssueSpecification extends IssueSpecification {
 	 * and issuer public key have already been loaded if you use this version.
 	 */
 	public static IdemixIssueSpecification fromIdemixIssuanceSpec(
-			URI ipkLoc, URI credStructLoc, short credId) {
-		IssuanceSpec issueSpec = new IssuanceSpec(ipkLoc, credStructLoc);
+			URI ipkID, URI credStructID, short credId) {
+		IssuanceSpec issueSpec = new IssuanceSpec(ipkID, credStructID);
 
 		return new IdemixIssueSpecification(issueSpec, credId);
 	}

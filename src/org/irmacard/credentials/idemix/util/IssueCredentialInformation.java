@@ -23,6 +23,7 @@ import java.net.URI;
 
 import org.irmacard.credentials.Attributes;
 import org.irmacard.credentials.idemix.IdemixPrivateKey;
+import org.irmacard.credentials.info.InfoException;
 
 import com.ibm.zurich.credsystem.utils.Locations;
 import com.ibm.zurich.idmx.issuance.Issuer;
@@ -36,19 +37,24 @@ public class IssueCredentialInformation extends CredentialInformation {
 		super(issuer, credName);
 
 		issuerSKLocation = baseLocation.resolve("private/isk.xml");
-		System.out.println("HELLO: set issuerSKLoc to: " + issuerSKLocation.toString());
 
 		setupIssuer();
 	}
 	
 	public IdemixPrivateKey getIdemixPrivateKey() {
-		IssuerKeyPair ikp = (IssuerKeyPair) Locations.init(issuerSKLocation);
+		IssuerKeyPair ikp;
+		try {
+			ikp = (IssuerKeyPair) init(issuerSKLocation, issuerSKLocation);
+		} catch (InfoException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
 		return new IdemixPrivateKey(ikp.getPrivateKey());
 	}
 	
     public void setupIssuer() {
-    	Locations.initIssuer(baseLocation, issuerBaseID.toString(),
-    			issuerSKLocation, issuerPKLocation, issuerBaseID.resolve("ipk.xml"));
+    	getIdemixPrivateKey();
     }
     
     public Issuer getIssuer(Attributes attributes) {

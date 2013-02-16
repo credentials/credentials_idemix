@@ -20,16 +20,22 @@
 package org.irmacard.credentials.idemix.util;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.irmacard.credentials.idemix.spec.IdemixIssueSpecification;
+import org.irmacard.credentials.info.CredentialDescription;
+import org.irmacard.credentials.info.InfoException;
+import org.irmacard.credentials.info.TreeWalker;
+import org.irmacard.credentials.info.TreeWalkerI;
 
 import com.ibm.zurich.credsystem.utils.Locations;
+import com.ibm.zurich.idmx.utils.StructureStore;
 
 public class CredentialInformation {
-	static URI CORE_LOCATION;
+	static TreeWalkerI treeWalker;
 	
 	URI baseLocation;
 	URI issuerPKLocation;
@@ -43,47 +49,58 @@ public class CredentialInformation {
 	short credNr;
 	
 	public static void setCoreLocation(URI coreLocation) {
-		CORE_LOCATION = coreLocation;
+		treeWalker = new TreeWalker(coreLocation);
+	}
+	
+	public static void setTreeWalker(TreeWalkerI tw) {
+		treeWalker = tw;
 	}
 	
 	public CredentialInformation(String issuer, String credName) {
 		completeSetup(issuer, credName);
 	}
 	
-	public CredentialInformation(URI path) {
-		// FIXME: this is a bit of a hack, as it is not really robust,
-		// but for now it serves our purpose
-		String p = path.toString();
-		
-		Matcher m = Pattern.compile(".*/([^/]*)/([^/]*)/([^/]*)/$").matcher(p);
-		completeSetup(m.replaceFirst("$1"), m.replaceFirst("$3"));
+	public CredentialInformation(CredentialDescription cd) {
+		completeSetup(cd.getIssuerID(),cd.getCredentialID());
 	}
 	
 	private void completeSetup(String issuer, String credName) {
-		baseLocation = CORE_LOCATION.resolve(issuer + "/");
-		issuerPKLocation = baseLocation.resolve("ipk.xml");
+		try {
+			baseLocation = new URI(issuer + "/");
 
-		credStructBaseLocation = baseLocation.resolve("Issues/" + credName + "/");
-		credStructLocation = credStructBaseLocation.resolve("structure.xml");
+			issuerPKLocation = baseLocation.resolve("ipk.xml");
 
-		readBaseURL();
-		readCredID();
+			credStructBaseLocation = baseLocation.resolve("Issues/" + credName
+					+ "/");
+			credStructLocation = credStructBaseLocation
+					.resolve("structure.xml");
 
-		credStructID = issuerBaseID.resolve(credName + "/structure.xml");
-		
-		setupSystem();
-		setupCredentialStructure();
+			readBaseURL();
+			readCredID();
+
+			credStructID = issuerBaseID.resolve(credName + "/structure.xml");
+
+			setupSystem();
+			setupCredentialStructure();
+		} catch (InfoException e) {
+			/* FIXME propagate exceptions further up the chain */
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
 	}
 
 	public IdemixIssueSpecification getIdemixIssueSpecification() {
 		return IdemixIssueSpecification.fromIdemixIssuanceSpec(
-				issuerPKLocation, credStructID, credNr);
+				issuerBaseID.resolve("ipk.xml"), credStructID, credNr);
 	}
 	
 	private void readBaseURL() {
 		Scanner sc = null;
 		try {
-			sc = new Scanner(baseLocation.resolve("baseURL.txt").toURL().openStream());
+			sc = new Scanner(treeWalker.retrieveFile(baseLocation.resolve("baseURL.txt")));
 			issuerBaseID = new URI(sc.nextLine());
 			sc.close();
 		} catch (Exception e) {
@@ -95,7 +112,7 @@ public class CredentialInformation {
 	private void readCredID() {
 		Scanner sc = null;
 		try {
-			sc = new Scanner(credStructBaseLocation.resolve("id.txt").toURL().openStream());
+			sc = new Scanner(treeWalker.retrieveFile(credStructBaseLocation.resolve("id.txt")));
 			credNr = (short) sc.nextInt();
 			sc.close();
 		} catch (Exception e) {
@@ -104,12 +121,29 @@ public class CredentialInformation {
 		}
 	}
 
-	private void setupSystem() {
-	    Locations.initSystem(baseLocation, issuerBaseID.toString());
-	    Locations.init(issuerBaseID.resolve("ipk.xml"), issuerPKLocation);
+	private void setupSystem() throws InfoException {
+		StructureStore ss = StructureStore.getInstance();
+		
+	    //Locations.initSystem(baseLocation, issuerBaseID.toString());
+	    init(issuerBaseID.resolve("sp.xml"), baseLocation.resolve("sp.xml"));
+	    init(issuerBaseID.resolve("gp.xml"), baseLocation.resolve("gp.xml"));
+	    
+	    //Locations.init(issuerBaseID.resolve("ipk.xml"), issuerPKLocation);
+	    init(issuerBaseID.resolve("ipk.xml"), issuerPKLocation);
 	}
     
-    private void setupCredentialStructure() {
-    	Locations.init(credStructID, credStructLocation);
+    private void setupCredentialStructure() throws InfoException {
+    	//Locations.init(credStructID, credStructLocation);
+    	init(credStructID, credStructLocation);
+    }
+    
+    /**
+     * Add an object to the IdemixLibrary
+     * @param id
+     * @param file
+     * @throws InfoException
+     */
+    protected Object init(URI id, URI file) throws InfoException {
+    	return StructureStore.getInstance().get(id.toString(), treeWalker.retrieveFile(file));
     }
 }

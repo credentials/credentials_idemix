@@ -52,9 +52,9 @@ public class IdemixVerifySpecification extends VerifySpecification {
 	 * and issuer public key have already been loaded.
 	 */
 	public static IdemixVerifySpecification fromIdemixProofSpec(
-			URI proofSpecLoc, short credId) {
+			URI proofSpecID, short credId) {
 		ProofSpec proofSpec = (ProofSpec) StructureStore.getInstance().get(
-				proofSpecLoc);
+				proofSpecID);
 
 		return new IdemixVerifySpecification(proofSpec, credId);
 	}

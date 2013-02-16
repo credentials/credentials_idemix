@@ -358,7 +358,7 @@ public class IdemixCredentials extends BaseCredentials {
 	public Attributes getAttributes(CredentialDescription cd) throws CardServiceException {
 		// FIXME: for now retrieve this here, but this does mean that these files get
 		// loaded over and over again.
-		CredentialInformation ci = new CredentialInformation(cd.getPath());
+		CredentialInformation ci = new CredentialInformation(cd);
 
 		service.selectCredential(ci.getIdemixIssueSpecification().getIdemixId());
 		HashMap<String, BigInteger> attr_map = service.getAttributes(ci
