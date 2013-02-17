@@ -67,7 +67,7 @@ public class IdemixCredentials extends BaseCredentials {
 	/**
 	 * Precision factor for the expiry attribute, 1 means millisecond precision.
 	 */
-	final static long EXPIRY_FACTOR = 1000 * 60 * 60 * 24;
+	public final static long EXPIRY_FACTOR = 1000 * 60 * 60 * 24;
 	
 	IdemixService service = null;
 
