@@ -40,12 +40,13 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.smartcardio.CardException;
 
 import net.sourceforge.scuba.smartcards.CardServiceException;
+import net.sourceforge.scuba.smartcards.ProtocolCommands;
+import net.sourceforge.scuba.smartcards.ProtocolResponses;
 import net.sourceforge.scuba.smartcards.TerminalCardService;
 import net.sourceforge.scuba.smartcards.WrappingCardService;
 import net.sourceforge.scuba.util.Hex;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-
 import org.irmacard.credentials.Attributes;
 import org.irmacard.credentials.CredentialsException;
 import org.irmacard.credentials.Nonce;
@@ -55,12 +56,9 @@ import org.irmacard.credentials.idemix.util.CredentialInformation;
 import org.irmacard.credentials.idemix.util.VerifyCredentialInformation;
 import org.irmacard.credentials.util.CardHolderVerificationService;
 import org.irmacard.credentials.util.SecureMessagingWrapper;
+import org.irmacard.idemix.IdemixService;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import service.IdemixService;
-import net.sourceforge.scuba.smartcards.ProtocolCommands;
-import net.sourceforge.scuba.smartcards.ProtocolResponses;
 
 
 public class TestSecureMessaging {

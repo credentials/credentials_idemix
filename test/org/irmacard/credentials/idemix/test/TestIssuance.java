@@ -19,7 +19,10 @@
 
 package org.irmacard.credentials.idemix.test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.fail;
+
+import java.lang.reflect.Field;
+import java.math.BigInteger;
 
 import javax.smartcardio.CardException;
 import javax.smartcardio.CardTerminal;
@@ -27,6 +30,8 @@ import javax.smartcardio.TerminalFactory;
 
 import net.sourceforge.scuba.smartcards.CardService;
 import net.sourceforge.scuba.smartcards.CardServiceException;
+import net.sourceforge.scuba.smartcards.ProtocolCommands;
+import net.sourceforge.scuba.smartcards.ProtocolResponses;
 import net.sourceforge.scuba.smartcards.TerminalCardService;
 
 import org.irmacard.credentials.Attributes;
@@ -34,14 +39,11 @@ import org.irmacard.credentials.CredentialsException;
 import org.irmacard.credentials.idemix.IdemixCredentials;
 import org.irmacard.credentials.idemix.IdemixPrivateKey;
 import org.irmacard.credentials.idemix.spec.IdemixIssueSpecification;
+import org.irmacard.idemix.IdemixService;
+import org.irmacard.idemix.IdemixSmartcard;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import service.IdemixService;
-import service.IdemixSmartcard;
-import net.sourceforge.scuba.smartcards.ProtocolCommands;
-import net.sourceforge.scuba.smartcards.ProtocolResponses;
 
 import com.ibm.zurich.idmx.dm.Values;
 import com.ibm.zurich.idmx.issuance.IssuanceSpec;
@@ -50,8 +52,6 @@ import com.ibm.zurich.idmx.issuance.Message;
 import com.ibm.zurich.idmx.key.IssuerKeyPair;
 import com.ibm.zurich.idmx.key.IssuerPrivateKey;
 import com.ibm.zurich.idmx.utils.SystemParameters;
-import java.lang.reflect.Field;
-import java.math.BigInteger;
 
 
 public class TestIssuance {

@@ -19,10 +19,10 @@
 
 package org.irmacard.credentials.idemix.test;
 
+import static org.junit.Assert.assertNull;
+
 import org.irmacard.credentials.idemix.IdemixPrivateKey;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 public class TestPrivateKey {
 	/**

@@ -15,11 +15,10 @@ import org.irmacard.credentials.idemix.util.CredentialInformation;
 import org.irmacard.credentials.info.CredentialDescription;
 import org.irmacard.credentials.info.DescriptionStore;
 import org.irmacard.credentials.info.InfoException;
-import org.junit.Test;
+import org.irmacard.idemix.IdemixService;
+import org.irmacard.idemix.IdemixSmartcard;
 import org.junit.BeforeClass;
-
-import service.IdemixService;
-import service.IdemixSmartcard;
+import org.junit.Test;
 
 public class TestCardManagement {
 	@BeforeClass

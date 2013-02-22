@@ -39,11 +39,10 @@ import org.irmacard.credentials.idemix.spec.IdemixVerifySpecification;
 import org.irmacard.credentials.idemix.util.CredentialInformation;
 import org.irmacard.credentials.idemix.util.IssueCredentialInformation;
 import org.irmacard.credentials.idemix.util.VerifyCredentialInformation;
-import org.junit.Test;
+import org.irmacard.idemix.IdemixService;
+import org.irmacard.idemix.IdemixSmartcard;
 import org.junit.BeforeClass;
-
-import service.IdemixService;
-import service.IdemixSmartcard;
+import org.junit.Test;
 
 
 public class TestIRMACredential {

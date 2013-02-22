@@ -39,8 +39,7 @@ import net.sourceforge.scuba.util.Hex;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.irmacard.credentials.util.CardHolderVerificationService;
 import org.irmacard.credentials.util.SecureMessagingWrapper;
-
-import service.IdemixService;
+import org.irmacard.idemix.IdemixService;
 
 import com.ibm.zurich.credsystem.utils.Locations;
 import com.ibm.zurich.idmx.dm.Values;

@@ -46,9 +46,8 @@ import org.irmacard.credentials.info.InfoException;
 import org.irmacard.credentials.keys.PrivateKey;
 import org.irmacard.credentials.spec.IssueSpecification;
 import org.irmacard.credentials.spec.VerifySpecification;
-
-import service.IdemixService;
-import service.IdemixSmartcard;
+import org.irmacard.idemix.IdemixService;
+import org.irmacard.idemix.IdemixSmartcard;
 
 import com.ibm.zurich.idmx.issuance.Issuer;
 import com.ibm.zurich.idmx.issuance.Message;
