@@ -59,8 +59,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import service.IdemixService;
-import service.ProtocolCommands;
-import service.ProtocolResponses;
+import net.sourceforge.scuba.smartcards.ProtocolCommands;
+import net.sourceforge.scuba.smartcards.ProtocolResponses;
 
 
 public class TestSecureMessaging {

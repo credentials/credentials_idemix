@@ -40,8 +40,8 @@ import static org.junit.Assert.*;
 
 import service.IdemixService;
 import service.IdemixSmartcard;
-import service.ProtocolCommands;
-import service.ProtocolResponses;
+import net.sourceforge.scuba.smartcards.ProtocolCommands;
+import net.sourceforge.scuba.smartcards.ProtocolResponses;
 
 import com.ibm.zurich.idmx.showproof.Proof;
 import com.ibm.zurich.idmx.showproof.ProofSpec;
