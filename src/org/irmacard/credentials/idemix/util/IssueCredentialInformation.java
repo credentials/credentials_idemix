@@ -25,10 +25,8 @@ import org.irmacard.credentials.Attributes;
 import org.irmacard.credentials.idemix.IdemixPrivateKey;
 import org.irmacard.credentials.info.InfoException;
 
-import com.ibm.zurich.credsystem.utils.Locations;
 import com.ibm.zurich.idmx.issuance.Issuer;
 import com.ibm.zurich.idmx.key.IssuerKeyPair;
-
 
 public class IssueCredentialInformation extends CredentialInformation {
 	URI issuerSKLocation;

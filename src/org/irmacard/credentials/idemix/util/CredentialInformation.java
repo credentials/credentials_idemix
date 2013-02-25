@@ -22,8 +22,6 @@ package org.irmacard.credentials.idemix.util;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Scanner;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.irmacard.credentials.idemix.spec.IdemixIssueSpecification;
 import org.irmacard.credentials.info.CredentialDescription;
@@ -31,7 +29,6 @@ import org.irmacard.credentials.info.InfoException;
 import org.irmacard.credentials.info.TreeWalker;
 import org.irmacard.credentials.info.TreeWalkerI;
 
-import com.ibm.zurich.credsystem.utils.Locations;
 import com.ibm.zurich.idmx.utils.StructureStore;
 
 public class CredentialInformation {

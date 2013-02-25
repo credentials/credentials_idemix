@@ -25,9 +25,6 @@ import java.net.URISyntaxException;
 import org.irmacard.credentials.idemix.spec.IdemixVerifySpecification;
 import org.irmacard.credentials.info.InfoException;
 
-import com.sun.org.apache.xml.internal.security.Init;
-
-
 public class VerifyCredentialInformation extends CredentialInformation {
 	private URI proofSpecLocation;
 	private URI verifierBaseLocation;
