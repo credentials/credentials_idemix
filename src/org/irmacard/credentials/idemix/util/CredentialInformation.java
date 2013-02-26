@@ -119,8 +119,6 @@ public class CredentialInformation {
 	}
 
 	private void setupSystem() throws InfoException {
-		StructureStore ss = StructureStore.getInstance();
-		
 	    //Locations.initSystem(baseLocation, issuerBaseID.toString());
 	    init(issuerBaseID.resolve("sp.xml"), baseLocation.resolve("sp.xml"));
 	    init(issuerBaseID.resolve("gp.xml"), baseLocation.resolve("gp.xml"));
