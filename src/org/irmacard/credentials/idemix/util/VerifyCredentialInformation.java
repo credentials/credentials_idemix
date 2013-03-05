@@ -23,6 +23,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import org.irmacard.credentials.idemix.spec.IdemixVerifySpecification;
+import org.irmacard.credentials.info.DescriptionStore;
 import org.irmacard.credentials.info.InfoException;
 
 public class VerifyCredentialInformation extends CredentialInformation {
@@ -32,7 +33,15 @@ public class VerifyCredentialInformation extends CredentialInformation {
 	public VerifyCredentialInformation(String issuer, String credName,
 			String verifier, String verifySpecName) {
 		super(issuer, credName);
+		completeVerifierSetup(verifier, verifySpecName);
+	}
+
+	public VerifyCredentialInformation(String verifier, String verificationID) throws InfoException {
+		super(DescriptionStore.getInstance().getVerificationDescriptionByName(verifier, verificationID).getCredentialDescription());
+		completeVerifierSetup(verifier, verificationID);
+	}
 	
+	private void completeVerifierSetup(String verifier, String verificationID) {
 		try {
 			verifierBaseLocation = new URI(verifier + "/");
 		} catch (URISyntaxException e) {
@@ -40,9 +49,9 @@ public class VerifyCredentialInformation extends CredentialInformation {
 			e.printStackTrace();
 		}
 		proofSpecLocation = verifierBaseLocation.resolve("Verifies/"
-				+ verifySpecName + "/specification.xml");
+				+ verificationID + "/specification.xml");
 	}
-	
+
 	public IdemixVerifySpecification getIdemixVerifySpecification() {
 		try {
 			init(proofSpecLocation, proofSpecLocation);

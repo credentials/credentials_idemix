@@ -23,6 +23,7 @@ package org.irmacard.credentials.idemix.test;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.net.URI;
 
 import javax.smartcardio.CardException;
 
@@ -39,6 +40,8 @@ import org.irmacard.credentials.idemix.spec.IdemixVerifySpecification;
 import org.irmacard.credentials.idemix.util.CredentialInformation;
 import org.irmacard.credentials.idemix.util.IssueCredentialInformation;
 import org.irmacard.credentials.idemix.util.VerifyCredentialInformation;
+import org.irmacard.credentials.info.DescriptionStore;
+import org.irmacard.credentials.info.InfoException;
 import org.irmacard.idemix.IdemixService;
 import org.irmacard.idemix.IdemixSmartcard;
 import org.junit.BeforeClass;
@@ -47,10 +50,13 @@ import org.junit.Test;
 
 public class TestIRMACredential {
 	@BeforeClass
-	public static void initializeInformation() {
-		CredentialInformation.setCoreLocation(new File(System
+	public static void initializeInformation() throws InfoException {
+		URI core = new File(System
 				.getProperty("user.dir")).toURI()
-				.resolve("irma_configuration/"));
+				.resolve("irma_configuration/");
+		CredentialInformation.setCoreLocation(core);
+		DescriptionStore.setCoreLocation(core);
+		DescriptionStore.getInstance();
 	}
 
 	@Test
@@ -85,6 +91,27 @@ public class TestIRMACredential {
 			System.out.println("Proof verified");
 		}
 		
+		attr.print();
+	}
+
+	@Test
+	public void verifyRootCredentialAll_withDS() throws CardException,
+			CredentialsException, InfoException {
+
+		VerifyCredentialInformation vci = new VerifyCredentialInformation("Surfnet", "rootAll");
+		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
+
+		CardService cs = TestSetup.getCardService();
+		IdemixCredentials ic = new IdemixCredentials(cs);
+
+		Attributes attr = ic.verify(vspec);
+
+		if (attr == null) {
+			fail("The proof does not verify");
+		} else {
+			System.out.println("Proof verified");
+		}
+
 		attr.print();
 	}
 
