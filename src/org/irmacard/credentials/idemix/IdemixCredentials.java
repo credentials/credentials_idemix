@@ -372,6 +372,11 @@ public class IdemixCredentials extends BaseCredentials {
 		return attr;
 	}
 	
+	public void removeCredential(CredentialDescription cd) throws CardServiceException {
+		service.selectCredential(cd.getId());
+		service.removeCredential(cd.getId());
+	}
+
 	/**
 	 * Get a list of credentials available on the card.
 	 * 

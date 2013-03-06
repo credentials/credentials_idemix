@@ -40,6 +40,7 @@ import org.irmacard.credentials.idemix.spec.IdemixVerifySpecification;
 import org.irmacard.credentials.idemix.util.CredentialInformation;
 import org.irmacard.credentials.idemix.util.IssueCredentialInformation;
 import org.irmacard.credentials.idemix.util.VerifyCredentialInformation;
+import org.irmacard.credentials.info.CredentialDescription;
 import org.irmacard.credentials.info.DescriptionStore;
 import org.irmacard.credentials.info.InfoException;
 import org.irmacard.idemix.IdemixService;
@@ -136,16 +137,15 @@ public class TestIRMACredential {
 	}
 
 	@Test
-	public void removeRootCredential() throws CardException, CredentialsException, CardServiceException {
-		IssueCredentialInformation ici = new IssueCredentialInformation("Surfnet", "root");
-		IdemixIssueSpecification spec = ici.getIdemixIssueSpecification();
-		
-		IdemixService cs = TestSetup.getIdemixService();
-		cs.open();
-		cs.selectApplet();
-		cs.sendPin(IdemixSmartcard.PIN_CARD, TestSetup.DEFAULT_MASTER_PIN);
-		cs.transmit(new CommandAPDU(0x80, 0x30, spec.getIdemixId() >> 8, spec.getIdemixId()));
-		cs.removeCredential(spec.getIdemixId());
+	public void removeRootCredential() throws CardException, CredentialsException, CardServiceException, InfoException {
+		CredentialDescription cd = DescriptionStore.getInstance().getCredentialDescriptionByName("Surfnet", "root");
+
+		IdemixService is = TestSetup.getIdemixService();
+		IdemixCredentials ic = new IdemixCredentials(is);
+
+		ic.connect();
+		is.sendPin(IdemixSmartcard.PIN_CARD, TestSetup.DEFAULT_MASTER_PIN);
+		ic.removeCredential(cd);
 	}
 
 	@Test
@@ -202,29 +202,27 @@ public class TestIRMACredential {
 		attr.print();
 	}
 	@Test
-	public void removeStudentCredential() throws CardException, CredentialsException, CardServiceException {
-		IssueCredentialInformation ici = new IssueCredentialInformation("RU", "studentCard");
-		IdemixIssueSpecification spec = ici.getIdemixIssueSpecification();
-		
-		IdemixService cs = TestSetup.getIdemixService();
-		cs.open();
-		cs.selectApplet();
-		cs.sendPin(IdemixSmartcard.PIN_CARD, TestSetup.DEFAULT_MASTER_PIN);
-		cs.transmit(new CommandAPDU(0x80, 0x30, spec.getIdemixId() >> 8, spec.getIdemixId()));
-		cs.removeCredential(spec.getIdemixId());
+	public void removeStudentCredential() throws CardException, CredentialsException, CardServiceException, InfoException {
+		CredentialDescription cd = DescriptionStore.getInstance().getCredentialDescriptionByName("RU", "studentCard");
+
+		IdemixService is = TestSetup.getIdemixService();
+		IdemixCredentials ic = new IdemixCredentials(is);
+
+		ic.connect();
+		is.sendPin(IdemixSmartcard.PIN_CARD, TestSetup.DEFAULT_MASTER_PIN);
+		ic.removeCredential(cd);
 	}
 
 	@Test
-	public void removeAddressCredential() throws CardException, CredentialsException, CardServiceException {
-		IssueCredentialInformation ici = new IssueCredentialInformation("MijnOverheid", "address");
-		IdemixIssueSpecification spec = ici.getIdemixIssueSpecification();
-		
-		IdemixService cs = TestSetup.getIdemixService();
-		cs.open();
-		cs.selectApplet();
-		cs.sendPin(IdemixSmartcard.PIN_CARD, TestSetup.DEFAULT_MASTER_PIN);
-		cs.transmit(new CommandAPDU(0x80, 0x30, spec.getIdemixId() >> 8, spec.getIdemixId()));
-		cs.removeCredential(spec.getIdemixId());
+	public void removeAddressCredential() throws CardException, CredentialsException, CardServiceException, InfoException {
+		CredentialDescription cd = DescriptionStore.getInstance().getCredentialDescriptionByName("MijnOverheid", "address");
+
+		IdemixService is = TestSetup.getIdemixService();
+		IdemixCredentials ic = new IdemixCredentials(is);
+
+		ic.connect();
+		is.sendPin(IdemixSmartcard.PIN_CARD, TestSetup.DEFAULT_MASTER_PIN);
+		ic.removeCredential(cd);
 	}
 
 	@Test
@@ -351,16 +349,15 @@ public class TestIRMACredential {
 	}
 	
 	@Test
-	public void removeAgeCredential() throws CardException, CredentialsException, CardServiceException {
-		IssueCredentialInformation ici = new IssueCredentialInformation("MijnOverheid", "ageLower");
-		IdemixIssueSpecification spec = ici.getIdemixIssueSpecification();
-		
-		IdemixService cs = TestSetup.getIdemixService();
-		cs.open();
-		cs.selectApplet();
-		cs.sendPin(IdemixSmartcard.PIN_CARD, TestSetup.DEFAULT_MASTER_PIN);
-		cs.transmit(new CommandAPDU(0x80, 0x30, spec.getIdemixId() >> 8, spec.getIdemixId()));
-		cs.removeCredential(spec.getIdemixId());
+	public void removeAgeCredential() throws CardException, CredentialsException, CardServiceException, InfoException {
+		CredentialDescription cd = DescriptionStore.getInstance().getCredentialDescriptionByName("MijnOverheid", "ageLower");
+
+		IdemixService is = TestSetup.getIdemixService();
+		IdemixCredentials ic = new IdemixCredentials(is);
+
+		ic.connect();
+		is.sendPin(IdemixSmartcard.PIN_CARD, TestSetup.DEFAULT_MASTER_PIN);
+		ic.removeCredential(cd);
 	}
 
     private Attributes getStudentCardAttributes() {
