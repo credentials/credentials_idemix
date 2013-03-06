@@ -92,7 +92,7 @@ public class TestIssuance {
             CardTerminal terminal = TerminalFactory.getDefault().terminals().list().get(0);            
             recipient = new IdemixService(new TerminalCardService(terminal),TestSetup.CRED_NR);
             recipient.open();
-            recipient.sendPin(TestSetup.DEFAULT_PIN);
+            recipient.sendPin(TestSetup.DEFAULT_CRED_PIN);
             recipient.setIssuanceSpecification(issuanceSpec);
             recipient.setAttributes(issuanceSpec, values);
         } catch (Exception e) {
@@ -131,7 +131,7 @@ public class TestIssuance {
 		IdemixService is = new IdemixService(TestSetup.getCardService());
 		IdemixCredentials ic = new IdemixCredentials(is);
 		ic.connect();
-		is.sendPin(TestSetup.DEFAULT_PIN);
+		is.sendPin(TestSetup.DEFAULT_CRED_PIN);
 		Attributes attributes = getIssuanceAttributes();
 
 		ic.issue(spec, isk, attributes, null);
@@ -161,7 +161,7 @@ public class TestIssuance {
 
 		ProtocolCommands commands = ic.requestIssueRound1Commands(spec, attributes, issuer);
 		commands.add(0, IdemixSmartcard.selectAppletCommand);
-		commands.add(1, IdemixSmartcard.sendPinCommand(IdemixSmartcard.PIN_CRED, TestSetup.DEFAULT_PIN));
+		commands.add(1, IdemixSmartcard.sendPinCommand(IdemixSmartcard.PIN_CRED, TestSetup.DEFAULT_CRED_PIN));
 
 		ProtocolResponses responses = service.execute(commands);
 		commands = ic.requestIssueRound3Commands(spec, attributes, issuer, responses);
@@ -212,7 +212,7 @@ public class TestIssuance {
 		// Run part one of protocol
 		ProtocolCommands commands = ic.requestIssueRound1Commands(spec, attributes, issuer);
 		commands.add(0, IdemixSmartcard.selectAppletCommand);
-		commands.add(1, IdemixSmartcard.sendPinCommand(IdemixSmartcard.PIN_CRED, TestSetup.DEFAULT_PIN));
+		commands.add(1, IdemixSmartcard.sendPinCommand(IdemixSmartcard.PIN_CRED, TestSetup.DEFAULT_CRED_PIN));
 
 		// Save state, this is the nasty part
 		try {

@@ -34,8 +34,7 @@ public class TestCardManagement {
 		IdemixService is = new IdemixService(TestSetup.getCardService());
 		IdemixCredentials ic = new IdemixCredentials(is);
 		ic.connect();
-		is.sendPin(TestSetup.DEFAULT_PIN);
-		is.sendPin(IdemixSmartcard.PIN_CARD, TestSetup.DEFAULT_MASTER_PIN);
+		is.sendCardPin(TestSetup.DEFAULT_CARD_PIN);
 		
 		List<CredentialDescription> credentials = ic.getCredentials();
 		
@@ -57,8 +56,7 @@ public class TestCardManagement {
 		IdemixService is = new IdemixService(TestSetup.getCardService());
 		IdemixCredentials ic = new IdemixCredentials(is);
 		ic.connect();
-		is.sendPin(TestSetup.DEFAULT_PIN);
-		is.sendPin(IdemixSmartcard.PIN_CARD, TestSetup.DEFAULT_MASTER_PIN);
+		is.sendCardPin(TestSetup.DEFAULT_CARD_PIN);
 		
 		List<CredentialDescription> credentials = ic.getCredentials();
 		
