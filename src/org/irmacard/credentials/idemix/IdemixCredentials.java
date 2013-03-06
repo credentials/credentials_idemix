@@ -75,7 +75,7 @@ public class IdemixCredentials extends BaseCredentials {
 		super(cs);
 	}
 
-	public void issuePrepare() 
+	public void connect() 
 	throws CredentialsException {
 		try {
 			service = new IdemixService(cs);

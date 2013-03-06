@@ -33,7 +33,7 @@ public class TestCardManagement {
 	public void testGetCredentials() throws CredentialsException, CardServiceException, InfoException, CardException {
 		IdemixService is = new IdemixService(TestSetup.getCardService());
 		IdemixCredentials ic = new IdemixCredentials(is);
-		ic.issuePrepare();
+		ic.connect();
 		is.sendPin(TestSetup.DEFAULT_PIN);
 		is.sendPin(IdemixSmartcard.PIN_CARD, TestSetup.DEFAULT_MASTER_PIN);
 		
@@ -56,7 +56,7 @@ public class TestCardManagement {
 	public void testGetAttributes() throws CredentialsException, CardServiceException, InfoException, CardException {
 		IdemixService is = new IdemixService(TestSetup.getCardService());
 		IdemixCredentials ic = new IdemixCredentials(is);
-		ic.issuePrepare();
+		ic.connect();
 		is.sendPin(TestSetup.DEFAULT_PIN);
 		is.sendPin(IdemixSmartcard.PIN_CARD, TestSetup.DEFAULT_MASTER_PIN);
 		

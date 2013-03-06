@@ -67,7 +67,7 @@ public class TestIRMACredential {
 		
 		IdemixService is = new IdemixService(TestSetup.getCardService());
 		IdemixCredentials ic = new IdemixCredentials(is);
-		ic.issuePrepare();
+		ic.connect();
 		is.sendPin(TestSetup.DEFAULT_PIN);
 		Attributes attributes = getSurfnetAttributes();
 
@@ -156,7 +156,7 @@ public class TestIRMACredential {
 		
 		IdemixService is = new IdemixService(TestSetup.getCardService());
 		IdemixCredentials ic = new IdemixCredentials(is);
-		ic.issuePrepare();
+		ic.connect();
 		is.sendPin(TestSetup.DEFAULT_PIN);
 		Attributes attributes = getStudentCardAttributes();
 
@@ -235,7 +235,7 @@ public class TestIRMACredential {
 		
 		IdemixService is = new IdemixService(TestSetup.getCardService());
 		IdemixCredentials ic = new IdemixCredentials(is);
-		ic.issuePrepare();
+		ic.connect();
 		is.sendPin(TestSetup.DEFAULT_PIN);
 		Attributes attributes = getAgeAttributes();
 		ic.issue(spec, isk, attributes, null);
@@ -249,7 +249,7 @@ public class TestIRMACredential {
 		
 		IdemixService is = new IdemixService(TestSetup.getCardService());
 		IdemixCredentials ic = new IdemixCredentials(is);
-		ic.issuePrepare();
+		ic.connect();
 		is.sendPin(TestSetup.DEFAULT_PIN);
 		Attributes attributes = getAddressNijmegenAttributes();
 		ic.issue(spec, isk, attributes, null);
@@ -263,7 +263,7 @@ public class TestIRMACredential {
 		
 		IdemixService is = new IdemixService(TestSetup.getCardService());
 		IdemixCredentials ic = new IdemixCredentials(is);
-		ic.issuePrepare();
+		ic.connect();
 		is.sendPin(TestSetup.DEFAULT_PIN);
 		Attributes attributes = getAddressReuverAttributes();
 		ic.issue(spec, isk, attributes, null);

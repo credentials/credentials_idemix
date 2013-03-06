@@ -130,7 +130,7 @@ public class TestIssuance {
 
 		IdemixService is = new IdemixService(TestSetup.getCardService());
 		IdemixCredentials ic = new IdemixCredentials(is);
-		ic.issuePrepare();
+		ic.connect();
 		is.sendPin(TestSetup.DEFAULT_PIN);
 		Attributes attributes = getIssuanceAttributes();
 
