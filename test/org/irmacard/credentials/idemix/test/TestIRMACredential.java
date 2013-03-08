@@ -346,6 +346,26 @@ public class TestIRMACredential {
 	}
 	
 	@Test
+	public void verifyAgeCredentialOver16() throws CardException, CredentialsException {
+		VerifyCredentialInformation vci = new VerifyCredentialInformation("MijnOverheid",
+				"ageLower", "UitzendingGemist", "ageLowerOver16");
+		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
+
+		CardService cs = TestSetup.getCardService();
+		IdemixCredentials ic = new IdemixCredentials(cs);
+
+		Attributes attr = ic.verify(vspec);
+
+		if (attr == null) {
+			fail("The proof does not verify");
+		} else {
+			System.out.println("Proof verified");
+		}
+
+		attr.print();
+	}
+
+	@Test
 	public void removeAgeCredential() throws CardException, CredentialsException, CardServiceException, InfoException {
 		CredentialDescription cd = DescriptionStore.getInstance().getCredentialDescriptionByName("MijnOverheid", "ageLower");
 
