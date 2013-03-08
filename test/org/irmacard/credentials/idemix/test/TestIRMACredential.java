@@ -29,8 +29,6 @@ import javax.smartcardio.CardException;
 
 import net.sourceforge.scuba.smartcards.CardService;
 import net.sourceforge.scuba.smartcards.CardServiceException;
-import net.sourceforge.scuba.smartcards.CommandAPDU;
-
 import org.irmacard.credentials.Attributes;
 import org.irmacard.credentials.CredentialsException;
 import org.irmacard.credentials.idemix.IdemixCredentials;
@@ -44,7 +42,6 @@ import org.irmacard.credentials.info.CredentialDescription;
 import org.irmacard.credentials.info.DescriptionStore;
 import org.irmacard.credentials.info.InfoException;
 import org.irmacard.idemix.IdemixService;
-import org.irmacard.idemix.IdemixSmartcard;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
