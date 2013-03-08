@@ -15,6 +15,7 @@ import org.irmacard.credentials.idemix.util.CredentialInformation;
 import org.irmacard.credentials.info.CredentialDescription;
 import org.irmacard.credentials.info.DescriptionStore;
 import org.irmacard.credentials.info.InfoException;
+import org.irmacard.credentials.util.log.LogEntry;
 import org.irmacard.idemix.IdemixService;
 import org.irmacard.idemix.IdemixSmartcard;
 import org.junit.BeforeClass;
@@ -65,6 +66,19 @@ public class TestCardManagement {
 			System.out.println(" * " + ds.toString());
 			Attributes attr = ic.getAttributes(ds);
 			attr.print();
+		}
+	}
+
+	@Test
+	public void testGetLogs() throws CardException, CredentialsException, CardServiceException, InfoException {
+		IdemixService is = new IdemixService(TestSetup.getCardService());
+		IdemixCredentials ic = new IdemixCredentials(is);
+		ic.connect();
+		is.sendCardPin(TestSetup.DEFAULT_CARD_PIN);
+
+		List<LogEntry> logs = ic.getLog();
+		for(LogEntry log_entry : logs) {
+			System.out.println(log_entry.toString());
 		}
 	}
 }

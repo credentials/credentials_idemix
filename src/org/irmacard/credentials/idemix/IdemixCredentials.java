@@ -40,14 +40,20 @@ import org.irmacard.credentials.Nonce;
 import org.irmacard.credentials.idemix.spec.IdemixIssueSpecification;
 import org.irmacard.credentials.idemix.spec.IdemixVerifySpecification;
 import org.irmacard.credentials.idemix.util.CredentialInformation;
+import org.irmacard.credentials.info.AttributeDescription;
 import org.irmacard.credentials.info.CredentialDescription;
 import org.irmacard.credentials.info.DescriptionStore;
 import org.irmacard.credentials.info.InfoException;
 import org.irmacard.credentials.keys.PrivateKey;
 import org.irmacard.credentials.spec.IssueSpecification;
 import org.irmacard.credentials.spec.VerifySpecification;
+import org.irmacard.credentials.util.log.IssueLogEntry;
+import org.irmacard.credentials.util.log.LogEntry;
+import org.irmacard.credentials.util.log.RemoveLogEntry;
+import org.irmacard.credentials.util.log.VerifyLogEntry;
 import org.irmacard.idemix.IdemixService;
 import org.irmacard.idemix.IdemixSmartcard;
+import org.irmacard.idemix.util.IdemixLogEntry;
 
 import com.ibm.zurich.idmx.issuance.Issuer;
 import com.ibm.zurich.idmx.issuance.Message;
@@ -58,7 +64,6 @@ import com.ibm.zurich.idmx.showproof.predicates.Predicate;
 import com.ibm.zurich.idmx.showproof.predicates.Predicate.PredicateType;
 import com.ibm.zurich.idmx.utils.Constants;
 import com.ibm.zurich.idmx.utils.SystemParameters;
-
 
 /**
  * An Idemix specific implementation of the credentials interface.
@@ -435,5 +440,50 @@ public class IdemixCredentials extends BaseCredentials {
 					"PrivateKey is not an IdemixPrivateKey");
 		}
 		return (IdemixPrivateKey) sk;
+	}
+
+	@Override
+	public List<LogEntry> getLog() throws CardServiceException, InfoException {
+		List<IdemixLogEntry> idemix_logs = service.getLogEntries();
+		Vector<LogEntry> logs = new Vector<LogEntry>();
+		LogEntry entry = null;
+
+		for(IdemixLogEntry l : idemix_logs) {
+			if(l.getAction() == IdemixLogEntry.Action.NONE)
+				continue;
+
+			DescriptionStore ds = DescriptionStore.getInstance();
+			Date timestamp = l.getTimestamp();
+			CredentialDescription credential = ds.getCredentialDescription(l.getCredential());
+
+			switch (l.getAction()) {
+			case ISSUE:
+				entry = new IssueLogEntry(timestamp, credential);
+				break;
+			case REMOVE:
+				entry = new RemoveLogEntry(timestamp, credential);
+				break;
+			case VERIFY:
+				entry = new VerifyLogEntry(timestamp,
+						credential, null, makeAttributeDisclosed(credential,
+								l.getDisclose()));
+			}
+			logs.add(entry);
+		}
+
+		return logs;
+	}
+
+	private HashMap<String, Boolean> makeAttributeDisclosed(CredentialDescription cred, short disclose) {
+		HashMap<String, Boolean> attributeDisclosed = new HashMap<String, Boolean>();
+		List<AttributeDescription> attributes = cred.getAttributes();
+
+		// Start at 2 so we skip the master secret and expiry
+		for (int i = 2; i < attributes.size() + 2; i++) {
+			attributeDisclosed.put(attributes.get(i-2).getName(), new Boolean(
+					(disclose & (1 << i)) != 0));
+		}
+
+		return attributeDisclosed;
 	}
 }
