@@ -23,7 +23,6 @@ package org.irmacard.credentials.idemix;
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
@@ -156,51 +155,16 @@ public class IdemixCredentials extends BaseCredentials {
 			throws CredentialsException {
 		verifyPrepare();
 
-		IdemixVerifySpecification spec = castVerifySpecification(specification);
-
 		// Get a nonce from the verifier
-		BigInteger nonce = Verifier.getNonce(spec.getProofSpec()
-				.getGroupParams().getSystemParams());
+		Nonce nonce = generateNonce(specification);
 
-		// Construct the proof
-		service.setCredential(spec.getIdemixId());
-		Proof proof = service.buildProof(nonce, spec.getProofSpec());
-		if (proof == null) {
-			throw new CredentialsException("Failed to generate proof.");
+		// Run the protocol
+		try {
+			return verifyProofResponses(specification, nonce,
+					service.execute(requestProofCommands(specification, nonce)));
+		} catch (CardServiceException e) {
+			throw new CredentialsException("Verification encountered error", e);
 		}
-
-		// Initialise the verifier and verify the proof
-		Verifier verifier = new Verifier(spec.getProofSpec(), proof, nonce);
-		if (!verifier.verify()) {
-			return null;
-		}
-
-		// Return the attributes that have been revealed during the proof
-		Attributes attributes = new Attributes();
-		HashMap<String, BigInteger> values = verifier.getRevealedValues();
-		
-		// First determine the prefix that needs to be stripped from the name
-		String prefix = "";
-		for (Predicate pred : spec.getProofSpec().getPredicates()) {
-			if (pred.getPredicateType() == PredicateType.CL) {
-				prefix = ((CLPredicate) pred).getTempCredName() + Constants.DELIMITER;
-				break;
-			}
-		}
-
-		// Store the attributes
-		for (String id : values.keySet()) {
-			String name = id.replace(prefix, "");
-			attributes.add(name, values.get(id).toByteArray());
-		}
-
-		// Verify validity
-		if (!attributes.isValid()) {
-			System.err.println("Credential expired!");
-			throw new CredentialsException("The credential has expired.");
-		}
-		
-		return attributes;
 	}
 
 	/**
@@ -247,10 +211,26 @@ public class IdemixCredentials extends BaseCredentials {
 		// Return the attributes that have been revealed during the proof
 		Attributes attributes = new Attributes();
 		HashMap<String, BigInteger> values = verifier.getRevealedValues();
-		Iterator<String> i = values.keySet().iterator();
-		while (i.hasNext()) {
-			String id = i.next();
-			attributes.add(id, values.get(id).toByteArray());
+
+		// First determine the prefix that needs to be stripped from the name
+		String prefix = "";
+		for (Predicate pred : spec.getProofSpec().getPredicates()) {
+			if (pred.getPredicateType() == PredicateType.CL) {
+				prefix = ((CLPredicate) pred).getTempCredName() + Constants.DELIMITER;
+				break;
+			}
+		}
+
+		// Store the attributes
+		for (String id : values.keySet()) {
+			String name = id.replace(prefix, "");
+			attributes.add(name, values.get(id).toByteArray());
+		}
+
+		// Verify validity
+		if (!attributes.isValid()) {
+			System.err.println("Credential expired!");
+			throw new CredentialsException("The credential has expired.");
 		}
 
 		return attributes;
