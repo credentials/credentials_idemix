@@ -121,37 +121,19 @@ public class IdemixCredentials extends BaseCredentials {
         values.add("expiry", BigInteger.valueOf(
         		expires.getTimeInMillis() / EXPIRY_FACTOR).toByteArray());
 
-		// Initialise the issuer
+		// Initialize the issuer
 		Issuer issuer = new Issuer(isk.getIssuerKeyPair(), spec.getIssuanceSpec(),
 				null, null, spec.getValues(values));
 
-		// Initialise the recipient
 		try {
-			service.setCredential(spec.getIdemixId());
-			service.setIssuanceSpecification(spec.getIssuanceSpec());
-			service.setAttributes(spec.getIssuanceSpec(), spec.getValues(values));
+			ProtocolResponses responses = service
+					.execute(requestIssueRound1Commands(specification, values,
+							issuer));
+			service.execute(requestIssueRound3Commands(spec, values, issuer,
+					responses));
 		} catch (CardServiceException e) {
-			throw new CredentialsException(
-					"Failed to issue the credential (SCUBA)");
+			throw new CredentialsException("Issuing caused exception", e);
 		}
-
-		// Issue the credential
-		Message msgToRecipient1 = issuer.round0();
-		if (msgToRecipient1 == null) {
-			throw new CredentialsException("Failed to issue the credential (0)");
-		}
-
-		Message msgToIssuer1 = service.round1(msgToRecipient1);
-		if (msgToIssuer1 == null) {
-			throw new CredentialsException("Failed to issue the credential (1)");
-		}
-
-		Message msgToRecipient2 = issuer.round2(msgToIssuer1);
-		if (msgToRecipient2 == null) {
-			throw new CredentialsException("Failed to issue the credential (2)");
-		}
-
-		service.round3(msgToRecipient2);
 	}
 
 	/**
