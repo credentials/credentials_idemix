@@ -21,7 +21,6 @@
 package org.irmacard.credentials.idemix;
 
 import java.math.BigInteger;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -69,11 +68,6 @@ import com.ibm.zurich.idmx.utils.SystemParameters;
  * An Idemix specific implementation of the credentials interface.
  */
 public class IdemixCredentials extends BaseCredentials {
-	/**
-	 * Precision factor for the expiry attribute, 1 means millisecond precision.
-	 */
-	public final static long EXPIRY_FACTOR = 1000 * 60 * 60 * 24;
-	
 	IdemixService service = null;
 
 	public IdemixCredentials(CardService cs) {
@@ -112,14 +106,7 @@ public class IdemixCredentials extends BaseCredentials {
 		IdemixIssueSpecification spec = castIssueSpecification(specification);
 		IdemixPrivateKey isk = castIdemixPrivateKey(sk);
 
-		Calendar expires = Calendar.getInstance();
-		if (expiry != null) {
-			expires.setTime(expiry);
-		} else {
-			expires.add(Calendar.MONTH, 6);
-		}
-        values.add("expiry", BigInteger.valueOf(
-        		expires.getTimeInMillis() / EXPIRY_FACTOR).toByteArray());
+		values.setExpiryAttribute(expiry);
 
 		// Initialize the issuer
 		Issuer issuer = new Issuer(isk.getIssuerKeyPair(), spec.getIssuanceSpec(),
@@ -200,20 +187,17 @@ public class IdemixCredentials extends BaseCredentials {
 				break;
 			}
 		}
-		
-		// Verify the expiry attribute, and store the other attributes
+
+		// Store the attributes
 		for (String id : values.keySet()) {
 			String name = id.replace(prefix, "");
-			if (name.equalsIgnoreCase("expiry")) {
-				Calendar expires = Calendar.getInstance();
-				expires.setTimeInMillis(values.get(id).longValue() * EXPIRY_FACTOR);
-				if (Calendar.getInstance().after(expires)) {
-					System.err.println("Credential expired!");
-					throw new CredentialsException("The credential has expired.");
-				}
-			} else {
-				attributes.add(name, values.get(id).toByteArray());
-			}
+			attributes.add(name, values.get(id).toByteArray());
+		}
+
+		// Verify validity
+		if (!attributes.isValid()) {
+			System.err.println("Credential expired!");
+			throw new CredentialsException("The credential has expired.");
 		}
 		
 		return attributes;
