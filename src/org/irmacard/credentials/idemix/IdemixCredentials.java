@@ -413,6 +413,12 @@ public class IdemixCredentials extends BaseCredentials {
 				entry = new VerifyLogEntry(timestamp,
 						credential, null, makeAttributeDisclosed(credential,
 								l.getDisclose()));
+				break;
+
+			// These should not happen...
+			case NONE:
+			default:
+				continue;
 			}
 			logs.add(entry);
 		}

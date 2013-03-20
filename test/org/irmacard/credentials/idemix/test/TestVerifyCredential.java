@@ -124,7 +124,7 @@ public class TestVerifyCredential {
 		Nonce nonce = ic.generateNonce(vspec);
 		ProtocolCommands commands = ic.requestProofCommands(vspec, nonce);
 		// FIXME: verify that this actually helps
-		commands.add(0, IdemixSmartcard.selectAppletCommand);
+		commands.add(0, IdemixSmartcard.selectApplicationCommand);
 		ProtocolResponses responses = service.execute(commands);
 		Attributes attr = ic.verifyProofResponses(vspec, nonce, responses);
 
