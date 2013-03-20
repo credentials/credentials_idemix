@@ -39,10 +39,10 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.smartcardio.CardException;
 
+import net.sourceforge.scuba.smartcards.CardService;
 import net.sourceforge.scuba.smartcards.CardServiceException;
 import net.sourceforge.scuba.smartcards.ProtocolCommands;
 import net.sourceforge.scuba.smartcards.ProtocolResponses;
-import net.sourceforge.scuba.smartcards.TerminalCardService;
 import net.sourceforge.scuba.smartcards.WrappingCardService;
 import net.sourceforge.scuba.util.Hex;
 
@@ -114,7 +114,7 @@ public class TestSecureMessaging {
 	"Surfnet", "root", "Surfnet", "rootAll");
 		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
 
-		TerminalCardService terminal = TestSetup.getCardService();
+		CardService terminal = TestSetup.getCardService();
 		CardHolderVerificationService pinpad = new CardHolderVerificationService(terminal);
 		SecureMessagingWrapper sm = new SecureMessagingWrapper(getKey() , getKey() );
 		WrappingCardService wrapper = new WrappingCardService(pinpad, sm);
@@ -151,7 +151,7 @@ public class TestSecureMessaging {
 	"Surfnet", "root", "Surfnet", "rootAll");
 		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
 
-		TerminalCardService terminal = TestSetup.getCardService();
+		CardService terminal = TestSetup.getCardService();
 		CardHolderVerificationService pinpad = new CardHolderVerificationService(terminal);
 		SecureMessagingWrapper sm = new SecureMessagingWrapper(getKey() , getKey() );
 		
