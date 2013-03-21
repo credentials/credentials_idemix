@@ -28,6 +28,7 @@ import javax.smartcardio.CardException;
 import javax.smartcardio.CardTerminal;
 import javax.smartcardio.TerminalFactory;
 
+import net.sourceforge.scuba.smartcards.CardService;
 import net.sourceforge.scuba.smartcards.TerminalCardService;
 
 import org.irmacard.idemix.IdemixService;
@@ -128,9 +129,10 @@ public class TestSetup {
         return new IssuanceSpec(ISSUER_ID.resolve("ipk.xml"), CRED_STRUCT_ID);
     }
     
-    public static TerminalCardService getCardService() throws CardException {
+    public static CardService getCardService() throws CardException {
+//    	return new InteractiveConsoleCardService();
 		CardTerminal terminal = TerminalFactory.getDefault().terminals().list().get(0);
-		return new TerminalCardService(terminal);
+    	return new TerminalCardService(terminal);
     }
     
     public static IdemixService getIdemixService() throws CardException {
