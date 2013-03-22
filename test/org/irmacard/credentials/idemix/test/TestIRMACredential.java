@@ -58,6 +58,13 @@ public class TestIRMACredential {
 	}
 
 	@Test
+	public void generateMasterSecret() throws CardException, CardServiceException {
+		IdemixService is = new IdemixService(TestSetup.getCardService());
+		is.open();
+		is.generateMasterSecret();
+	}
+
+	@Test
 	public void issueRootCredential() throws CardException, CredentialsException, CardServiceException {
 		IssueCredentialInformation ici = new IssueCredentialInformation("Surfnet", "root");
 		IdemixIssueSpecification spec = ici.getIdemixIssueSpecification();
