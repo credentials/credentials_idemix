@@ -76,7 +76,11 @@ public class IdemixCredentials extends BaseCredentials {
 	public void connect() 
 	throws CredentialsException {
 		try {
-			service = new IdemixService(cs);
+			if (cs instanceof IdemixService) {
+				service = (IdemixService) cs;
+			} else {
+				service = new IdemixService(cs);
+			}
 			service.open();
 		} catch (CardServiceException e) {
 			e.printStackTrace();
@@ -413,6 +417,12 @@ public class IdemixCredentials extends BaseCredentials {
 				entry = new VerifyLogEntry(timestamp,
 						credential, null, makeAttributeDisclosed(credential,
 								l.getDisclose()));
+				break;
+
+			// These should not happen...
+			case NONE:
+			default:
+				continue;
 			}
 			logs.add(entry);
 		}

@@ -160,8 +160,8 @@ public class TestIssuance {
 		service.open();
 
 		ProtocolCommands commands = ic.requestIssueRound1Commands(spec, attributes, issuer);
-		commands.add(0, IdemixSmartcard.selectAppletCommand);
-		commands.add(1, IdemixSmartcard.sendPinCommand(IdemixSmartcard.PIN_CRED, TestSetup.DEFAULT_CRED_PIN));
+		commands.add(0, IdemixSmartcard.selectApplicationCommand);
+		commands.add(1, IdemixSmartcard.sendPinCommand(IdemixSmartcard.P2_PIN_ATTRIBUTE, TestSetup.DEFAULT_CRED_PIN));
 
 		ProtocolResponses responses = service.execute(commands);
 		commands = ic.requestIssueRound3Commands(spec, attributes, issuer, responses);
@@ -211,8 +211,8 @@ public class TestIssuance {
 
 		// Run part one of protocol
 		ProtocolCommands commands = ic.requestIssueRound1Commands(spec, attributes, issuer);
-		commands.add(0, IdemixSmartcard.selectAppletCommand);
-		commands.add(1, IdemixSmartcard.sendPinCommand(IdemixSmartcard.PIN_CRED, TestSetup.DEFAULT_CRED_PIN));
+		commands.add(0, IdemixSmartcard.selectApplicationCommand);
+		commands.add(1, IdemixSmartcard.sendPinCommand(IdemixSmartcard.P2_PIN_ATTRIBUTE, TestSetup.DEFAULT_CRED_PIN));
 
 		// Save state, this is the nasty part
 		try {

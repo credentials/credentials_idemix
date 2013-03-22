@@ -123,7 +123,7 @@ public class TestSecureMessaging {
 		idemix.open();
 
 		// Select Applet
-		idemix.selectApplet();
+		idemix.selectApplication();
 
 		// Enable Secure Messaging
 		wrapper.enable();
@@ -160,7 +160,7 @@ public class TestSecureMessaging {
 
 		// Select Applet
 		IdemixService idemix = new IdemixService(pinpad);
-		idemix.selectApplet();		
+		idemix.selectApplication();		
 		System.out.println("Applet selected");
 
 		Nonce nonce = ic.generateNonce(vspec);
