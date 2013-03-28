@@ -71,16 +71,16 @@ public class IdemixCredentials extends BaseCredentials {
 
 	public IdemixCredentials(CardService cs) {
 		super(cs);
+		if (cs instanceof IdemixService) {
+			service = (IdemixService) cs;
+		} else {
+			service = new IdemixService(cs);
+		}
 	}
 
 	public void connect() 
 	throws CredentialsException {
 		try {
-			if (cs instanceof IdemixService) {
-				service = (IdemixService) cs;
-			} else {
-				service = new IdemixService(cs);
-			}
 			service.open();
 		} catch (CardServiceException e) {
 			e.printStackTrace();
