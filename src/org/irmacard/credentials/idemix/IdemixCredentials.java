@@ -38,6 +38,7 @@ import org.irmacard.credentials.Nonce;
 import org.irmacard.credentials.idemix.spec.IdemixIssueSpecification;
 import org.irmacard.credentials.idemix.spec.IdemixVerifySpecification;
 import org.irmacard.credentials.idemix.util.CredentialInformation;
+import org.irmacard.credentials.idemix.util.IdemixVersion;
 import org.irmacard.credentials.info.AttributeDescription;
 import org.irmacard.credentials.info.CredentialDescription;
 import org.irmacard.credentials.info.DescriptionStore;
@@ -45,6 +46,7 @@ import org.irmacard.credentials.info.InfoException;
 import org.irmacard.credentials.keys.PrivateKey;
 import org.irmacard.credentials.spec.IssueSpecification;
 import org.irmacard.credentials.spec.VerifySpecification;
+import org.irmacard.credentials.util.CardVersion;
 import org.irmacard.credentials.util.log.IssueLogEntry;
 import org.irmacard.credentials.util.log.LogEntry;
 import org.irmacard.credentials.util.log.RemoveLogEntry;
@@ -441,5 +443,9 @@ public class IdemixCredentials extends BaseCredentials {
 		}
 
 		return attributeDisclosed;
+	}
+
+	public CardVersion getCardVersion() {
+		return new IdemixVersion(service.getCardVersion());
 	}
 }
