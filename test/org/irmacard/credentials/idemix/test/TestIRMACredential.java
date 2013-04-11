@@ -432,6 +432,170 @@ public class TestIRMACredential {
 		}
 	}
 
+	@Test
+	public void issueMijnOverheidRoot() throws CardException,
+			CredentialsException, CardServiceException {
+		IssueCredentialInformation ici = new IssueCredentialInformation(
+				"MijnOverheid", "root");
+
+		Attributes attributes = new Attributes();
+		attributes.add("BSN", "123456789".getBytes());
+
+		issue(ici, attributes);
+	}
+
+	@Test
+	public void verifyMijnOverheidRoot() throws CardException,
+			CredentialsException, CardServiceException, InfoException {
+		VerifyCredentialInformation vci = new VerifyCredentialInformation(
+				"MijnOverheid", "rootAll");
+		verify(vci);
+	}
+
+	@Test
+	public void removeMijnOverheidRoot() throws CardException,
+			CredentialsException, CardServiceException, InfoException {
+		CredentialDescription cd = DescriptionStore.getInstance()
+				.getCredentialDescriptionByName("MijnOverheid", "root");
+		remove(cd);
+	}
+
+	@Test
+	public void issueFullNameCredential() throws CardException, CredentialsException,
+			CardServiceException {
+		IssueCredentialInformation ici = new IssueCredentialInformation(
+				"MijnOverheid", "fullName");
+
+		Attributes attributes = new Attributes();
+		attributes.add("firstnames", "Johan Pieter".getBytes());
+		attributes.add("firstname", "Johan".getBytes());
+		attributes.add("familyname", "Stuivezand".getBytes());
+		attributes.add("prefix", "van".getBytes());
+
+		issue(ici, attributes);
+	}
+
+	@Test
+	public void verifyFullNameCredential() throws CardException,
+			CredentialsException, CardServiceException, InfoException {
+		VerifyCredentialInformation vci = new VerifyCredentialInformation(
+				"MijnOverheid", "fullNameAll");
+		verify(vci);
+	}
+
+	@Test
+	public void removeFullNameCredential() throws CardException,
+			CredentialsException, CardServiceException, InfoException {
+		CredentialDescription cd = DescriptionStore.getInstance()
+				.getCredentialDescriptionByName("MijnOverheid", "fullName");
+		remove(cd);
+	}
+
+	@Test
+	public void issueBirthCertificate() throws CardException, CredentialsException,
+			CardServiceException {
+		IssueCredentialInformation ici = new IssueCredentialInformation(
+				"MijnOverheid", "birthCertificate");
+
+		Attributes attributes = new Attributes();
+		attributes.add("dateofbirth", "29-2-2004".getBytes());
+		attributes.add("placeofbirth", "Stuivezand".getBytes());
+		attributes.add("countryofbirth", "Nederland".getBytes());
+		attributes.add("gender", "male".getBytes());
+
+		issue(ici, attributes);
+	}
+
+	@Test
+	public void verifyBirthCertificate() throws CardException,
+			CredentialsException, CardServiceException, InfoException {
+		VerifyCredentialInformation vci = new VerifyCredentialInformation(
+				"MijnOverheid", "birthCertificateAll");
+		verify(vci);
+	}
+
+	@Test
+	public void removeBirthCertificate() throws CardException,
+			CredentialsException, CardServiceException, InfoException {
+		CredentialDescription cd = DescriptionStore.getInstance()
+				.getCredentialDescriptionByName("MijnOverheid", "birthCertificate");
+		remove(cd);
+	}
+
+	@Test
+	public void issueSeniorAgeCredential() throws CardException, CredentialsException,
+			CardServiceException {
+		IssueCredentialInformation ici = new IssueCredentialInformation(
+				"MijnOverheid", "ageHigher");
+
+		Attributes attributes = new Attributes();
+		attributes.add("over50", "yes".getBytes());
+		attributes.add("over60", "no".getBytes());
+		attributes.add("over65", "no".getBytes());
+		attributes.add("over75", "no".getBytes());
+
+		issue(ici, attributes);
+	}
+
+	@Test
+	public void verifySeniorAgeCredential() throws CardException,
+			CredentialsException, CardServiceException, InfoException {
+		VerifyCredentialInformation vci = new VerifyCredentialInformation(
+				"MijnOverheid", "ageHigherAll");
+		verify(vci);
+	}
+
+	@Test
+	public void removeSeniorAgeCredential() throws CardException,
+			CredentialsException, CardServiceException, InfoException {
+		CredentialDescription cd = DescriptionStore.getInstance()
+				.getCredentialDescriptionByName("MijnOverheid", "ageHigher");
+		remove(cd);
+	}
+
+	private void issue(IssueCredentialInformation ici, Attributes attributes)
+			throws CardException, CredentialsException, CardServiceException {
+		IdemixIssueSpecification spec = ici.getIdemixIssueSpecification();
+		IdemixPrivateKey isk = ici.getIdemixPrivateKey();
+
+		IdemixService is = new IdemixService(TestSetup.getCardService());
+		IdemixCredentials ic = new IdemixCredentials(is);
+		ic.connect();
+		is.sendPin(TestSetup.DEFAULT_CRED_PIN);
+		ic.issue(spec, isk, attributes, null);
+	}
+
+	private void verify(VerifyCredentialInformation vci) throws CardException, CredentialsException {
+		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
+
+		CardService cs = TestSetup.getCardService();
+		IdemixCredentials ic = new IdemixCredentials(cs);
+
+		Attributes attr = ic.verify(vspec);
+
+		if (attr == null) {
+			fail("The proof does not verify");
+		} else {
+			System.out.println("Proof verified");
+		}
+
+		attr.print();
+	}
+
+	private void remove(CredentialDescription cd) throws CardException, CredentialsException, CardServiceException, InfoException {
+		IdemixService is = TestSetup.getIdemixService();
+		IdemixCredentials ic = new IdemixCredentials(is);
+
+		ic.connect();
+		is.sendCardPin(TestSetup.DEFAULT_CARD_PIN);
+		try {
+			ic.removeCredential(cd);
+		} catch (CardServiceException e) {
+			if (!e.getMessage().toUpperCase().contains("6A88")) {
+				throw e;
+			}
+		}
+	}
 
     private Attributes getStudentCardAttributes() {
         // Return the attributes that have been revealed during the proof
