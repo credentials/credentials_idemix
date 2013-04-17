@@ -553,6 +553,44 @@ public class TestIRMACredential {
 		remove(cd);
 	}
 
+	@Test
+	public void issueIRMATubeMemberCredential() throws CardException, CredentialsException,
+			CardServiceException {
+		IssueCredentialInformation ici = new IssueCredentialInformation(
+				"IRMATube", "member");
+
+		Attributes attributes = new Attributes();
+		attributes.add("name", "J.P. Stuivezand".getBytes());
+		attributes.add("type", "regular".getBytes());
+		attributes.add("id", "123456".getBytes());
+
+		issue(ici, attributes);
+	}
+
+	@Test
+	public void verifyIRMATubeMemberCredential() throws CardException,
+			CredentialsException, CardServiceException, InfoException {
+		VerifyCredentialInformation vci = new VerifyCredentialInformation(
+				"IRMATube", "memberAll");
+		verify(vci);
+	}
+
+	@Test
+	public void verifyIRMATubeMemberTypeCredential() throws CardException,
+			CredentialsException, CardServiceException, InfoException {
+		VerifyCredentialInformation vci = new VerifyCredentialInformation(
+				"IRMATube", "memberType");
+		verify(vci);
+	}
+
+	@Test
+	public void removeIRMATubeMemberCredential() throws CardException,
+			CredentialsException, CardServiceException, InfoException {
+		CredentialDescription cd = DescriptionStore.getInstance()
+				.getCredentialDescriptionByName("MijnOverheid", "ageHigher");
+		remove(cd);
+	}
+
 	private void issue(IssueCredentialInformation ici, Attributes attributes)
 			throws CardException, CredentialsException, CardServiceException {
 		IdemixIssueSpecification spec = ici.getIdemixIssueSpecification();

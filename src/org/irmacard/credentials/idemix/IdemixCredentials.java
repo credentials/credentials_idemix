@@ -407,6 +407,11 @@ public class IdemixCredentials extends BaseCredentials {
 			DescriptionStore ds = DescriptionStore.getInstance();
 			Date timestamp = l.getTimestamp();
 			CredentialDescription credential = ds.getCredentialDescription(l.getCredential());
+			if(credential == null) {
+				System.out.println("This shouldn't happen, cannot find the description");
+				l.print();
+				continue;
+			}
 
 			switch (l.getAction()) {
 			case ISSUE:
