@@ -21,7 +21,9 @@ package org.irmacard.credentials.idemix.test;
 
 import static org.junit.Assert.fail;
 
+import java.io.File;
 import java.math.BigInteger;
+import java.net.URI;
 
 import javax.smartcardio.CardException;
 import javax.smartcardio.CardTerminal;
@@ -38,6 +40,10 @@ import org.irmacard.credentials.CredentialsException;
 import org.irmacard.credentials.Nonce;
 import org.irmacard.credentials.idemix.IdemixCredentials;
 import org.irmacard.credentials.idemix.spec.IdemixVerifySpecification;
+import org.irmacard.credentials.idemix.util.CredentialInformation;
+import org.irmacard.credentials.idemix.util.VerifyCredentialInformation;
+import org.irmacard.credentials.info.DescriptionStore;
+import org.irmacard.credentials.info.InfoException;
 import org.irmacard.idemix.IdemixService;
 import org.irmacard.idemix.IdemixSmartcard;
 import org.junit.Before;
@@ -134,5 +140,36 @@ public class TestVerifyCredential {
 			System.out.println("Proof verified");
 		}
 	}
+
+	@Test
+	public void doubleVerify() throws CardException, CredentialsException, InfoException, CardServiceException {
+		URI core = new File(System
+				.getProperty("user.dir")).toURI()
+				.resolve("irma_configuration/");
+		CredentialInformation.setCoreLocation(core);
+		DescriptionStore.setCoreLocation(core);
+		DescriptionStore.getInstance();
+
+		VerifyCredentialInformation vci1 = new VerifyCredentialInformation(
+				"IRMATube", "memberType");
+		IdemixVerifySpecification vspec1 = vci1.getIdemixVerifySpecification();
+		VerifyCredentialInformation vci2 = new VerifyCredentialInformation(
+				"IRMATube", "ageLowerOver16");
+		IdemixVerifySpecification vspec2 = vci2.getIdemixVerifySpecification();
+
+		IdemixService service = TestSetup.getIdemixService();
+		IdemixCredentials ic = new IdemixCredentials(null);
+		service.open();
+
+		Nonce nonce1 = ic.generateNonce(vspec1);
+		ProtocolCommands commands = ic.requestProofCommands(vspec1, nonce1);
+		Nonce nonce2 = ic.generateNonce(vspec2);
+		ProtocolCommands commands2 = ic.requestProofCommands(vspec2, nonce2);
+
+		commands.add(0, IdemixSmartcard.selectApplicationCommand);
+		commands.addAll(commands2);
+		service.execute(commands);
+	}
+
 
 }
