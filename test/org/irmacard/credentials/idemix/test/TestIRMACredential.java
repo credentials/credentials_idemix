@@ -587,7 +587,7 @@ public class TestIRMACredential {
 	public void removeIRMATubeMemberCredential() throws CardException,
 			CredentialsException, CardServiceException, InfoException {
 		CredentialDescription cd = DescriptionStore.getInstance()
-				.getCredentialDescriptionByName("MijnOverheid", "ageHigher");
+				.getCredentialDescriptionByName("IRMATube", "member");
 		remove(cd);
 	}
 
@@ -665,7 +665,7 @@ public class TestIRMACredential {
 		attributes.add("over12", "yes".getBytes());
 		attributes.add("over16", "yes".getBytes());
 		attributes.add("over18", "yes".getBytes());
-		attributes.add("over21", "no".getBytes());
+		attributes.add("over21", "yes".getBytes());
 		
 		return attributes;
     }
