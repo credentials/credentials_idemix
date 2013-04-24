@@ -289,7 +289,10 @@ public class IdemixCredentials extends BaseCredentials {
 	throws CredentialsException {
 		IdemixIssueSpecification spec = castIssueSpecification(ispec);
 		Message msgToIssuer = IdemixSmartcard.processRound1Responses(responses);
-		Message msgToRecipient2 = nonce == null ? issuer.round2(msgToIssuer) : issuer.round2(nonce, msgToIssuer);
+		Message msgToRecipient2 = ((nonce == null) ? issuer.round2(msgToIssuer) : issuer.round2(nonce, msgToIssuer));
+		if (msgToRecipient2 == null) {
+			throw new CredentialsException("IdemixLibrary failed to generate the message for the recipient, probably because the proof-of-correctness for the card commitment could not be verified.");
+		}
 		return IdemixSmartcard.round3Commands(spec.getIssuanceSpec(), msgToRecipient2);
 	}
 
