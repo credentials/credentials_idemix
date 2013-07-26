@@ -20,6 +20,7 @@
 
 package org.irmacard.credentials.idemix.spec;
 
+import java.math.BigInteger;
 import java.net.URI;
 
 import org.irmacard.credentials.spec.VerifySpecification;
@@ -77,5 +78,12 @@ public class IdemixVerifySpecification extends VerifySpecification {
 	 */
 	public short getIdemixId() {
 		return credId;
+	}
+
+	/**
+	 * Set the context for this proof session instead of having it generated.
+	 */
+	public void setContext(BigInteger context) {
+		proofSpec.setContext(context);
 	}
 }

@@ -113,16 +113,23 @@ public class IdemixCredentials extends BaseCredentials {
 
 		values.setExpiryAttribute(expiry);
 
+//		BigInteger context = Utils.computeRandomNumber(spec.getIssuanceSpec().getPublicKey().getGroupParams().getSystemParams().getL_H());
+//		spec.setContext(context);
+
 		// Initialize the issuer
 		Issuer issuer = new Issuer(isk.getIssuerKeyPair(), spec.getIssuanceSpec(),
 				null, null, spec.getValues(values));
 
+//		BigInteger nonce = Utils.computeRandomNumber(spec.getIssuanceSpec().getPublicKey().getGroupParams().getSystemParams().getL_Phi());
+//		issuer.setNonce(nonce);
+
+		ProtocolResponses responses;
 		try {
-			ProtocolResponses responses = service
-					.execute(requestIssueRound1Commands(specification, values,
-							issuer));
-			service.execute(requestIssueRound3Commands(spec, values, issuer,
-					responses));
+			responses = service.execute(requestIssueRound1Commands(
+					spec, values, issuer));
+			responses = service.execute(requestIssueRound3Commands(
+					spec, values, issuer, responses));
+			// FIXME: Check responses to round 3
 		} catch (CardServiceException e) {
 			throw new CredentialsException("Issuing caused exception", e);
 		}
@@ -160,6 +167,10 @@ public class IdemixCredentials extends BaseCredentials {
 	public Attributes verify(VerifySpecification specification)
 			throws CredentialsException {
 		verifyPrepare();
+
+//		IdemixVerifySpecification spec = castVerifySpecification(specification);
+//		BigInteger context = Utils.computeRandomNumber(spec.getProofSpec().getGroupParams().getSystemParams().getL_H());
+//		spec.setContext(context);
 
 		// Get a nonce from the verifier
 		Nonce nonce = generateNonce(specification);

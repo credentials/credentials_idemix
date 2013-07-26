@@ -108,4 +108,11 @@ public class IdemixIssueSpecification extends IssueSpecification {
 	public short getIdemixId() {
 		return credId;
 	}
+
+	/**
+	 * Set the context for this issuance session instead of having it generated.
+	 */
+	public void setContext(BigInteger context) {
+		issueSpec.setContext(context);
+	}
 }
