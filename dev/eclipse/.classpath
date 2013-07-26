@@ -10,6 +10,7 @@
 	<classpathentry kind="src" path="/scuba_smartcards"/>
 	<classpathentry kind="src" path="/scuba_sc_j2se"/>
 	<classpathentry kind="src" path="/scuba_util"/>
-	<classpathentry kind="lib" path="lib/bcprov-jdk15on-147.jar"/>
+	<classpathentry kind="lib" path="lib/bouncycastle-1.49.jar"/>
+	<classpathentry kind="lib" path="lib/cert-cvc-1.3.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
