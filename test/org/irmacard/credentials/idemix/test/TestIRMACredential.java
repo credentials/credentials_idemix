@@ -591,6 +591,43 @@ public class TestIRMACredential {
 		remove(cd);
 	}
 
+	@Test
+	public void issueIRMAWikiMemberCredential() throws CardException, CredentialsException,
+			CardServiceException {
+		IssueCredentialInformation ici = new IssueCredentialInformation(
+				"IRMAWiki", "member");
+
+		Attributes attributes = new Attributes();
+		attributes.add("nickname", "Stuifje".getBytes());
+		attributes.add("type", "regular".getBytes());
+
+		issue(ici, attributes);
+	}
+
+	@Test
+	public void verifyIRMAWikiMemberCredential() throws CardException,
+			CredentialsException, CardServiceException, InfoException {
+		VerifyCredentialInformation vci = new VerifyCredentialInformation(
+				"IRMAWiki", "memberAll");
+		verify(vci);
+	}
+
+	@Test
+	public void removeIRMAWikiMemberCredential() throws CardException,
+			CredentialsException, CardServiceException, InfoException {
+		CredentialDescription cd = DescriptionStore.getInstance()
+				.getCredentialDescriptionByName("IRMAWiki", "member");
+		remove(cd);
+	}
+
+	@Test
+	public void verifyIRMAWikiSurfnetRootNone() throws CardException,
+			CredentialsException, CardServiceException, InfoException {
+		VerifyCredentialInformation vci = new VerifyCredentialInformation(
+				"IRMAWiki", "surfnetRootNone");
+		verify(vci);
+	}
+
 	private void issue(IssueCredentialInformation ici, Attributes attributes)
 			throws CardException, CredentialsException, CardServiceException {
 		IdemixIssueSpecification spec = ici.getIdemixIssueSpecification();
