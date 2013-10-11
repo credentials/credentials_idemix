@@ -19,17 +19,17 @@
 
 package org.irmacard.credentials.idemix.util;
 
-import org.irmacard.credentials.util.CardVersion;
+import org.irmacard.idemix.util.CardVersion;
 
-public class IdemixVersion extends CardVersion {
+public class IdemixVersion extends org.irmacard.credentials.util.CardVersion {
 	private static final long serialVersionUID = 1L;
-	byte[] version;
+	CardVersion version;
 
-	public IdemixVersion(byte[] version) {
+	public IdemixVersion(CardVersion version) {
 		this.version = version;
 	}
 	
 	public String toString() {
-		return "Idemix " + version[1] + "." + version[2] + "." + version[3];
+		return "IRMAcard " + version.toString();
 	}
 }

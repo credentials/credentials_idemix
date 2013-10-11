@@ -84,8 +84,8 @@ public class TestAuthentication {
 		CardService terminal = TestSetup.getCardService();
 		IdemixService idemix = new IdemixService(terminal);
 		idemix.open();
-		idemix.setCAKey(caKey);
-		idemix.verifyCertificate(cert);
+		//idemix.setCAKey(caKey);
+		//idemix.verifyCertificate(cert);
 	}
 	
 	private Certificate constructCertificate() throws NoSuchAlgorithmException, NoSuchProviderException, ConstructionException, InvalidKeyException, SignatureException, IOException {
