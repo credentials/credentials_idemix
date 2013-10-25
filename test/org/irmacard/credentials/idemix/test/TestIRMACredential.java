@@ -371,6 +371,7 @@ public class TestIRMACredential {
 		ic.connect();
 		is.sendPin(TestSetup.DEFAULT_CRED_PIN);
 		Attributes attributes = getAddressReuverAttributes();
+		spec.setCardVersion(is.getCardVersion());
 		ic.issue(spec, isk, attributes, null);
 	}
 	

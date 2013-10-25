@@ -109,6 +109,7 @@ public class IdemixCredentials extends BaseCredentials {
 	public void issue(IssueSpecification specification, PrivateKey sk,
 			Attributes values, Date expiry) throws CredentialsException {
 		IdemixIssueSpecification spec = castIssueSpecification(specification);
+		spec.setCardVersion(service.getCardVersion());
 		IdemixPrivateKey isk = castIdemixPrivateKey(sk);
 
 		values.setExpiryAttribute(expiry);
@@ -168,7 +169,8 @@ public class IdemixCredentials extends BaseCredentials {
 			throws CredentialsException {
 		verifyPrepare();
 
-//		IdemixVerifySpecification spec = castVerifySpecification(specification);
+		IdemixVerifySpecification spec = castVerifySpecification(specification);
+		spec.setCardVersion(service.getCardVersion());
 //		BigInteger context = Utils.computeRandomNumber(spec.getProofSpec().getGroupParams().getSystemParams().getL_H());
 //		spec.setContext(context);
 
@@ -177,7 +179,7 @@ public class IdemixCredentials extends BaseCredentials {
 
 		// Run the protocol
 		try {
-			return verifyProofResponses(specification, nonce,
+			return verifyProofResponses(spec, nonce,
 					service.execute(requestProofCommands(specification, nonce)));
 		} catch (CardServiceException e) {
 			throw new CredentialsException("Verification encountered error", e);
@@ -201,7 +203,7 @@ public class IdemixCredentials extends BaseCredentials {
 			throws CredentialsException {
 		IdemixVerifySpecification spec = castVerifySpecification(specification);
 		IdemixNonce n = castNonce(nonce);
-		return IdemixSmartcard.buildProofCommands(n.getNonce(),
+		return IdemixSmartcard.buildProofCommands(spec.getCardVersion(), n.getNonce(),
 				spec.getProofSpec(), spec.getIdemixId());
 	}
 
@@ -213,7 +215,7 @@ public class IdemixCredentials extends BaseCredentials {
 		IdemixNonce n = castNonce(nonce);
 
 		// Create the proof
-		Proof proof = IdemixSmartcard.processBuildProofResponses(responses,
+		Proof proof = IdemixSmartcard.processBuildProofResponses(spec.getCardVersion(), responses,
 				spec.getProofSpec());
 		if (proof == null) {
 			throw new CredentialsException("Failed to generate proof.");
@@ -268,10 +270,10 @@ public class IdemixCredentials extends BaseCredentials {
 		ProtocolCommands commands = new ProtocolCommands();
 		IdemixIssueSpecification spec = castIssueSpecification(ispec);
 
-		commands.addAll(IdemixSmartcard.setIssuanceSpecificationCommands(
+		commands.addAll(IdemixSmartcard.setIssuanceSpecificationCommands(spec.getCardVersion(),
 				spec.getIssuanceSpec(), spec.getIdemixId()));
 
-		commands.addAll(IdemixSmartcard.setAttributesCommands(
+		commands.addAll(IdemixSmartcard.setAttributesCommands(spec.getCardVersion(),
 				spec.getIssuanceSpec(), spec.getValues(attributes)));
 
 		// Issue the credential
@@ -280,7 +282,7 @@ public class IdemixCredentials extends BaseCredentials {
 			throw new CredentialsException("Failed to issue the credential (0)");
 		}
 
-		commands.addAll(IdemixSmartcard.round1Commands(spec.getIssuanceSpec(),
+		commands.addAll(IdemixSmartcard.round1Commands(spec.getCardVersion(), spec.getIssuanceSpec(),
 				msgToRecipient1));
 
 		return commands;
@@ -299,12 +301,12 @@ public class IdemixCredentials extends BaseCredentials {
 	public ProtocolCommands requestIssueRound3Commands(IssueSpecification ispec, Attributes attributes, Issuer issuer, ProtocolResponses responses, BigInteger nonce)
 	throws CredentialsException {
 		IdemixIssueSpecification spec = castIssueSpecification(ispec);
-		Message msgToIssuer = IdemixSmartcard.processRound1Responses(responses);
+		Message msgToIssuer = IdemixSmartcard.processRound1Responses(spec.getCardVersion(), responses);
 		Message msgToRecipient2 = ((nonce == null) ? issuer.round2(msgToIssuer) : issuer.round2(nonce, msgToIssuer));
 		if (msgToRecipient2 == null) {
 			throw new CredentialsException("IdemixLibrary failed to generate the message for the recipient, probably because the proof-of-correctness for the card commitment could not be verified.");
 		}
-		return IdemixSmartcard.round3Commands(spec.getIssuanceSpec(), msgToRecipient2);
+		return IdemixSmartcard.round3Commands(spec.getCardVersion(), spec.getIssuanceSpec(), msgToRecipient2);
 	}
 
 	@Override

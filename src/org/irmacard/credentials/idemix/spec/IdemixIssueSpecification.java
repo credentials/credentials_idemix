@@ -1,19 +1,19 @@
 /**
  * IdemixIssueSpecification.java
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * Copyright (C) Pim Vullers, Radboud University Nijmegen, May 2012,
  * Copyright (C) Wouter Lueks, Radboud Univeristy Nijmegen, August 2012.
  */
@@ -26,6 +26,7 @@ import java.util.Iterator;
 
 import org.irmacard.credentials.Attributes;
 import org.irmacard.credentials.spec.IssueSpecification;
+import org.irmacard.idemix.util.CardVersion;
 
 import com.ibm.zurich.idmx.dm.Values;
 import com.ibm.zurich.idmx.issuance.IssuanceSpec;
@@ -34,17 +35,19 @@ import com.ibm.zurich.idmx.key.IssuerKeyPair;
 
 /**
  * Idemix flavoured IssueSpecification
- * 
- * This class implements the conversion from the generic specification to the 
- * Idemix specific one which can be used as input for the terminal and library. 
+ *
+ * This class implements the conversion from the generic specification to the
+ * Idemix specific one which can be used as input for the terminal and library.
  */
 public class IdemixIssueSpecification extends IssueSpecification {
 	private IssuanceSpec issueSpec;
 	private short credId;
+	private CardVersion cardVersion;
 
-	public IdemixIssueSpecification(IssuanceSpec issueSpec, short credId) {
+	public IdemixIssueSpecification(IssuanceSpec issueSpec, short credId, CardVersion cv) {
 		this.issueSpec = issueSpec;
 		this.credId = credId;
+		this.cardVersion = cv;
 	}
 
 	/**
@@ -58,46 +61,46 @@ public class IdemixIssueSpecification extends IssueSpecification {
 			URI ipkID, URI credStructID, short credId) {
 		IssuanceSpec issueSpec = new IssuanceSpec(ipkID, credStructID);
 
-		return new IdemixIssueSpecification(issueSpec, credId);
+		return new IdemixIssueSpecification(issueSpec, credId, null);
 	}
 
 	/**
 	 * Get the IssuerKeyPair that should be used to issue the credential.
-	 *   
+	 *
 	 * @return the issuer key pair.
 	 */
 	public IssuerKeyPair getIssuerKey() {
 		// TODO: implement generation/discovery of Idemix IssuerKeyPair.
-		
+
 		return new IssuerKeyPair(null);
 	}
-		
+
 	/**
-	 * Get an Idemix flavoured issuance specification that should be used to 
+	 * Get an Idemix flavoured issuance specification that should be used to
 	 * issue the credential.
-	 * 
+	 *
 	 * @return the issuance specification.
 	 */
 	public IssuanceSpec getIssuanceSpec() {
 		return issueSpec;
 	}
-	
+
 	/**
 	 * Get an Idemix flavoured list of the attribute values to issued.
-	 * 
+	 *
 	 * @param attributes to be issued.
 	 * @return the attribute values.
 	 */
 	public Values getValues(Attributes attributes) {
 		Values values = new Values(
 				getIssuanceSpec().getPublicKey().getGroupParams().getSystemParams());
-		
+
 		Iterator<String> i = attributes.getIdentifiers().iterator();
 		while (i.hasNext()) {
 			String id = i.next();
 			values.add(id, new BigInteger(1, attributes.get(id)));
 		}
-		
+
 		return values;
 	}
 
@@ -107,6 +110,14 @@ public class IdemixIssueSpecification extends IssueSpecification {
 	 */
 	public short getIdemixId() {
 		return credId;
+	}
+
+	public void setCardVersion(CardVersion cv) {
+		cardVersion = cv;
+	}
+
+	public CardVersion getCardVersion() {
+		return cardVersion;
 	}
 
 	/**

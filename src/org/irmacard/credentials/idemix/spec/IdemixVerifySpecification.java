@@ -1,19 +1,19 @@
 /**
  * IdemixVerifySpecification.java
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * Copyright (C) Pim Vullers, Radboud University Nijmegen, May 2012,
  * Copyright (C) Wouter Lueks, Radboud University Nijmegen, July 2012.
  */
@@ -24,6 +24,7 @@ import java.math.BigInteger;
 import java.net.URI;
 
 import org.irmacard.credentials.spec.VerifySpecification;
+import org.irmacard.idemix.util.CardVersion;
 
 import com.ibm.zurich.idmx.showproof.ProofSpec;
 import com.ibm.zurich.idmx.utils.StructureStore;
@@ -31,18 +32,20 @@ import com.ibm.zurich.idmx.utils.StructureStore;
 
 /**
  * Idemix flavoured VerifySpecification
- * 
- * This class implements the conversion from the generic specification to the 
- * Idemix specific one which can be used as input for the terminal and library. 
+ *
+ * This class implements the conversion from the generic specification to the
+ * Idemix specific one which can be used as input for the terminal and library.
  */
 public class IdemixVerifySpecification extends VerifySpecification {
 
 	private ProofSpec proofSpec;
 	private short credId;
+	private CardVersion cardVersion;
 
-	public IdemixVerifySpecification(ProofSpec proofSpec, short credId) {
+	public IdemixVerifySpecification(ProofSpec proofSpec, short credId, CardVersion cv) {
 		this.proofSpec = proofSpec;
 		this.credId = credId;
+		this.cardVersion = cv;
 	}
 
 	/**
@@ -57,13 +60,13 @@ public class IdemixVerifySpecification extends VerifySpecification {
 		ProofSpec proofSpec = (ProofSpec) StructureStore.getInstance().get(
 				proofSpecID);
 
-		return new IdemixVerifySpecification(proofSpec, credId);
+		return new IdemixVerifySpecification(proofSpec, credId, null);
 	}
 
 	/**
-	 * Get an Idemix flavoured proof specification that should be used to 
+	 * Get an Idemix flavoured proof specification that should be used to
 	 * generate the proof.
-	 * 
+	 *
 	 * @return the proof specification.
 	 */
 	public ProofSpec getProofSpec() {
@@ -78,6 +81,14 @@ public class IdemixVerifySpecification extends VerifySpecification {
 	 */
 	public short getIdemixId() {
 		return credId;
+	}
+
+	public void setCardVersion(CardVersion cv) {
+		cardVersion = cv;
+	}
+
+	public CardVersion getCardVersion() {
+		return cardVersion;
 	}
 
 	/**
