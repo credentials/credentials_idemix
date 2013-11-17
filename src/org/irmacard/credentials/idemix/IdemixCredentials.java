@@ -112,7 +112,8 @@ public class IdemixCredentials extends BaseCredentials {
 		spec.setCardVersion(service.getCardVersion());
 		IdemixPrivateKey isk = castIdemixPrivateKey(sk);
 
-		values.setExpiryAttribute(expiry);
+		values.setExpireDate(expiry);
+		values.setCredentialID(spec.getIdemixId());
 
 //		BigInteger context = Utils.computeRandomNumber(spec.getIssuanceSpec().getPublicKey().getGroupParams().getSystemParams().getL_H());
 //		spec.setContext(context);
@@ -250,6 +251,13 @@ public class IdemixCredentials extends BaseCredentials {
 		if (!attributes.isValid()) {
 			System.err.println("Credential expired!");
 			throw new CredentialsException("The credential has expired.");
+		}
+
+		// Verify credential id (it is set if it doesn't return 0)
+		if (attributes.getCredentialID() != 0
+				&& !(attributes.getCredentialID() == spec.getIdemixId())) {
+			System.err.println("Credential id does not match!");
+			throw new CredentialsException("The credential id does not match.");
 		}
 
 		return attributes;
