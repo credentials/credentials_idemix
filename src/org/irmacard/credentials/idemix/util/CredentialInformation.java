@@ -19,12 +19,14 @@
 
 package org.irmacard.credentials.idemix.util;
 
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Scanner;
 
 import org.irmacard.credentials.idemix.spec.IdemixIssueSpecification;
 import org.irmacard.credentials.info.CredentialDescription;
+import org.irmacard.credentials.info.DescriptionStore;
 import org.irmacard.credentials.info.InfoException;
 import org.irmacard.credentials.info.TreeWalker;
 import org.irmacard.credentials.info.TreeWalkerI;
@@ -43,6 +45,9 @@ public class CredentialInformation {
 	URI issuerBaseID;
 	URI credStructID;
 	
+	String issuer;
+	String credName;
+
 	short credNr;
 	
 	public static void setCoreLocation(URI coreLocation) {
@@ -62,6 +67,9 @@ public class CredentialInformation {
 	}
 	
 	private void completeSetup(String issuer, String credName) {
+		this.issuer = issuer;
+		this.credName = credName;
+
 		try {
 			baseLocation = new URI(issuer + "/");
 
@@ -124,17 +132,28 @@ public class CredentialInformation {
 	    init(issuerBaseID.resolve("ipk.xml"), issuerPKLocation);
 	}
     
-    private void setupCredentialStructure() throws InfoException {
-    	init(credStructID, credStructLocation);
+	private void setupCredentialStructure() throws InfoException {
+		// init(credStructID, credStructLocation);
+		CredentialDescription cd = DescriptionStore.getInstance()
+				.getCredentialDescriptionByName(issuer, credName);
+		init(credStructID,
+				IdemixCredentialStructureCreator.createCredentialStructure(cd));
     }
     
     /**
-     * Add an object to the IdemixLibrary
+     * Add an object to the IdemixLibrary from URI.
      * @param id
      * @param file
      * @throws InfoException
      */
     protected Object init(URI id, URI file) throws InfoException {
-    	return StructureStore.getInstance().get(id.toString(), treeWalker.retrieveFile(file));
+    	return init(id, treeWalker.retrieveFile(file));
+    }
+
+    /**
+     * Add an object to the Idemix Library from InputStream.
+     */
+    protected Object init(URI id, InputStream stream) {
+    	return StructureStore.getInstance().get(id.toString(), stream);
     }
 }

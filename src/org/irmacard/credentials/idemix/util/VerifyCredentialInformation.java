@@ -25,11 +25,15 @@ import java.net.URISyntaxException;
 import org.irmacard.credentials.idemix.spec.IdemixVerifySpecification;
 import org.irmacard.credentials.info.DescriptionStore;
 import org.irmacard.credentials.info.InfoException;
+import org.irmacard.credentials.info.VerificationDescription;
 
 public class VerifyCredentialInformation extends CredentialInformation {
 	private URI proofSpecLocation;
 	private URI verifierBaseLocation;
-	
+
+	private String verifier;
+	private String verificationID;
+
 	public VerifyCredentialInformation(String issuer, String credName,
 			String verifier, String verifySpecName) {
 		super(issuer, credName);
@@ -42,6 +46,9 @@ public class VerifyCredentialInformation extends CredentialInformation {
 	}
 	
 	private void completeVerifierSetup(String verifier, String verificationID) {
+		this.verifier = verifier;
+		this.verificationID = verificationID;
+
 		try {
 			verifierBaseLocation = new URI(verifier + "/");
 		} catch (URISyntaxException e) {
@@ -54,7 +61,11 @@ public class VerifyCredentialInformation extends CredentialInformation {
 
 	public IdemixVerifySpecification getIdemixVerifySpecification() {
 		try {
-			init(proofSpecLocation, proofSpecLocation);
+			VerificationDescription vd = DescriptionStore.getInstance()
+					.getVerificationDescriptionByName(verifier, verificationID);
+			init(proofSpecLocation,
+					IdemixVerificationStructureCreator
+							.createProofSpecification(vd));
 		} catch (InfoException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
