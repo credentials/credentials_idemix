@@ -23,6 +23,7 @@ import java.net.URI;
 
 import org.irmacard.credentials.Attributes;
 import org.irmacard.credentials.idemix.IdemixPrivateKey;
+import org.irmacard.credentials.info.DescriptionStore;
 import org.irmacard.credentials.info.InfoException;
 
 import com.ibm.zurich.idmx.issuance.Issuer;
@@ -31,8 +32,10 @@ import com.ibm.zurich.idmx.key.IssuerKeyPair;
 public class IssueCredentialInformation extends CredentialInformation {
 	URI issuerSKLocation;
 	
-	public IssueCredentialInformation(String issuer, String credName) {
-		super(issuer, credName);
+	public IssueCredentialInformation(String issuer, String credName)
+			throws InfoException {
+		super(DescriptionStore.getInstance()
+				.getCredentialDescriptionByName(issuer, credName));
 
 		issuerSKLocation = baseLocation.resolve("private/isk.xml");
 

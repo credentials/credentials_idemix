@@ -31,46 +31,28 @@ public class VerifyCredentialInformation extends CredentialInformation {
 	private URI proofSpecLocation;
 	private URI verifierBaseLocation;
 
-	private String verifier;
-	private String verificationID;
-
-	public VerifyCredentialInformation(String issuer, String credName,
-			String verifier, String verifySpecName) {
-		super(issuer, credName);
-		completeVerifierSetup(verifier, verifySpecName);
-	}
+	private VerificationDescription vd;
 
 	public VerifyCredentialInformation(String verifier, String verificationID) throws InfoException {
 		super(DescriptionStore.getInstance().getVerificationDescriptionByName(verifier, verificationID).getCredentialDescription());
-		completeVerifierSetup(verifier, verificationID);
+		vd = DescriptionStore.getInstance().getVerificationDescriptionByName(verifier, verificationID);
+		completeVerifierSetup();
 	}
 	
-	private void completeVerifierSetup(String verifier, String verificationID) {
-		this.verifier = verifier;
-		this.verificationID = verificationID;
-
+	private void completeVerifierSetup() {
 		try {
-			verifierBaseLocation = new URI(verifier + "/");
+			verifierBaseLocation = new URI(vd.getVerifierID() + "/");
 		} catch (URISyntaxException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		proofSpecLocation = verifierBaseLocation.resolve("Verifies/"
-				+ verificationID + "/specification.xml");
+				+ vd.getVerificationID() + "/specification.xml");
 	}
 
 	public IdemixVerifySpecification getIdemixVerifySpecification() {
-		try {
-			VerificationDescription vd = DescriptionStore.getInstance()
-					.getVerificationDescriptionByName(verifier, verificationID);
-			init(proofSpecLocation,
-					IdemixVerificationStructureCreator
-							.createProofSpecification(vd));
-		} catch (InfoException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
+		init(proofSpecLocation,
+				IdemixVerificationStructureCreator.createProofSpecification(vd));
 		return IdemixVerifySpecification.fromIdemixProofSpec(proofSpecLocation, credNr);
 	}
 }
