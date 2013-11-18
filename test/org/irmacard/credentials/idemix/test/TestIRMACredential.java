@@ -71,7 +71,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
-	public void issueRootCredential() throws CardException, CredentialsException, CardServiceException {
+	public void issueRootCredential() throws CardException, CredentialsException, CardServiceException, InfoException {
 		IssueCredentialInformation ici = new IssueCredentialInformation("Surfnet", "root");
 		IdemixIssueSpecification spec = ici.getIdemixIssueSpecification();
 		IdemixPrivateKey isk = ici.getIdemixPrivateKey();
@@ -86,29 +86,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
-	public void verifyRootCredentialAll() throws CardException, CredentialsException {
-		VerifyCredentialInformation vci = new VerifyCredentialInformation(
-				"Surfnet", "root", "Surfnet", "rootAll");
-		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
-
-		CardService cs = TestSetup.getCardService();
-		IdemixCredentials ic = new IdemixCredentials(cs);
-
-		Attributes attr = ic.verify(vspec);
-		
-		if (attr == null) {
-			fail("The proof does not verify");
-		} else {
-			System.out.println("Proof verified");
-		}
-		
-		attr.print();
-	}
-
-	@Test
-	public void verifyRootCredentialAll_withDS() throws CardException,
-			CredentialsException, InfoException {
-
+	public void verifyRootCredentialAll() throws CardException, CredentialsException, InfoException {
 		VerifyCredentialInformation vci = new VerifyCredentialInformation("Surfnet", "rootAll");
 		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
 
@@ -116,6 +94,25 @@ public class TestIRMACredential {
 		IdemixCredentials ic = new IdemixCredentials(cs);
 
 		Attributes attr = ic.verify(vspec);
+		
+		if (attr == null) {
+			fail("The proof does not verify");
+		} else {
+			System.out.println("Proof verified");
+		}
+		
+		attr.print();
+	}
+
+	@Test
+	public void verifyRootCredentialNone() throws CardException, CredentialsException, InfoException {
+		VerifyCredentialInformation vci = new VerifyCredentialInformation("Surfnet", "rootNone");
+		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
+
+		CardService cs = TestSetup.getCardService();
+		IdemixCredentials ic = new IdemixCredentials(cs);
+
+		Attributes attr = ic.verify(vspec);
 
 		if (attr == null) {
 			fail("The proof does not verify");
@@ -127,9 +124,8 @@ public class TestIRMACredential {
 	}
 
 	@Test
-	public void verifyRootCredentialNone() throws CardException, CredentialsException {
-		VerifyCredentialInformation vci = new VerifyCredentialInformation(
-				"Surfnet", "root", "Surfnet", "rootNone");
+	public void verifyRootCredentialVoucher() throws CardException, CredentialsException, InfoException {
+		VerifyCredentialInformation vci = new VerifyCredentialInformation("Surfnet", "rootVoucher");
 		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
 
 		CardService cs = TestSetup.getCardService();
@@ -165,7 +161,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
-	public void issueStudentCredential() throws CardException, CredentialsException, CardServiceException {
+	public void issueStudentCredential() throws CardException, CredentialsException, CardServiceException, InfoException {
 		IssueCredentialInformation ici = new IssueCredentialInformation("RU", "studentCard");
 		IdemixIssueSpecification spec = ici.getIdemixIssueSpecification();
 		IdemixPrivateKey isk = ici.getIdemixPrivateKey();
@@ -180,9 +176,8 @@ public class TestIRMACredential {
 	}
 
 	@Test
-	public void verifyStudentCredentialAll() throws CardException, CredentialsException {
-		VerifyCredentialInformation vci = new VerifyCredentialInformation("RU",
-				"studentCard", "RU", "studentCardAll");
+	public void verifyStudentCredentialAll() throws CardException, CredentialsException, InfoException {
+		VerifyCredentialInformation vci = new VerifyCredentialInformation("RU", "studentCardAll");
 		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
 
 		IdemixCredentials ic = new IdemixCredentials(TestSetup.getCardService());
@@ -199,9 +194,8 @@ public class TestIRMACredential {
 	}
 
 	@Test
-	public void verifyStudentCredentialNone() throws CardException, CredentialsException {
-		VerifyCredentialInformation vci = new VerifyCredentialInformation("RU",
-				"studentCard", "RU", "studentCardNone");
+	public void verifyStudentCredentialNone() throws CardException, CredentialsException, InfoException {
+		VerifyCredentialInformation vci = new VerifyCredentialInformation("RU", "studentCardNone");
 		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
 
 		CardService cs = TestSetup.getCardService();
@@ -236,7 +230,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
-	public void issueAgeCredential() throws CardException, CredentialsException, CardServiceException {
+	public void issueAgeCredential() throws CardException, CredentialsException, CardServiceException, InfoException {
 		IssueCredentialInformation ici = new IssueCredentialInformation("MijnOverheid", "ageLower");
 		IdemixIssueSpecification spec = ici.getIdemixIssueSpecification();
 		IdemixPrivateKey isk = ici.getIdemixPrivateKey();
@@ -249,11 +243,9 @@ public class TestIRMACredential {
 		ic.issue(spec, isk, attributes, null);
 	}
 
-
 	@Test
-	public void verifyAgeCredentialAll() throws CardException, CredentialsException {
-		VerifyCredentialInformation vci = new VerifyCredentialInformation("MijnOverheid",
-				"ageLower", "MijnOverheid", "ageLowerAll");
+	public void verifyAgeCredentialAll() throws CardException, CredentialsException, InfoException {
+		VerifyCredentialInformation vci = new VerifyCredentialInformation("MijnOverheid", "ageLowerAll");
 		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
 
 		CardService cs = TestSetup.getCardService();
@@ -271,9 +263,8 @@ public class TestIRMACredential {
 	}
 
 	@Test
-	public void verifyAgeCredentialNone() throws CardException, CredentialsException {
-		VerifyCredentialInformation vci = new VerifyCredentialInformation("MijnOverheid",
-				"ageLower", "MijnOverheid", "ageLowerNone");
+	public void verifyAgeCredentialNone() throws CardException, CredentialsException, InfoException {
+		VerifyCredentialInformation vci = new VerifyCredentialInformation("MijnOverheid", "ageLowerNone");
 		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
 
 		CardService cs = TestSetup.getCardService();
@@ -291,9 +282,8 @@ public class TestIRMACredential {
 	}
 	
 	@Test
-	public void verifyAgeCredentialOver16() throws CardException, CredentialsException {
-		VerifyCredentialInformation vci = new VerifyCredentialInformation("MijnOverheid",
-				"ageLower", "UitzendingGemist", "ageLowerOver16");
+	public void verifyAgeCredentialOver16() throws CardException, CredentialsException, InfoException {
+		VerifyCredentialInformation vci = new VerifyCredentialInformation("UitzendingGemist", "ageLowerOver16");
 		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
 
 		CardService cs = TestSetup.getCardService();
@@ -329,7 +319,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
-	public void issueAddressNijmegenCredential() throws CardException, CredentialsException, CardServiceException {
+	public void issueAddressNijmegenCredential() throws CardException, CredentialsException, CardServiceException, InfoException {
 		IssueCredentialInformation ici = new IssueCredentialInformation("MijnOverheid", "address");
 		IdemixIssueSpecification spec = ici.getIdemixIssueSpecification();
 		IdemixPrivateKey isk = ici.getIdemixPrivateKey();
@@ -361,7 +351,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
-	public void issueAddressReuverCredential() throws CardException, CredentialsException, CardServiceException {
+	public void issueAddressReuverCredential() throws CardException, CredentialsException, CardServiceException, InfoException {
 		IssueCredentialInformation ici = new IssueCredentialInformation("MijnOverheid", "address");
 		IdemixIssueSpecification spec = ici.getIdemixIssueSpecification();
 		IdemixPrivateKey isk = ici.getIdemixPrivateKey();
@@ -376,9 +366,8 @@ public class TestIRMACredential {
 	}
 	
 	@Test
-	public void verifyAddressCredentialAll() throws CardException, CredentialsException {
-		VerifyCredentialInformation vci = new VerifyCredentialInformation("MijnOverheid",
-				"address", "MijnOverheid", "addressAll");
+	public void verifyAddressCredentialAll() throws CardException, CredentialsException, InfoException {
+		VerifyCredentialInformation vci = new VerifyCredentialInformation("MijnOverheid", "addressAll");
 		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
 
 		CardService cs = TestSetup.getCardService();
@@ -396,9 +385,8 @@ public class TestIRMACredential {
 	}
 
 	@Test
-	public void verifyAddressCredentialNone() throws CardException, CredentialsException {
-		VerifyCredentialInformation vci = new VerifyCredentialInformation("MijnOverheid",
-				"address", "MijnOverheid", "addressNone");
+	public void verifyAddressCredentialNone() throws CardException, CredentialsException, InfoException {
+		VerifyCredentialInformation vci = new VerifyCredentialInformation("MijnOverheid", "addressNone");
 		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
 
 		CardService cs = TestSetup.getCardService();
@@ -435,7 +423,7 @@ public class TestIRMACredential {
 
 	@Test
 	public void issueMijnOverheidRoot() throws CardException,
-			CredentialsException, CardServiceException {
+			CredentialsException, CardServiceException, InfoException {
 		IssueCredentialInformation ici = new IssueCredentialInformation(
 				"MijnOverheid", "root");
 
@@ -463,7 +451,7 @@ public class TestIRMACredential {
 
 	@Test
 	public void issueFullNameCredential() throws CardException, CredentialsException,
-			CardServiceException {
+			CardServiceException, InfoException {
 		IssueCredentialInformation ici = new IssueCredentialInformation(
 				"MijnOverheid", "fullName");
 
@@ -494,7 +482,7 @@ public class TestIRMACredential {
 
 	@Test
 	public void issueBirthCertificate() throws CardException, CredentialsException,
-			CardServiceException {
+			CardServiceException, InfoException {
 		IssueCredentialInformation ici = new IssueCredentialInformation(
 				"MijnOverheid", "birthCertificate");
 
@@ -525,7 +513,7 @@ public class TestIRMACredential {
 
 	@Test
 	public void issueSeniorAgeCredential() throws CardException, CredentialsException,
-			CardServiceException {
+			CardServiceException, InfoException {
 		IssueCredentialInformation ici = new IssueCredentialInformation(
 				"MijnOverheid", "ageHigher");
 
@@ -556,7 +544,7 @@ public class TestIRMACredential {
 
 	@Test
 	public void issueIRMATubeMemberCredential() throws CardException, CredentialsException,
-			CardServiceException {
+			CardServiceException, InfoException {
 		IssueCredentialInformation ici = new IssueCredentialInformation(
 				"IRMATube", "member");
 
@@ -594,7 +582,7 @@ public class TestIRMACredential {
 
 	@Test
 	public void issueIRMAWikiMemberCredential() throws CardException, CredentialsException,
-			CardServiceException {
+			CardServiceException, InfoException {
 		IssueCredentialInformation ici = new IssueCredentialInformation(
 				"IRMAWiki", "member");
 

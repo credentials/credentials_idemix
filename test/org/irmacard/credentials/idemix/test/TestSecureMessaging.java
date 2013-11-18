@@ -54,6 +54,7 @@ import org.irmacard.credentials.idemix.IdemixCredentials;
 import org.irmacard.credentials.idemix.spec.IdemixVerifySpecification;
 import org.irmacard.credentials.idemix.util.CredentialInformation;
 import org.irmacard.credentials.idemix.util.VerifyCredentialInformation;
+import org.irmacard.credentials.info.InfoException;
 import org.irmacard.credentials.util.CardHolderVerificationService;
 import org.irmacard.credentials.util.SecureMessagingWrapper;
 import org.irmacard.idemix.IdemixService;
@@ -108,10 +109,9 @@ public class TestSecureMessaging {
 	
 	@Test
 	public void verifyRootWithWrapping() throws CardException,
-			CredentialsException, GeneralSecurityException, CardServiceException {
+			CredentialsException, GeneralSecurityException, CardServiceException, InfoException {
 		System.out.println("Running wrapping test");
-		VerifyCredentialInformation vci = new VerifyCredentialInformation(
-	"Surfnet", "root", "Surfnet", "rootAll");
+		VerifyCredentialInformation vci = new VerifyCredentialInformation("Surfnet", "rootAll");
 		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
 
 		CardService terminal = TestSetup.getCardService();
@@ -146,9 +146,8 @@ public class TestSecureMessaging {
 	
 	@Test
 	public void verifyRootAsyncWrapping() throws CardException,
-			CredentialsException, GeneralSecurityException, CardServiceException {
-		VerifyCredentialInformation vci = new VerifyCredentialInformation(
-	"Surfnet", "root", "Surfnet", "rootAll");
+			CredentialsException, GeneralSecurityException, CardServiceException, InfoException {
+		VerifyCredentialInformation vci = new VerifyCredentialInformation("Surfnet", "rootAll");
 		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
 
 		CardService terminal = TestSetup.getCardService();
