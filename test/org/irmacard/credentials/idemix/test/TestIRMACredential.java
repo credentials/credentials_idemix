@@ -35,6 +35,9 @@ import org.irmacard.credentials.idemix.IdemixCredentials;
 import org.irmacard.credentials.idemix.IdemixPrivateKey;
 import org.irmacard.credentials.idemix.spec.IdemixIssueSpecification;
 import org.irmacard.credentials.idemix.spec.IdemixVerifySpecification;
+import org.irmacard.credentials.idemix.test.categories.IssueTest;
+import org.irmacard.credentials.idemix.test.categories.RemovalTest;
+import org.irmacard.credentials.idemix.test.categories.VerificationTest;
 import org.irmacard.credentials.idemix.util.CredentialInformation;
 import org.irmacard.credentials.idemix.util.IssueCredentialInformation;
 import org.irmacard.credentials.idemix.util.VerifyCredentialInformation;
@@ -44,6 +47,7 @@ import org.irmacard.credentials.info.InfoException;
 import org.irmacard.idemix.IdemixService;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 
 public class TestIRMACredential {
@@ -71,6 +75,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
+	@Category(IssueTest.class)
 	public void issueRootCredential() throws CardException, CredentialsException, CardServiceException, InfoException {
 		IssueCredentialInformation ici = new IssueCredentialInformation("Surfnet", "root");
 		IdemixIssueSpecification spec = ici.getIdemixIssueSpecification();
@@ -86,6 +91,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
+	@Category(VerificationTest.class)
 	public void verifyRootCredentialAll() throws CardException, CredentialsException, InfoException {
 		VerifyCredentialInformation vci = new VerifyCredentialInformation("Surfnet", "rootAll");
 		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
@@ -105,6 +111,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
+	@Category(VerificationTest.class)
 	public void verifyRootCredentialNone() throws CardException, CredentialsException, InfoException {
 		VerifyCredentialInformation vci = new VerifyCredentialInformation("Surfnet", "rootNone");
 		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
@@ -124,6 +131,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
+	@Category(VerificationTest.class)
 	public void verifyRootCredentialVoucher() throws CardException, CredentialsException, InfoException {
 		VerifyCredentialInformation vci = new VerifyCredentialInformation("Surfnet", "rootVoucher");
 		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
@@ -143,6 +151,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
+	@Category(RemovalTest.class)
 	public void removeRootCredential() throws CardException, CredentialsException, CardServiceException, InfoException {
 		CredentialDescription cd = DescriptionStore.getInstance().getCredentialDescriptionByName("Surfnet", "root");
 
@@ -161,6 +170,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
+	@Category(IssueTest.class)
 	public void issueStudentCredential() throws CardException, CredentialsException, CardServiceException, InfoException {
 		IssueCredentialInformation ici = new IssueCredentialInformation("RU", "studentCard");
 		IdemixIssueSpecification spec = ici.getIdemixIssueSpecification();
@@ -176,6 +186,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
+	@Category(VerificationTest.class)
 	public void verifyStudentCredentialAll() throws CardException, CredentialsException, InfoException {
 		VerifyCredentialInformation vci = new VerifyCredentialInformation("RU", "studentCardAll");
 		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
@@ -194,6 +205,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
+	@Category(VerificationTest.class)
 	public void verifyStudentCredentialNone() throws CardException, CredentialsException, InfoException {
 		VerifyCredentialInformation vci = new VerifyCredentialInformation("RU", "studentCardNone");
 		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
@@ -211,7 +223,9 @@ public class TestIRMACredential {
 		
 		attr.print();
 	}
+
 	@Test
+	@Category(RemovalTest.class)
 	public void removeStudentCredential() throws CardException, CredentialsException, CardServiceException, InfoException {
 		CredentialDescription cd = DescriptionStore.getInstance().getCredentialDescriptionByName("RU", "studentCard");
 
@@ -230,6 +244,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
+	@Category(IssueTest.class)
 	public void issueAgeCredential() throws CardException, CredentialsException, CardServiceException, InfoException {
 		IssueCredentialInformation ici = new IssueCredentialInformation("MijnOverheid", "ageLower");
 		IdemixIssueSpecification spec = ici.getIdemixIssueSpecification();
@@ -244,6 +259,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
+	@Category(VerificationTest.class)
 	public void verifyAgeCredentialAll() throws CardException, CredentialsException, InfoException {
 		VerifyCredentialInformation vci = new VerifyCredentialInformation("MijnOverheid", "ageLowerAll");
 		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
@@ -263,6 +279,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
+	@Category(VerificationTest.class)
 	public void verifyAgeCredentialNone() throws CardException, CredentialsException, InfoException {
 		VerifyCredentialInformation vci = new VerifyCredentialInformation("MijnOverheid", "ageLowerNone");
 		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
@@ -282,6 +299,7 @@ public class TestIRMACredential {
 	}
 	
 	@Test
+	@Category(VerificationTest.class)
 	public void verifyAgeCredentialOver16() throws CardException, CredentialsException, InfoException {
 		VerifyCredentialInformation vci = new VerifyCredentialInformation("UitzendingGemist", "ageLowerOver16");
 		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
@@ -301,6 +319,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
+	@Category(RemovalTest.class)
 	public void removeAgeCredential() throws CardException, CredentialsException, CardServiceException, InfoException {
 		CredentialDescription cd = DescriptionStore.getInstance().getCredentialDescriptionByName("MijnOverheid", "ageLower");
 
@@ -319,6 +338,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
+	@Category(IssueTest.class)
 	public void issueAddressNijmegenCredential() throws CardException, CredentialsException, CardServiceException, InfoException {
 		IssueCredentialInformation ici = new IssueCredentialInformation("MijnOverheid", "address");
 		IdemixIssueSpecification spec = ici.getIdemixIssueSpecification();
@@ -333,6 +353,7 @@ public class TestIRMACredential {
 	}
 	
 	@Test
+	@Category(RemovalTest.class)
 	public void removeAddressNijmegenCredential() throws CardException, CredentialsException, CardServiceException, InfoException {
 		CredentialDescription cd = DescriptionStore.getInstance().getCredentialDescriptionByName("MijnOverheid", "address");
 
@@ -366,6 +387,7 @@ public class TestIRMACredential {
 	}
 	
 	@Test
+	@Category(VerificationTest.class)
 	public void verifyAddressCredentialAll() throws CardException, CredentialsException, InfoException {
 		VerifyCredentialInformation vci = new VerifyCredentialInformation("MijnOverheid", "addressAll");
 		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
@@ -385,6 +407,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
+	@Category(VerificationTest.class)
 	public void verifyAddressCredentialNone() throws CardException, CredentialsException, InfoException {
 		VerifyCredentialInformation vci = new VerifyCredentialInformation("MijnOverheid", "addressNone");
 		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
@@ -404,6 +427,7 @@ public class TestIRMACredential {
 	}
 	
 	@Test
+	@Category(RemovalTest.class)
 	public void removeAddressCredential() throws CardException, CredentialsException, CardServiceException, InfoException {
 		CredentialDescription cd = DescriptionStore.getInstance().getCredentialDescriptionByName("MijnOverheid", "address");
 
@@ -422,6 +446,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
+	@Category(IssueTest.class)
 	public void issueMijnOverheidRoot() throws CardException,
 			CredentialsException, CardServiceException, InfoException {
 		IssueCredentialInformation ici = new IssueCredentialInformation(
@@ -434,6 +459,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
+	@Category(VerificationTest.class)
 	public void verifyMijnOverheidRoot() throws CardException,
 			CredentialsException, CardServiceException, InfoException {
 		VerifyCredentialInformation vci = new VerifyCredentialInformation(
@@ -442,6 +468,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
+	@Category(RemovalTest.class)
 	public void removeMijnOverheidRoot() throws CardException,
 			CredentialsException, CardServiceException, InfoException {
 		CredentialDescription cd = DescriptionStore.getInstance()
@@ -450,6 +477,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
+	@Category(IssueTest.class)
 	public void issueFullNameCredential() throws CardException, CredentialsException,
 			CardServiceException, InfoException {
 		IssueCredentialInformation ici = new IssueCredentialInformation(
@@ -465,6 +493,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
+	@Category(VerificationTest.class)
 	public void verifyFullNameCredential() throws CardException,
 			CredentialsException, CardServiceException, InfoException {
 		VerifyCredentialInformation vci = new VerifyCredentialInformation(
@@ -473,6 +502,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
+	@Category(RemovalTest.class)
 	public void removeFullNameCredential() throws CardException,
 			CredentialsException, CardServiceException, InfoException {
 		CredentialDescription cd = DescriptionStore.getInstance()
@@ -481,6 +511,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
+	@Category(IssueTest.class)
 	public void issueBirthCertificate() throws CardException, CredentialsException,
 			CardServiceException, InfoException {
 		IssueCredentialInformation ici = new IssueCredentialInformation(
@@ -496,6 +527,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
+	@Category(VerificationTest.class)
 	public void verifyBirthCertificate() throws CardException,
 			CredentialsException, CardServiceException, InfoException {
 		VerifyCredentialInformation vci = new VerifyCredentialInformation(
@@ -504,6 +536,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
+	@Category(RemovalTest.class)
 	public void removeBirthCertificate() throws CardException,
 			CredentialsException, CardServiceException, InfoException {
 		CredentialDescription cd = DescriptionStore.getInstance()
@@ -512,6 +545,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
+	@Category(IssueTest.class)
 	public void issueSeniorAgeCredential() throws CardException, CredentialsException,
 			CardServiceException, InfoException {
 		IssueCredentialInformation ici = new IssueCredentialInformation(
@@ -527,6 +561,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
+	@Category(VerificationTest.class)
 	public void verifySeniorAgeCredential() throws CardException,
 			CredentialsException, CardServiceException, InfoException {
 		VerifyCredentialInformation vci = new VerifyCredentialInformation(
@@ -535,6 +570,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
+	@Category(RemovalTest.class)
 	public void removeSeniorAgeCredential() throws CardException,
 			CredentialsException, CardServiceException, InfoException {
 		CredentialDescription cd = DescriptionStore.getInstance()
@@ -543,6 +579,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
+	@Category(IssueTest.class)
 	public void issueIRMATubeMemberCredential() throws CardException, CredentialsException,
 			CardServiceException, InfoException {
 		IssueCredentialInformation ici = new IssueCredentialInformation(
@@ -557,6 +594,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
+	@Category(VerificationTest.class)
 	public void verifyIRMATubeMemberCredential() throws CardException,
 			CredentialsException, CardServiceException, InfoException {
 		VerifyCredentialInformation vci = new VerifyCredentialInformation(
@@ -565,6 +603,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
+	@Category(VerificationTest.class)
 	public void verifyIRMATubeMemberTypeCredential() throws CardException,
 			CredentialsException, CardServiceException, InfoException {
 		VerifyCredentialInformation vci = new VerifyCredentialInformation(
@@ -573,6 +612,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
+	@Category(RemovalTest.class)
 	public void removeIRMATubeMemberCredential() throws CardException,
 			CredentialsException, CardServiceException, InfoException {
 		CredentialDescription cd = DescriptionStore.getInstance()
@@ -581,6 +621,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
+	@Category(IssueTest.class)
 	public void issueIRMAWikiMemberCredential() throws CardException, CredentialsException,
 			CardServiceException, InfoException {
 		IssueCredentialInformation ici = new IssueCredentialInformation(
@@ -594,6 +635,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
+	@Category(VerificationTest.class)
 	public void verifyIRMAWikiMemberCredential() throws CardException,
 			CredentialsException, CardServiceException, InfoException {
 		VerifyCredentialInformation vci = new VerifyCredentialInformation(
@@ -602,6 +644,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
+	@Category(RemovalTest.class)
 	public void removeIRMAWikiMemberCredential() throws CardException,
 			CredentialsException, CardServiceException, InfoException {
 		CredentialDescription cd = DescriptionStore.getInstance()
@@ -610,6 +653,7 @@ public class TestIRMACredential {
 	}
 
 	@Test
+	@Category(VerificationTest.class)
 	public void verifyIRMAWikiSurfnetRootNone() throws CardException,
 			CredentialsException, CardServiceException, InfoException {
 		VerifyCredentialInformation vci = new VerifyCredentialInformation(
