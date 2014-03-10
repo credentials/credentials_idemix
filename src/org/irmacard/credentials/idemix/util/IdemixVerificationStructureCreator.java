@@ -25,6 +25,7 @@ import java.util.List;
 
 import org.irmacard.credentials.info.AttributeDescription;
 import org.irmacard.credentials.info.CredentialDescription;
+import org.irmacard.credentials.info.DescriptionStore;
 import org.irmacard.credentials.info.VerificationDescription;
 
 public class IdemixVerificationStructureCreator {
@@ -49,9 +50,17 @@ public class IdemixVerificationStructureCreator {
 			+ "\t\t<VerifiableEncryptions />\n" + "\t\t<Messages />\n"
 			+ "\t</Specification>\n" + "</ProofSpecification>\n";
 
-	private final static String BASE_URL = "http://www.irmacard.org/credentials/phase1/";
-
 	public static InputStream createProofSpecification(VerificationDescription vd) {
+        DescriptionStore ds;
+        try
+        {
+            ds = DescriptionStore.getInstance();
+        }
+        catch(Exception ex)
+        {
+            return null;
+        }
+
 		StringBuilder ret = new StringBuilder(); 
 		ret.append(HEADER);
 
@@ -68,10 +77,12 @@ public class IdemixVerificationStructureCreator {
 					vd.isDisclosed(attr.getName()) ? "revealed" : "unrevealed"));
 		}
 
+        String baseURL = ds.getIssuerDescription(vd.getIssuerID()).getBaseURL();
+
 		String middle_tmp = MIDDLE.replaceFirst("ISSUERPK",
-				BASE_URL + cd.getIssuerID() + "/ipk.xml");
+				baseURL + "ipk.xml");
 		middle_tmp = middle_tmp.replaceFirst("CREDSTRUCT",
-				BASE_URL + cd.getIssuerID() + "/" + cd.getCredentialID()
+				baseURL + cd.getCredentialID()
 						+ "/structure.xml");
 		ret.append(middle_tmp);
 
