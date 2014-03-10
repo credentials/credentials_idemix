@@ -78,7 +78,6 @@ public class IdemixVerificationStructureCreator {
 		}
 
         String baseURL = ds.getIssuerDescription(vd.getIssuerID()).getBaseURL();
-        System.out.println("BASEURL: " + baseURL);
 
 		String middle_tmp = MIDDLE.replaceFirst("ISSUERPK",
 				baseURL + "ipk.xml");
