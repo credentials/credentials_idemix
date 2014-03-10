@@ -91,8 +91,8 @@ public class TestSetup {
     /**
      * Default PIN of card.
      */
-    public static final byte[] DEFAULT_CRED_PIN = {0x30, 0x30, 0x30, 0x30};
-    public static final byte[] DEFAULT_CARD_PIN = {0x30, 0x30, 0x30, 0x30, 0x30, 0x30};
+    public static final byte[] DEFAULT_CRED_PIN = "0000".getBytes();
+    public static final byte[] DEFAULT_CARD_PIN = "000000".getBytes();
 
     /** This one also sets up the system, but now it doesn't know the private key */
     public static void setupSystem() {
