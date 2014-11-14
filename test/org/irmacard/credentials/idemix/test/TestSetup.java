@@ -23,6 +23,7 @@ import java.io.File;
 import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
 import javax.smartcardio.CardException;
 import javax.smartcardio.CardTerminal;
@@ -31,6 +32,7 @@ import javax.smartcardio.TerminalFactory;
 import net.sourceforge.scuba.smartcards.CardService;
 import net.sourceforge.scuba.smartcards.TerminalCardService;
 
+import org.irmacard.credentials.idemix.test.util.NoCardReaderFoundException;
 import org.irmacard.idemix.IdemixService;
 
 import com.ibm.zurich.credsystem.utils.Locations;
@@ -131,8 +133,13 @@ public class TestSetup {
     
     public static CardService getCardService() throws CardException {
 //    	return new InteractiveConsoleCardService();
-		CardTerminal terminal = TerminalFactory.getDefault().terminals().list().get(0);
-    	return new TerminalCardService(terminal);
+    	List<CardTerminal> terminalList = TerminalFactory.getDefault().terminals().list();
+    	if(!terminalList.isEmpty()) {
+    		CardTerminal terminal = terminalList.get(0);
+    		return new TerminalCardService(terminal);
+    	} else {
+    		throw new NoCardReaderFoundException("Couldn't find card reader");
+    	}
     }
     
     public static IdemixService getIdemixService() throws CardException {
