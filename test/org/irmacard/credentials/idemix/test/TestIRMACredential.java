@@ -716,7 +716,7 @@ public class TestIRMACredential {
 		attributes.add("university", "Radboud University".getBytes());
 		attributes.add("studentCardNumber", "0812345673".getBytes());
 		attributes.add("studentID", "s1234567".getBytes());
-		attributes.add("level", "PhD".getBytes());
+		attributes.add("level", "Student".getBytes());
 		
 		return attributes;
 	}
@@ -725,7 +725,7 @@ public class TestIRMACredential {
         // Return the attributes that have been revealed during the proof
         Attributes attributes = new Attributes();
 
-		attributes.add("userID", "u921154@ru.nl".getBytes());
+		attributes.add("userID", "s1234567@student.ru.nl".getBytes());
 		attributes.add("securityHash", "DEADBEEF".getBytes());
 		
 		return attributes;
