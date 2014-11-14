@@ -628,8 +628,10 @@ public class TestIRMACredential {
 				"IRMAWiki", "member");
 
 		Attributes attributes = new Attributes();
-		attributes.add("nickname", "Stuifje".getBytes());
 		attributes.add("type", "regular".getBytes());
+		attributes.add("nickname", "Stuifje Kuifje".getBytes());
+		attributes.add("realname", "Stuifje".getBytes());
+		attributes.add("email", "stuifje@kuifje.nl".getBytes());
 
 		issue(ici, attributes);
 	}
