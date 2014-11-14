@@ -396,7 +396,7 @@ public class IdemixCredentials extends BaseCredentials {
 			IssueSpecification spec) throws CredentialsException {
 		if (!(spec instanceof IdemixIssueSpecification)) {
 			throw new CredentialsException(
-					"specification is not an IdemixVerifySpecification");
+					"specification is not an IdemixIssueSpecification");
 		}
 		return (IdemixIssueSpecification) spec;
 	}
