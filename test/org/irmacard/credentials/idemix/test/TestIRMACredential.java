@@ -29,8 +29,13 @@ import javax.smartcardio.CardException;
 
 import net.sourceforge.scuba.smartcards.CardService;
 import net.sourceforge.scuba.smartcards.CardServiceException;
+import net.sourceforge.scuba.smartcards.ProtocolCommands;
+import net.sourceforge.scuba.smartcards.ProtocolResponse;
+import net.sourceforge.scuba.smartcards.ProtocolResponses;
+
 import org.irmacard.credentials.Attributes;
 import org.irmacard.credentials.CredentialsException;
+import org.irmacard.credentials.Nonce;
 import org.irmacard.credentials.idemix.IdemixCredentials;
 import org.irmacard.credentials.idemix.IdemixPrivateKey;
 import org.irmacard.credentials.idemix.spec.IdemixIssueSpecification;
@@ -45,6 +50,8 @@ import org.irmacard.credentials.info.CredentialDescription;
 import org.irmacard.credentials.info.DescriptionStore;
 import org.irmacard.credentials.info.InfoException;
 import org.irmacard.idemix.IdemixService;
+import org.irmacard.idemix.IdemixSmartcard;
+import org.irmacard.idemix.util.CardVersion;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -128,6 +135,40 @@ public class TestIRMACredential {
 		}
 
 		attr.print();
+	}
+
+	@Test
+	@Category(VerificationTest.class)
+	public void verifyRootCredentialAsync() throws CredentialsException, CardException, CardServiceException, InfoException {
+		VerifyCredentialInformation vci = new VerifyCredentialInformation("Surfnet", "rootNone");
+		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
+		IdemixCredentials ic = new IdemixCredentials(null);
+
+		// Open channel to card
+		IdemixService service = new IdemixService(TestSetup.getCardService());
+		service.open();
+
+		// Select applet and process version
+		ProtocolResponse select_response = service.execute(
+				IdemixSmartcard.selectApplicationCommand);
+		CardVersion cv = new CardVersion(select_response.getData());
+		vspec.setCardVersion(cv);
+
+		// Generate a nonce (you need this for verification as well)
+		Nonce nonce = ic.generateNonce(vspec);
+
+		// Get prove commands, and send them to card
+		ProtocolCommands commands = ic.requestProofCommands(vspec, nonce);
+		ProtocolResponses responses = service.execute(commands);
+
+		// Process the responses
+		Attributes attr = ic.verifyProofResponses(vspec, nonce, responses);
+
+		if (attr == null) {
+			fail("The proof does not verify");
+		} else {
+			System.out.println("Proof verified");
+		}
 	}
 
 	@Test
