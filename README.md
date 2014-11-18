@@ -103,6 +103,8 @@ Internal dependencies:
  * credentials/credentials_api, The abstract IRMA credentials API
  * credentials/idemix_terminal, The IRMA idemix card terminal library
 
+Gradle will take care of the transitive dependencies. However, you must make sure that you [build and install the idemix_library](https://github.com/credentials/idemix_library/) yourself.
+
 For running the tests:
 
  * JUnit,  (>= 4.8), the Java unit-testing library
