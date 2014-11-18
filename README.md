@@ -49,7 +49,7 @@ First, we select the credential as before
 VerifyCredentialInformation vci = new VerifyCredentialInformation("Surfnet", "rootNone");
 IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
 IdemixCredentials ic = new IdemixCredentials(null);
-````
+```
 
 To keep this example simple, we use the regular `IdemixService` to send the commands to the card. Replace this with whatever suits your application best.
 
