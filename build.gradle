@@ -30,8 +30,10 @@ dependencies {
     testCompile "net.sourceforge.scuba:scuba_sc_j2se:0.0.3"
 }
 
-uploadArchives.repositories.mavenDeployer {
-    repository(url: mavenRepositoryIRMA)
+if ( project.hasProperty("mavenRepositoryIRMA") ) {
+    uploadArchives.repositories.mavenDeployer {
+        repository(url: mavenRepositoryIRMA)
+    }
 }
 
 /*
