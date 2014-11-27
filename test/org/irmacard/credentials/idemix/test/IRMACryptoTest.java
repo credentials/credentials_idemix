@@ -27,11 +27,18 @@ import static org.junit.Assert.assertTrue;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 import java.util.Vector;
 
+import net.sourceforge.scuba.util.Hex;
+
 import org.irmacard.credentials.idemix.CLSignature;
+import org.irmacard.credentials.idemix.CredentialBuilder;
 import org.irmacard.credentials.idemix.IdemixPublicKey;
 import org.irmacard.credentials.idemix.IdemixSecretKey;
+import org.irmacard.credentials.idemix.IdemixSystemParameters;
+import org.irmacard.credentials.idemix.proofs.ProofU;
+import org.irmacard.credentials.idemix.util.Crypto;
 import org.junit.Test;
 
 public class IRMACryptoTest {
@@ -70,5 +77,54 @@ public class IRMACryptoTest {
 
 		ms.set(0, new BigInteger("1337"));
 		assertFalse("Signature should not verify", sig.verify(pk, ms));
+	}
+
+	@Test
+	public void testASN1Encoding1() {
+		byte[] enc = Crypto.asn1Encode(new BigInteger("1"),
+				new BigInteger("65"), new BigInteger("1025"));
+
+		byte[] expected = { 0x30, 0x0D,
+				0x02, 0x01, 0x03, // The number of elements is additionally encoded
+				0x02, 0x01, 0x01,
+				0x02, 0x01, 0x41,
+				0x02, 0x02, 0x04, 0x01 };
+
+		System.out.println("enc: " + Hex.bytesToHexString(enc));
+		System.out.println("expected: " + Hex.bytesToHexString(expected));
+		assertTrue(Arrays.equals(enc, expected));
+	}
+
+	@Test
+	public void testProofU() {
+		Random rnd = new Random();
+		IdemixSystemParameters params = pk.getSystemParameters();
+
+		BigInteger context = new BigInteger(params.l_h, rnd);
+		BigInteger n_1 = new BigInteger(params.l_statzk, rnd);
+		BigInteger secret = new BigInteger(params.l_m, rnd);
+
+		CredentialBuilder cb = new CredentialBuilder(pk, null, context);
+		cb.setSecret(secret);
+
+		BigInteger U = cb.commitmentToSecret();
+		ProofU proofU = cb.createProofU(U, n_1);
+
+		assertTrue(proofU.verify(pk, U, context, n_1));
+	}
+
+	@Test
+	public void testProofULogged() {
+		BigInteger context = new BigInteger("34911926065354700717429826907189165808787187263593066036316982805908526740809");
+		BigInteger n_1 = new BigInteger("724811585564063105609243");
+		BigInteger c = new BigInteger("4184045431748299802782143929438273256345760339041229271411466459902660986200");
+		BigInteger U = new BigInteger("53941714038323323772993715692602421894514053229231925255570480167011458936488064431963770862062871590815370913733046166911453850329862473697478794938988248741580237664467927006089054091941563143176094050444799012171081539721321786755307076274602717003792794453593019124224828904640592766190733869209960398955");
+		BigInteger v_prime_response = new BigInteger("930401833442556048954810956066821001094106683380918922610147216724718347679854246682690061274042716015957693675615113399347898060611144526167949042936228868420203309360695585386210327439216083389841383395698722832808268885873389302262079691644125050748391319832394519920382663304621540520277648619992590872190274152359156399474623649137315708728792245711389032617438368799004840694779408839779419604877135070624376537994035936");
+		BigInteger s_response = new BigInteger("59776396667523329313292302350278517468587673934875085337674938789292900859071752886820910103285722288747559744087880906618151651690169988337871960870439882357345503256963847251");
+
+		ProofU proofU = new ProofU(c, v_prime_response, s_response);
+
+		assertTrue(proofU.verify(pk, U, context, n_1));
+
 	}
 }

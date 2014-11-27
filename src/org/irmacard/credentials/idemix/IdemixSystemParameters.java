@@ -22,5 +22,13 @@ package org.irmacard.credentials.idemix;
 public class IdemixSystemParameters {
 	public final int l_e = 597;
 	public final int l_e_prime = 120;
+	public final int l_h = 256;
+	public final int l_m = 256;
+	public final int l_n = 1024;
+	public final int l_statzk = 80;
 	public final int l_v = 1700;
+
+	public final int l_s_commit = l_m + l_statzk + l_h + 1;
+	public final int l_v_prime = l_n + l_statzk;
+	public final int l_v_prime_commit = l_n + 2*l_statzk + l_h;
 }
