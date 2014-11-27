@@ -53,21 +53,22 @@ public class CLSignature {
 	public static CLSignature signMessageBlock(IdemixSecretKey sk, IdemixPublicKey pk, List<BigInteger> ms) {
 		BigInteger n = pk.getModulus();
 		List<BigInteger> Rs = pk.getGeneratorsR();
+		IdemixSystemParameters params = pk.getSystemParameters();
 
 		BigInteger R = representToBases(Rs, ms, n);
 
 		Random rnd = new Random();
 
-		BigInteger v_tilde = new BigInteger(IdemixSystemParameters.l_v, rnd);
-		BigInteger two_l_v = new BigInteger("2").pow(IdemixSystemParameters.l_v - 1);
+		BigInteger v_tilde = new BigInteger(params.l_v, rnd);
+		BigInteger two_l_v = new BigInteger("2").pow(params.l_v - 1);
 		BigInteger v = two_l_v.add(v_tilde);
 
 		// Q = inv( S^v * R ) * Z
 		BigInteger numerator = pk.getGeneratorS().modPow(v, n).multiply(R).mod(n);
 		BigInteger Q = pk.getGeneratorZ().multiply(numerator.modInverse(n)).mod(n);
 
-		BigInteger e = probablyPrimeInBitRange(IdemixSystemParameters.l_e,
-				IdemixSystemParameters.l_e_prime);
+		BigInteger e = probablyPrimeInBitRange(params.l_e,
+				params.l_e_prime);
 
 		// TODO: this is probably open to side channel attacks, maybe use a
 		// safe (raw) RSA signature?

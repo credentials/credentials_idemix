@@ -32,11 +32,15 @@ public class IdemixPublicKey {
 
 	private List<BigInteger> R;
 
+	private IdemixSystemParameters systemParameters;
+
 	public IdemixPublicKey(BigInteger n, BigInteger Z, BigInteger S, List<BigInteger> R) {
 		this.n = n;
 		this.Z = Z;
 		this.S = S;
 		this.R = R;
+
+		this.systemParameters = new IdemixSystemParameters();
 	}
 
 	public BigInteger getModulus() {
@@ -57,5 +61,9 @@ public class IdemixPublicKey {
 
 	public List<BigInteger> getGeneratorsR() {
 		return R;
+	}
+
+	public IdemixSystemParameters getSystemParameters() {
+		return systemParameters;
 	}
 }

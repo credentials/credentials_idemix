@@ -20,8 +20,7 @@
 package org.irmacard.credentials.idemix;
 
 public class IdemixSystemParameters {
-	public static final int l_e = 597;
-	public static final int l_e_prime = 120;
-
-	public static final int l_v = 1700;
+	public final int l_e = 597;
+	public final int l_e_prime = 120;
+	public final int l_v = 1700;
 }
