@@ -20,9 +20,9 @@
 package org.irmacard.credentials.idemix;
 
 import java.math.BigInteger;
+import java.util.List;
 import java.util.Random;
 
-import org.irmacard.credentials.Attributes;
 import org.irmacard.credentials.idemix.messages.IssueCommitmentMessage;
 import org.irmacard.credentials.idemix.proofs.ProofU;
 import org.irmacard.credentials.idemix.util.Crypto;
@@ -35,16 +35,16 @@ public class CredentialBuilder {
 
 	// Immutable Input
 	private final IdemixPublicKey pk;
-	private final Attributes attrs;
+	private final List<byte[]> attributes;
 	private final BigInteger context;
 
 	// Derived immutable state
 	private final IdemixSystemParameters params;
 	private final BigInteger n;
 
-	public CredentialBuilder(IdemixPublicKey pk, Attributes attrs, BigInteger context) {
+	public CredentialBuilder(IdemixPublicKey pk, List<byte[]> attrs, BigInteger context) {
 		this.pk = pk;
-		this.attrs = attrs;
+		this.attributes = attrs;
 		this.context = context;
 
 		this.params = pk.getSystemParameters();
