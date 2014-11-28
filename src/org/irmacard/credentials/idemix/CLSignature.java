@@ -53,20 +53,46 @@ public class CLSignature {
 	 *            a block of messages
 	 */
 	public static CLSignature signMessageBlock(IdemixSecretKey sk, IdemixPublicKey pk, List<BigInteger> ms) {
-		BigInteger n = pk.getModulus();
 		List<BigInteger> Rs = pk.getGeneratorsR();
+		return signMessageBlockAndCommitment(sk, pk, BigInteger.ONE, ms, Rs);
+	}
+
+	/**
+	 * Returns a Camenisch-Lysyanskaya signature using the public-private
+	 * key-pair (pk,sk) on the block of messages ms and the commitment U. This
+	 * function assumes that the commitment used the first generator. Note that
+	 * we follow the credential specification and pick v from a more restricted
+	 * domain.
+	 *
+	 * @param sk
+	 *            an Idemix secret key
+	 * @param pk
+	 *            an Idemix public key
+	 * @param U
+	 *            commitment to a value that is to be included in the signature
+	 * @param ms
+	 *            a block of messages
+	 */
+	public static CLSignature signMessageBlockAndCommitment(IdemixSecretKey sk, IdemixPublicKey pk, BigInteger U, List<BigInteger> ms) {
+		// Skip the first generator
+		List<BigInteger> Rs = pk.getGeneratorsR().subList(1, pk.getGeneratorsR().size());
+		return signMessageBlockAndCommitment(sk, pk, U, ms, Rs);
+	}
+
+	protected static CLSignature signMessageBlockAndCommitment(IdemixSecretKey sk, IdemixPublicKey pk, BigInteger U, List<BigInteger> ms, List<BigInteger> Rs) {
+		BigInteger n = pk.getModulus();
 		IdemixSystemParameters params = pk.getSystemParameters();
 
 		BigInteger R = Crypto.representToBases(Rs, ms, n);
 
 		Random rnd = new Random();
 
-		BigInteger v_tilde = new BigInteger(params.l_v, rnd);
+		BigInteger v_tilde = new BigInteger(params.l_v - 1, rnd);
 		BigInteger two_l_v = new BigInteger("2").pow(params.l_v - 1);
 		BigInteger v = two_l_v.add(v_tilde);
 
-		// Q = inv( S^v * R ) * Z
-		BigInteger numerator = pk.getGeneratorS().modPow(v, n).multiply(R).mod(n);
+		// Q = inv( S^v * R * U) * Z
+		BigInteger numerator = pk.getGeneratorS().modPow(v, n).multiply(R).multiply(U).mod(n);
 		BigInteger Q = pk.getGeneratorZ().multiply(numerator.modInverse(n)).mod(n);
 
 		BigInteger e = Crypto.probablyPrimeInBitRange(params.l_e,
