@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 import java.util.Random;
 
 import org.bouncycastle.asn1.ASN1EncodableVector;
@@ -83,5 +84,47 @@ public class Crypto {
 
 		// Interpret the value as a _positive_ integer
 		return new BigInteger(1, hash);
+	}
+
+	/**
+	 * Returns a BigInteger in the range [2^start, 2^start + 2^length) that is
+	 * probably prime. The probability that the number is not prime is no more
+	 * than 2^(-100).
+	 *
+	 * TODO: Make sure this code is correct
+	 *
+	 * @param start_in_bits
+	 *            The start of the interval (in bits)
+	 * @param length_in_bits
+	 *            The length of the interval (non-inclusive) (in bits)
+	 * @return A number in the given range that is probably prime
+	 */
+	public static BigInteger probablyPrimeInBitRange(int start_in_bits, int length_in_bits) {
+		Random rnd = new Random();
+		BigInteger start = TWO.pow(start_in_bits); // FIXME: check
+		BigInteger end = TWO.pow(start_in_bits).add(TWO.pow(length_in_bits));
+		BigInteger prime = end;
+
+		// Ensure that the generated prime is never too big
+		while (prime.compareTo(end) >= 0) {
+			BigInteger offset = new BigInteger(length_in_bits, rnd);
+			prime = start.add(offset).nextProbablePrime();
+		}
+
+		return prime;
+	}
+
+	public static BigInteger representToBases(List<BigInteger> bases,
+			List<BigInteger> exps, BigInteger modulus) {
+		BigInteger r = BigInteger.ONE;
+		BigInteger tmp;
+		for (int i = 0; i < exps.size(); i++) {
+			// tmp = bases_i ^ exps_i (mod modulus)
+			tmp = bases.get(i).modPow(exps.get(i), modulus);
+
+			// r = r * tmp (mod modulus)
+			r = r.multiply(tmp).mod(modulus);
+		}
+		return r;
 	}
 }

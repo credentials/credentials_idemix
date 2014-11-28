@@ -23,6 +23,8 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.Random;
 
+import org.irmacard.credentials.idemix.util.Crypto;
+
 /**
  * Represents a bare Camenisch-Lysyanskaya signature. The block of messages, or
  * this case the attributes are not stored with this object.
@@ -55,7 +57,7 @@ public class CLSignature {
 		List<BigInteger> Rs = pk.getGeneratorsR();
 		IdemixSystemParameters params = pk.getSystemParameters();
 
-		BigInteger R = representToBases(Rs, ms, n);
+		BigInteger R = Crypto.representToBases(Rs, ms, n);
 
 		Random rnd = new Random();
 
@@ -67,7 +69,7 @@ public class CLSignature {
 		BigInteger numerator = pk.getGeneratorS().modPow(v, n).multiply(R).mod(n);
 		BigInteger Q = pk.getGeneratorZ().multiply(numerator.modInverse(n)).mod(n);
 
-		BigInteger e = probablyPrimeInBitRange(params.l_e,
+		BigInteger e = Crypto.probablyPrimeInBitRange(params.l_e,
 				params.l_e_prime);
 
 		// TODO: this is probably open to side channel attacks, maybe use a
@@ -83,7 +85,7 @@ public class CLSignature {
 		BigInteger n = pk.getModulus();
 
 		// Q = A^e * R * S^v
-		BigInteger R = representToBases(pk.getGeneratorsR(), ms, n);
+		BigInteger R = Crypto.representToBases(pk.getGeneratorsR(), ms, n);
 		BigInteger Ae = this.A.modPow(e, n);
 		BigInteger Sv = pk.getGeneratorS().modPow(this.v, n);
 		BigInteger Q = Ae.multiply(R).multiply(Sv).mod(n);
@@ -101,48 +103,5 @@ public class CLSignature {
 
 	public BigInteger get_v() {
 		return v;
-	}
-
-	private static BigInteger representToBases(List<BigInteger> bases,
-			List<BigInteger> exps, BigInteger modulus) {
-		BigInteger r = BigInteger.ONE;
-		BigInteger tmp;
-		for (int i = 0; i < exps.size(); i++) {
-			// tmp = bases_i ^ exps_i (mod modulus)
-			tmp = bases.get(i).modPow(exps.get(i), modulus);
-
-			// r = r * tmp (mod modulus)
-			r = r.multiply(tmp).mod(modulus);
-		}
-		return r;
-	}
-
-	/**
-	 * Returns a BigInteger in the range [2^start, 2^start + 2^length) that is
-	 * probably prime. The probability that the number is not prime is no more
-	 * than 2^(-100).
-	 *
-	 * TODO: Make sure this code is correct
-	 *
-	 * @param start_in_bits
-	 *            The start of the interval (in bits)
-	 * @param length_in_bits
-	 *            The length of the interval (non-inclusive) (in bits)
-	 * @return A number in the given range that is probably prime
-	 */
-	private static BigInteger probablyPrimeInBitRange(int start_in_bits, int length_in_bits) {
-		Random rnd = new Random();
-		BigInteger two = new BigInteger("2");
-		BigInteger start = two.pow(start_in_bits); // FIXME: check
-		BigInteger end = two.pow(start_in_bits).add(two.pow(length_in_bits));
-		BigInteger prime = end;
-
-		// Ensure that the generated prime is never too big
-		while (prime.compareTo(end) >= 0) {
-			BigInteger offset = new BigInteger(length_in_bits, rnd);
-			prime = start.add(offset).nextProbablePrime();
-		}
-
-		return prime;
 	}
 }
