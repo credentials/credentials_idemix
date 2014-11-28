@@ -69,10 +69,10 @@ public class CredentialBuilder {
 		setSecret(secret);
 
 		BigInteger U = commitmentToSecret();
-		ProofU proofU = createProofU(U, nonce1);
-		BigInteger nonce2 = createReceiverNonce();
+		ProofU proofU = proveCommitment(U, nonce1);
+		n_2 = createReceiverNonce();
 
-		return new IssueCommitmentMessage(U, proofU, nonce2);
+		return new IssueCommitmentMessage(U, proofU, n_2);
 	}
 
 	protected void setSecret(BigInteger secret) {
