@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Vector;
 
+import org.irmacard.credentials.CredentialsException;
 import org.irmacard.credentials.idemix.messages.IssueCommitmentMessage;
 import org.irmacard.credentials.idemix.messages.IssueSignatureMessage;
 import org.irmacard.credentials.idemix.proofs.ProofS;
@@ -52,6 +53,12 @@ public class IRMACryptoTest {
 			new BigInteger("86332479314886130384736453625287798589955409703988059270766965934046079318379171635950761546707334446554224830120982622431968575935564538920183267389540869023066259053290969633312602549379541830869908306681500988364676409365226731817777230916908909465129739617379202974851959354453994729819170838277127986187"),
 			new BigInteger("68324072803453545276056785581824677993048307928855083683600441649711633245772441948750253858697288489650767258385115035336890900077233825843691912005645623751469455288422721175655533702255940160761555155932357171848703103682096382578327888079229101354304202688749783292577993444026613580092677609916964914513"),
 			new BigInteger("65082646756773276491139955747051924146096222587013375084161255582716233287172212541454173762000144048198663356249316446342046266181487801411025319914616581971563024493732489885161913779988624732795125008562587549337253757085766106881836850538709151996387829026336509064994632876911986826959512297657067426387"));
+
+	List<BigInteger> attributes = Arrays.asList(
+			new BigInteger(1, "one".getBytes()),
+			new BigInteger(1, "two".getBytes()),
+			new BigInteger(1, "three".getBytes()),
+			new BigInteger(1, "four".getBytes()));
 
 	static IdemixSecretKey sk = new IdemixSecretKey(p, q);
 	static IdemixPublicKey pk = new IdemixPublicKey(n, Z, S, R);
@@ -139,10 +146,6 @@ public class IRMACryptoTest {
 	public void testProofS() {
 		Random rnd = new Random();
 
-		// Just some attributes, they don't really matter
-		List<byte[]> attrs = Arrays.asList("one".getBytes(), "two".getBytes(),
-				"three".getBytes(), "four".getBytes());
-
 		// Silly commitment, content doesn't matter for this test.
 		BigInteger exponent = new BigInteger(pk.getSystemParameters().l_m, rnd);
 		BigInteger U = pk.getGeneratorS().modPow(exponent, pk.getModulus());
@@ -154,7 +157,7 @@ public class IRMACryptoTest {
 		BigInteger nonce = new BigInteger(pk.getSystemParameters().l_statzk, rnd);
 
 		IdemixIssuer issuer = new IdemixIssuer(pk, sk, context);
-		CLSignature sig = issuer.signCommitmentAndAttributes(U, attrs);
+		CLSignature sig = issuer.signCommitmentAndAttributes(U, attributes);
 		ProofS proof = issuer.proveSignature(sig, nonce);
 
 		assertTrue(proof.verify(pk, sig, issuer.getContext(), nonce));
@@ -189,20 +192,36 @@ public class IRMACryptoTest {
 	}
 
 	@Test
-	public void testSignatureMessage() {
+	public void testSignatureMessage() throws CredentialsException {
 		Random rnd = new Random();
+		IdemixSystemParameters params = pk.getSystemParameters();
 
-		List<byte[]> attrs = Arrays.asList("one".getBytes(), "two".getBytes(),
-				"three".getBytes(), "four".getBytes());
-		BigInteger exponent = new BigInteger(pk.getSystemParameters().l_m, rnd);
-		BigInteger U = pk.getGeneratorS().modPow(exponent, pk.getModulus());
-		BigInteger context = new BigInteger(pk.getSystemParameters().l_h, rnd);
-		BigInteger nonce = new BigInteger(pk.getSystemParameters().l_statzk, rnd);
+		BigInteger context = new BigInteger(params.l_h, rnd);
+		BigInteger n_1 = new BigInteger(params.l_statzk, rnd);
+		BigInteger secret = new BigInteger(params.l_m, rnd);
+
+		CredentialBuilder cb = new CredentialBuilder(pk, null, context);
+		IssueCommitmentMessage commit_msg = cb.commitToSecretAndProve(secret, n_1);
 
 		IdemixIssuer issuer = new IdemixIssuer(pk, sk, context);
-		IssueSignatureMessage msg = issuer.issueSignature(U, attrs, nonce);
-
-		assertTrue(msg.getProofS().verify(pk, msg.getSignature(), issuer.getContext(), nonce));
+		issuer.issueSignature(commit_msg, attributes, n_1);
 	}
 
+	@Test
+	public void fullIssuance() throws CredentialsException {
+		Random rnd = new Random();
+		IdemixSystemParameters params = pk.getSystemParameters();
+
+		BigInteger context = new BigInteger(params.l_h, rnd);
+		BigInteger n_1 = new BigInteger(params.l_statzk, rnd);
+		BigInteger secret = new BigInteger(params.l_m, rnd);
+
+		CredentialBuilder cb = new CredentialBuilder(pk, attributes, context);
+		IssueCommitmentMessage commit_msg = cb.commitToSecretAndProve(secret, n_1);
+
+		IdemixIssuer issuer = new IdemixIssuer(pk, sk, context);
+		IssueSignatureMessage msg = issuer.issueSignature(commit_msg, attributes, n_1);
+
+		cb.constructCredential(msg);
+	}
 }

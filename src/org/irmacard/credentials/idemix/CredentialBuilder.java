@@ -22,8 +22,11 @@ package org.irmacard.credentials.idemix;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Random;
+import java.util.Vector;
 
+import org.irmacard.credentials.CredentialsException;
 import org.irmacard.credentials.idemix.messages.IssueCommitmentMessage;
+import org.irmacard.credentials.idemix.messages.IssueSignatureMessage;
 import org.irmacard.credentials.idemix.proofs.ProofU;
 import org.irmacard.credentials.idemix.util.Crypto;
 
@@ -35,14 +38,14 @@ public class CredentialBuilder {
 
 	// Immutable Input
 	private final IdemixPublicKey pk;
-	private final List<byte[]> attributes;
+	private final List<BigInteger> attributes;
 	private final BigInteger context;
 
 	// Derived immutable state
 	private final IdemixSystemParameters params;
 	private final BigInteger n;
 
-	public CredentialBuilder(IdemixPublicKey pk, List<byte[]> attrs, BigInteger context) {
+	public CredentialBuilder(IdemixPublicKey pk, List<BigInteger> attrs, BigInteger context) {
 		this.pk = pk;
 		this.attributes = attrs;
 		this.context = context;
@@ -73,6 +76,31 @@ public class CredentialBuilder {
 		n_2 = createReceiverNonce();
 
 		return new IssueCommitmentMessage(U, proofU, n_2);
+	}
+
+	public IdemixCredential constructCredential(IssueSignatureMessage msg)
+			throws CredentialsException {
+		if (!msg.getProofS().verify(pk, msg.getSignature(), context, n_2)) {
+			throw new CredentialsException(
+					"The proof of correctness on the signature does not verify");
+		}
+
+		// Construct actual signature
+		CLSignature psig = msg.getSignature();
+		CLSignature signature = new CLSignature(psig.getA(), psig.get_e(), psig
+				.get_v().add(v_prime));
+
+		// Verify signature
+		List<BigInteger> exponents = new Vector<BigInteger>();
+		exponents.add(s);
+		exponents.addAll(attributes);
+
+		if (!signature.verify(pk, exponents)) {
+			throw new CredentialsException(
+					"Signature on the attributes is not correct");
+		}
+
+		return new IdemixCredential(pk, s, attributes, signature);
 	}
 
 	protected void setSecret(BigInteger secret) {

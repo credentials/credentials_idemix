@@ -21,8 +21,9 @@ package org.irmacard.credentials.idemix;
 
 import java.math.BigInteger;
 import java.util.List;
-import java.util.Vector;
 
+import org.irmacard.credentials.CredentialsException;
+import org.irmacard.credentials.idemix.messages.IssueCommitmentMessage;
 import org.irmacard.credentials.idemix.messages.IssueSignatureMessage;
 import org.irmacard.credentials.idemix.proofs.ProofS;
 import org.irmacard.credentials.idemix.util.Crypto;
@@ -52,15 +53,21 @@ public class IdemixIssuer {
 	 *            Commitment to the user's secret
 	 * @param attrs
 	 *            Attributes to include in the signature
-	 * @param nonce
+	 * @param nonce1
 	 *            Nonce from the recipient
 	 * @return Signature on attributes+commitments and the proof of correctness
+	 * @throws CredentialsException when the commitment proof is not correct
 	 */
-	protected IssueSignatureMessage issueSignature(BigInteger U,
-			List<byte[]> attrs, BigInteger nonce) {
+	protected IssueSignatureMessage issueSignature(IssueCommitmentMessage msg,
+			List<BigInteger> attrs, BigInteger nonce1) throws CredentialsException {
+
+		BigInteger U = msg.getCommitment();
+		if(!msg.getCommitmentProof().verify(pk, U, context, nonce1)) {
+			throw new CredentialsException("The commitment proof is not correct");
+		}
 
 		CLSignature signature = signCommitmentAndAttributes(U, attrs);
-		ProofS proof = proveSignature(signature, nonce);
+		ProofS proof = proveSignature(signature, msg.getNonce2());
 
 		return new IssueSignatureMessage(signature, proof);
 	}
@@ -77,15 +84,9 @@ public class IdemixIssuer {
 	 * @return A (partial) CL signature on the commitment and attributes.
 	 */
 	protected CLSignature signCommitmentAndAttributes(BigInteger U,
-			List<byte[]> attrs) {
+			List<BigInteger> attrs) {
 
-		// Convert attributes back to BigIntegers
-		List<BigInteger> messages = new Vector<BigInteger>();
-		for(byte[] attr : attrs) {
-			messages.add(new BigInteger(1, attr));
-		}
-
-		return CLSignature.signMessageBlockAndCommitment(sk, pk, U, messages);
+		return CLSignature.signMessageBlockAndCommitment(sk, pk, U, attrs);
 	}
 
 	/**
