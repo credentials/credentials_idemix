@@ -30,12 +30,9 @@ import java.util.List;
 import java.util.Random;
 import java.util.Vector;
 
-import org.irmacard.credentials.idemix.CLSignature;
-import org.irmacard.credentials.idemix.CredentialBuilder;
-import org.irmacard.credentials.idemix.IdemixPublicKey;
-import org.irmacard.credentials.idemix.IdemixSecretKey;
-import org.irmacard.credentials.idemix.IdemixSystemParameters;
 import org.irmacard.credentials.idemix.messages.IssueCommitmentMessage;
+import org.irmacard.credentials.idemix.messages.IssueSignatureMessage;
+import org.irmacard.credentials.idemix.proofs.ProofS;
 import org.irmacard.credentials.idemix.proofs.ProofU;
 import org.irmacard.credentials.idemix.util.Crypto;
 import org.junit.Test;
@@ -137,4 +134,75 @@ public class IRMACryptoTest {
 		IssueCommitmentMessage msg = cb.commitToSecretAndProve(secret, n_1);
 		assertTrue(msg.getCommitmentProof().verify(pk, msg.getCommitment(), context, n_1));
 	}
+
+	@Test
+	public void testProofS() {
+		Random rnd = new Random();
+
+		// Just some attributes, they don't really matter
+		List<byte[]> attrs = Arrays.asList("one".getBytes(), "two".getBytes(),
+				"three".getBytes(), "four".getBytes());
+
+		// Silly commitment, content doesn't matter for this test.
+		BigInteger exponent = new BigInteger(pk.getSystemParameters().l_m, rnd);
+		BigInteger U = pk.getGeneratorS().modPow(exponent, pk.getModulus());
+
+		// Silly context
+		BigInteger context = new BigInteger(pk.getSystemParameters().l_h, rnd);
+
+		// Nonce (normally from the credential recipient)
+		BigInteger nonce = new BigInteger(pk.getSystemParameters().l_statzk, rnd);
+
+		IdemixIssuer issuer = new IdemixIssuer(pk, sk, context);
+		CLSignature sig = issuer.signCommitmentAndAttributes(U, attrs);
+		ProofS proof = issuer.proveSignature(sig, nonce);
+
+		assertTrue(proof.verify(pk, sig, issuer.getContext(), nonce));
+
+		// Silly nonce test
+		System.out.println("TEST: Will warn that hash doesn't match, that is expected");
+		assertFalse(proof.verify(pk, sig, issuer.getContext(), BigInteger.TEN));
+
+		// Silly context test
+		System.out.println("TEST: Will warn that hash doesn't match, that is expected");
+		assertFalse(proof.verify(pk, sig, BigInteger.TEN, nonce));
+	}
+
+	@Test
+	public void testProofSLogged() {
+		BigInteger context = new BigInteger("34911926065354700717429826907189165808787187263593066036316982805908526740809");
+		BigInteger n_2 = new BigInteger("1424916368173409716606");
+
+		// Signature
+		BigInteger A = new BigInteger("66389313221915836241271893803869162372470096003861448260498566798077037255866372791540928160267561756794143545532118654736979223658343806335872047371607436291528588343320128898584874264796312130159695427439025355009934986408160536404163490935544221152821545871675088845781351195696518382628790514628112517886");
+		BigInteger e = new BigInteger("259344723055062059907025491480697571938277889515152306249728583105665800713306759149981690559193987143012367913206299323899696942213235956742930207251663943512715842083759814664217");
+		BigInteger v = new BigInteger("32427566863312925183262683355749521096160753564085736927716798279834745436154181827687524960554513739692930154573915901486008843583586162755818099731448281905764117842382407835789897633042765641230655956290191876265377547222981221260311549695231999461733778383779100992221748503727598149536948999564401095816377323412637286891625085960745712119714441272446053177642615033258689648568679017384011895908901362352242970432640019866501367925956123252426587516554347912178721773507440862343752105273189184247444400383");
+
+		// Proof
+		BigInteger c = new BigInteger("60359393410007276721785600209946099643760005142374188599509762410975853354415");
+		BigInteger e_response = new BigInteger("1139627737042307991725447845798004742853435356249558932466535799661640630812910641126155269500348608443317861800376689024557774460643901450316279085276256524076388421890909312661873221470626068394945683125859434135652717426417681918932528613003921792075852313319584079881881807505760375270399908999784672094");
+
+		CLSignature sig = new CLSignature(A, e, v);
+		ProofS proof = new ProofS(c, e_response);
+
+		assertTrue(proof.verify(pk, sig, context, n_2));
+	}
+
+	@Test
+	public void testSignatureMessage() {
+		Random rnd = new Random();
+
+		List<byte[]> attrs = Arrays.asList("one".getBytes(), "two".getBytes(),
+				"three".getBytes(), "four".getBytes());
+		BigInteger exponent = new BigInteger(pk.getSystemParameters().l_m, rnd);
+		BigInteger U = pk.getGeneratorS().modPow(exponent, pk.getModulus());
+		BigInteger context = new BigInteger(pk.getSystemParameters().l_h, rnd);
+		BigInteger nonce = new BigInteger(pk.getSystemParameters().l_statzk, rnd);
+
+		IdemixIssuer issuer = new IdemixIssuer(pk, sk, context);
+		IssueSignatureMessage msg = issuer.issueSignature(U, attrs, nonce);
+
+		assertTrue(msg.getProofS().verify(pk, msg.getSignature(), issuer.getContext(), nonce));
+	}
+
 }
