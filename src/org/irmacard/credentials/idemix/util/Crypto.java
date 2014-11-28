@@ -24,7 +24,6 @@ public class Crypto {
 	 */
 	public static BigInteger randomSignedInteger(int bitlength) {
 		Random rnd = new Random();
-		bitlength = 10;
 
 		BigInteger maximum = TWO.pow(bitlength).subtract(BigInteger.ONE);
 		BigInteger unsigned_maximum = maximum.multiply(TWO);
