@@ -30,8 +30,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.Vector;
 
-import net.sourceforge.scuba.util.Hex;
-
 import org.irmacard.credentials.idemix.CLSignature;
 import org.irmacard.credentials.idemix.CredentialBuilder;
 import org.irmacard.credentials.idemix.IdemixPublicKey;
@@ -90,8 +88,6 @@ public class IRMACryptoTest {
 				0x02, 0x01, 0x41,
 				0x02, 0x02, 0x04, 0x01 };
 
-		System.out.println("enc: " + Hex.bytesToHexString(enc));
-		System.out.println("expected: " + Hex.bytesToHexString(expected));
 		assertTrue(Arrays.equals(enc, expected));
 	}
 
