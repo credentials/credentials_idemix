@@ -61,6 +61,7 @@ public class Crypto {
 		} catch (IOException e) {
 			// IOException indicates encoding failure, this should never happen;
 			e.printStackTrace();
+			throw new RuntimeException("DER encoding failed");
 		}
 
 		return encoding;
@@ -78,8 +79,8 @@ public class Crypto {
 		try {
 			hash = MessageDigest.getInstance("SHA-256").digest(input);
 		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			throw new RuntimeException("Algorithm SHA-256 not found");
 		}
 
 		// Interpret the value as a _positive_ integer
@@ -114,8 +115,24 @@ public class Crypto {
 		return prime;
 	}
 
+	/**
+	 * A representation of the given exponents in terms of the given bases. For
+	 * given bases bases[1],...,bases[k]; exponents exps[1],...,exps[k] and
+	 * modulus this function returns bases[k]^{exps[1]}*...*bases[k]^{exps[k]}
+	 * (mod modulus)
+	 *
+	 * @param bases		bases to represent exponents in
+	 * @param exps		exponents to represent
+	 * @param modulus	the modulus
+	 * @return			representation of the exponents in terms of the bases
+	 */
 	public static BigInteger representToBases(List<BigInteger> bases,
 			List<BigInteger> exps, BigInteger modulus) {
+
+		if (bases.size() < exps.size()) {
+			throw new RuntimeException("Not enough bases to represent exponents");
+		}
+
 		BigInteger r = BigInteger.ONE;
 		BigInteger tmp;
 		for (int i = 0; i < exps.size(); i++) {
