@@ -125,7 +125,7 @@ public class Crypto {
 	}
 
 	/**
-	 * Returns a BigInteger in the range [2^start, 2^start + 2^length) that is
+	 * Returns a BigInteger in the range [2^start, 2^start + 2^length] that is
 	 * probably prime. The probability that the number is not prime is no more
 	 * than 2^(-100).
 	 *
@@ -139,12 +139,12 @@ public class Crypto {
 	 */
 	public static BigInteger probablyPrimeInBitRange(int start_in_bits, int length_in_bits) {
 		Random rnd = new Random();
-		BigInteger start = TWO.pow(start_in_bits); // FIXME: check
-		BigInteger end = TWO.pow(start_in_bits).add(TWO.pow(length_in_bits));
+		BigInteger start = TWO.pow(start_in_bits);
+		BigInteger end = start.add(TWO.pow(length_in_bits));
 		BigInteger prime = end;
 
 		// Ensure that the generated prime is never too big
-		while (prime.compareTo(end) >= 0) {
+		while (prime.compareTo(end) > 0) {
 			BigInteger offset = new BigInteger(length_in_bits, rnd);
 			prime = start.add(offset).nextProbablePrime();
 		}

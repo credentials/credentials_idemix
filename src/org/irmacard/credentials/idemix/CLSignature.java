@@ -95,8 +95,8 @@ public class CLSignature {
 		BigInteger numerator = pk.getGeneratorS().modPow(v, n).multiply(R).multiply(U).mod(n);
 		BigInteger Q = pk.getGeneratorZ().multiply(numerator.modInverse(n)).mod(n);
 
-		BigInteger e = Crypto.probablyPrimeInBitRange(params.l_e,
-				params.l_e_prime);
+		BigInteger e = Crypto.probablyPrimeInBitRange(params.l_e - 1,
+				params.l_e_prime - 1);
 
 		// TODO: this is probably open to side channel attacks, maybe use a
 		// safe (raw) RSA signature?
@@ -108,7 +108,16 @@ public class CLSignature {
 	}
 
 	public boolean verify(IdemixPublicKey pk, List<BigInteger> ms) {
+		IdemixSystemParameters params = pk.getSystemParameters();
 		BigInteger n = pk.getModulus();
+
+		// Check that e in [2^{l_e - 1}, 2^{l_e - 1} + 2^{l_e_prime -1}]
+		BigInteger start = Crypto.TWO.pow(params.l_e - 1);
+		BigInteger end = start.add(Crypto.TWO.pow(params.l_e_prime - 1));
+		if(e.compareTo(start) < 0 || e.compareTo(end) > 0) {
+			System.out.println("Prime in signature out of range");
+			return false;
+		}
 
 		// Q = A^e * R * S^v
 		BigInteger R = Crypto.representToBases(pk.getGeneratorsR(), ms, n);
