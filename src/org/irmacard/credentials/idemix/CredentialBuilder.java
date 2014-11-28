@@ -76,10 +76,6 @@ public class CredentialBuilder {
 
 		BigInteger c = Crypto.sha256Hash(Crypto.asn1Encode(context, U, U_commit, n_1));
 
-		System.out.println("c: " + c);
-		System.out.println("U: " + U);
-		System.out.println("U_commit: " + U_commit);
-
 		BigInteger s_response = s_commit.add(c.multiply(s));
 		BigInteger v_prime_response = v_prime_commit.add(c.multiply(v_prime));
 
