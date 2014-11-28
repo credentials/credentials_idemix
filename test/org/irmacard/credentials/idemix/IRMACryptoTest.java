@@ -105,7 +105,7 @@ public class IRMACryptoTest {
 		cb.setSecret(secret);
 
 		BigInteger U = cb.commitmentToSecret();
-		ProofU proofU = cb.createProofU(U, n_1);
+		ProofU proofU = cb.proveCommitment(U, n_1);
 
 		assertTrue(proofU.verify(pk, U, context, n_1));
 	}

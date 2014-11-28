@@ -92,7 +92,7 @@ public class CredentialBuilder {
 		return U;
 	}
 
-	protected ProofU createProofU(BigInteger U, BigInteger n_1) {
+	protected ProofU proveCommitment(BigInteger U, BigInteger n_1) {
 		BigInteger s_commit = Crypto.randomSignedInteger(params.l_s_commit);
 		BigInteger v_prime_commit = Crypto.randomSignedInteger(params.l_v_prime_commit);
 
