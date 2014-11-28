@@ -18,7 +18,7 @@
  */
 
 
-package org.irmacard.credentials.idemix.test;
+package org.irmacard.credentials.idemix;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -35,6 +35,7 @@ import org.irmacard.credentials.idemix.CredentialBuilder;
 import org.irmacard.credentials.idemix.IdemixPublicKey;
 import org.irmacard.credentials.idemix.IdemixSecretKey;
 import org.irmacard.credentials.idemix.IdemixSystemParameters;
+import org.irmacard.credentials.idemix.messages.IssueCommitmentMessage;
 import org.irmacard.credentials.idemix.proofs.ProofU;
 import org.irmacard.credentials.idemix.util.Crypto;
 import org.junit.Test;
@@ -121,6 +122,19 @@ public class IRMACryptoTest {
 		ProofU proofU = new ProofU(c, v_prime_response, s_response);
 
 		assertTrue(proofU.verify(pk, U, context, n_1));
+	}
 
+	@Test
+	public void testCommitmentMessage() {
+		Random rnd = new Random();
+		IdemixSystemParameters params = pk.getSystemParameters();
+
+		BigInteger context = new BigInteger(params.l_h, rnd);
+		BigInteger n_1 = new BigInteger(params.l_statzk, rnd);
+		BigInteger secret = new BigInteger(params.l_m, rnd);
+
+		CredentialBuilder cb = new CredentialBuilder(pk, null, context);
+		IssueCommitmentMessage msg = cb.commitToSecretAndProve(secret, n_1);
+		assertTrue(msg.getCommitmentProof().verify(pk, msg.getCommitment(), context, n_1));
 	}
 }

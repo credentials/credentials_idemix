@@ -20,8 +20,10 @@
 package org.irmacard.credentials.idemix;
 
 import java.math.BigInteger;
+import java.util.Random;
 
 import org.irmacard.credentials.Attributes;
+import org.irmacard.credentials.idemix.messages.IssueCommitmentMessage;
 import org.irmacard.credentials.idemix.proofs.ProofU;
 import org.irmacard.credentials.idemix.util.Crypto;
 
@@ -49,11 +51,36 @@ public class CredentialBuilder {
 		this.n = pk.getModulus();
 	}
 
-	public void setSecret(BigInteger s) {
-		this.s = s;
+	/**
+	 * Response to the initial challenge nonce nonce1 sent by the issuer. The
+	 * response consists of a commitment to the secret (@see setSecret) and a
+	 * proof of correctness of this commitment. This is the second message in
+	 * the issuance protocol.
+	 *
+	 * @param secret
+	 *            The secret that we commit to
+	 * @param nonce1
+	 *            The challenge nonce sent by the issuer
+	 * @return The commitment and proof of correctness of this commitment.
+	 */
+	public IssueCommitmentMessage commitToSecretAndProve(BigInteger secret,
+			BigInteger nonce1) {
+
+		setSecret(secret);
+
+		BigInteger U = commitmentToSecret();
+		ProofU proofU = createProofU(U, nonce1);
+		BigInteger nonce2 = createReceiverNonce();
+
+		return new IssueCommitmentMessage(U, proofU, nonce2);
 	}
 
-	public BigInteger commitmentToSecret() {
+	protected void setSecret(BigInteger secret) {
+		// State that needs to be stored
+		this.s = secret;
+	}
+
+	protected BigInteger commitmentToSecret() {
 		// State that needs to be stored
 		v_prime = Crypto.randomSignedInteger(params.l_v_prime);
 
@@ -65,7 +92,7 @@ public class CredentialBuilder {
 		return U;
 	}
 
-	public ProofU createProofU(BigInteger U, BigInteger n_1) {
+	protected ProofU createProofU(BigInteger U, BigInteger n_1) {
 		BigInteger s_commit = Crypto.randomSignedInteger(params.l_s_commit);
 		BigInteger v_prime_commit = Crypto.randomSignedInteger(params.l_v_prime_commit);
 
@@ -80,5 +107,10 @@ public class CredentialBuilder {
 		BigInteger v_prime_response = v_prime_commit.add(c.multiply(v_prime));
 
 		return new ProofU(c, v_prime_response, s_response);
+	}
+
+	private BigInteger createReceiverNonce() {
+		Random rnd = new Random();
+		return new BigInteger(params.l_statzk, rnd);
 	}
 }
