@@ -19,28 +19,74 @@
 
 package org.irmacard.credentials.idemix;
 
+import java.io.InputStream;
 import java.math.BigInteger;
+import java.net.URI;
 import java.util.List;
+import java.util.Vector;
+
+import org.irmacard.credentials.info.ConfigurationParser;
+import org.irmacard.credentials.info.InfoException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 /**
  * Represents an Idemix public key.
  */
-public class IdemixPublicKey {
+public class IdemixPublicKey extends ConfigurationParser {
 	private BigInteger n;
 	private BigInteger Z;
 	private BigInteger S;
 
 	private List<BigInteger> R;
 
-	private IdemixSystemParameters systemParameters;
+	private IdemixSystemParameters systemParameters = new IdemixSystemParameters();
 
-	public IdemixPublicKey(BigInteger n, BigInteger Z, BigInteger S, List<BigInteger> R) {
+	public IdemixPublicKey(BigInteger n, BigInteger Z, BigInteger S,
+			List<BigInteger> R) throws InfoException {
+
+		super();
+
 		this.n = n;
 		this.Z = Z;
 		this.S = S;
 		this.R = R;
+	}
 
-		this.systemParameters = new IdemixSystemParameters();
+	/**
+	 * Public key constructed from the given file
+	 * @param file Input XML file.
+	 * @throws InfoException on error with XML parsing
+	 */
+	public IdemixPublicKey(URI file) throws InfoException {
+		super();
+		Document d = parse(file);
+		init(d);
+	}
+
+	/**
+	 * Public key constructed from InputStream.
+	 * @param stream InputStream for XML file.
+	 * @throws InfoException on error with XML parsing
+	 */
+	public IdemixPublicKey(InputStream stream) throws InfoException {
+		super();
+		Document d = parse(stream);
+		init(d);
+	}
+
+	private void init(Document d) {
+		n = new BigInteger(getFirstTagText(d, "n"));
+		Z = new BigInteger(getFirstTagText(d, "Z"));
+		S = new BigInteger(getFirstTagText(d, "S"));
+
+		Element bases = ((Element) d.getElementsByTagName("Bases").item(0));
+		int num_bases = Integer.parseInt(bases.getAttribute("num"));
+		R = new Vector<BigInteger>();
+		for(int i = 0; i < num_bases; i++) {
+			String base = bases.getElementsByTagName("Base_" + i).item(0).getTextContent().trim();
+			R.add(new BigInteger(base));
+		}
 	}
 
 	public BigInteger getModulus() {

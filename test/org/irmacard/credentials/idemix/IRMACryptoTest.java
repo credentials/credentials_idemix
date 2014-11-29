@@ -38,6 +38,7 @@ import org.irmacard.credentials.idemix.proofs.ProofD;
 import org.irmacard.credentials.idemix.proofs.ProofS;
 import org.irmacard.credentials.idemix.proofs.ProofU;
 import org.irmacard.credentials.idemix.util.Crypto;
+import org.irmacard.credentials.info.InfoException;
 import org.junit.Test;
 
 public class IRMACryptoTest {
@@ -62,8 +63,16 @@ public class IRMACryptoTest {
 			new BigInteger(1, "three".getBytes()),
 			new BigInteger(1, "four".getBytes()));
 
-	static IdemixSecretKey sk = new IdemixSecretKey(p, q);
-	static IdemixPublicKey pk = new IdemixPublicKey(n, Z, S, R);
+
+	static IdemixSecretKey sk = null;
+	static IdemixPublicKey pk = null;
+
+	static {
+		try {
+			sk = new IdemixSecretKey(p, q);
+			pk = new IdemixPublicKey(n, Z, S, R);
+		} catch (InfoException e) {}
+	}
 
 	@Test
 	public void testPublicKey() {
