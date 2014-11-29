@@ -128,6 +128,23 @@ public class CLSignature {
 		return pk.getGeneratorZ().equals(Q);
 	}
 
+	/**
+	 * A randomized copy of this signature. Does not modify the original.
+	 * @return A randomized copy of the original
+	 */
+	public CLSignature randomize(IdemixPublicKey pk) {
+		IdemixSystemParameters params = pk.getSystemParameters();
+		BigInteger n = pk.getModulus();
+
+		Random rnd = new Random();
+
+		BigInteger randomizer = new BigInteger(params.l_r_a, rnd);
+		BigInteger A_prime = A.multiply(pk.getGeneratorS().modPow(randomizer, n)).mod(n);
+		BigInteger v_prime = v.subtract(e.multiply(randomizer));
+
+		return new CLSignature(A_prime, e, v_prime);
+	}
+
 	public BigInteger getA() {
 		return A;
 	}
