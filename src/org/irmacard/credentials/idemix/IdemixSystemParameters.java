@@ -28,7 +28,11 @@ public class IdemixSystemParameters {
 	public final int l_statzk = 80;
 	public final int l_v = 1700;
 
+	public final int l_e_commit = l_e_prime + l_statzk + l_h;
+	public final int l_m_commit = l_m + l_statzk + l_h;
+	public final int l_r_a = l_n + l_statzk;
 	public final int l_s_commit = l_m + l_statzk + l_h + 1;
+	public final int l_v_commit = l_v + l_statzk + l_h;
 	public final int l_v_prime = l_n + l_statzk;
 	public final int l_v_prime_commit = l_n + 2*l_statzk + l_h;
 }

@@ -26,6 +26,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 import java.util.Vector;
@@ -33,6 +34,7 @@ import java.util.Vector;
 import org.irmacard.credentials.CredentialsException;
 import org.irmacard.credentials.idemix.messages.IssueCommitmentMessage;
 import org.irmacard.credentials.idemix.messages.IssueSignatureMessage;
+import org.irmacard.credentials.idemix.proofs.ProofD;
 import org.irmacard.credentials.idemix.proofs.ProofS;
 import org.irmacard.credentials.idemix.proofs.ProofU;
 import org.irmacard.credentials.idemix.util.Crypto;
@@ -80,6 +82,18 @@ public class IRMACryptoTest {
 
 		ms.set(0, new BigInteger("1337"));
 		assertFalse("Signature should not verify", sig.verify(pk, ms));
+	}
+
+	@Test
+	public void testCLSignatureRandomize() {
+		List<BigInteger> ms = new Vector<BigInteger>();
+		ms.add(new BigInteger("1"));
+		ms.add(new BigInteger("2"));
+
+		CLSignature sig = CLSignature.signMessageBlock(sk, pk, ms);
+		CLSignature sig_randomized = sig.randomize(pk);
+
+		assertTrue("Signature is not valid", sig_randomized.verify(pk, ms));
 	}
 
 	@Test
@@ -223,5 +237,44 @@ public class IRMACryptoTest {
 		IssueSignatureMessage msg = issuer.issueSignature(commit_msg, attributes, n_1);
 
 		cb.constructCredential(msg);
+	}
+
+	@Test
+	public void testShowingProof() {
+		CLSignature signature = CLSignature.signMessageBlock(sk, pk, attributes);
+		IdemixCredential cred = new IdemixCredential(pk, attributes, signature);
+		List<Integer> disclosed = Arrays.asList(1, 2);
+
+		Random rnd = new Random();
+		IdemixSystemParameters params = pk.getSystemParameters();
+
+		BigInteger context = new BigInteger(params.l_h, rnd);
+		BigInteger nonce1 = new BigInteger(params.l_statzk, rnd);
+
+		ProofD proof = cred.createDisclosureProof(disclosed, context, nonce1);
+
+		assertTrue("Proof of disclosure should verify", proof.verify(pk, context, nonce1));
+	}
+
+	@Test
+	public void testShowingProofLogged() {
+		BigInteger nonce1 = new BigInteger("356168310758183945030882");
+		BigInteger context = new BigInteger("59317469690166962413036802769129097120995929488116634148207386064523180296869");
+
+		BigInteger c = new BigInteger("92405256824458923934294175762399873039847432841647909261385804859937404075570");
+		BigInteger A = new BigInteger("66467922530801909191099602528137141713616048447732479189179865050384832390931230033112445547628606292639430708552418462959456337530534055700746138057512598497120682196611341962749384189596253759402224308748002860890211498962735924481685975488607793795169788837476493253297353146422154392391732925567178805607");
+		BigInteger e_response = new BigInteger("44022597110989879399510333540268555303613344906583879371531630680320900347240418258690335759375210734514869637566864349585531295946323809");
+		BigInteger v_response = new BigInteger("26326301830460880582628741955953428491879823201714737915103888193625032953131902593859116395461541557845953939714765660366793552012359281854190756504190064959818584175057775414324351414234450208391534497565506441579960808534266557458251190151268682500197950418141493586125049371381626638554299245282498637246703583102656876690825544275995631773170789236920674341621008537679924624747222821679128060382072191284077393034573357698475000667180794116538132628586533009732462826119381931507809052573496513689222244701991737191273263148163121236326525677935993049602389899306007664212328515456044738278420");
+
+		HashMap<Integer, BigInteger> a_responses = new HashMap<Integer, BigInteger>();
+		a_responses.put(0, new BigInteger("55247823867049193571627241180110605447453053126985891402640532123848293918217459966028364637387399903283634100097425890971508590427350301193682412170041146212137866279677802531"));
+		HashMap<Integer, BigInteger> a_disclosed = new HashMap<Integer, BigInteger>();
+		a_disclosed.put(1,  new BigInteger("1100598411265"));
+		a_disclosed.put(2,  new BigInteger("43098508374675488371040117572049064979183030441504364"));
+		a_disclosed.put(3,  new BigInteger("4919409929397552454"));
+
+		ProofD proof = new ProofD(c, A, e_response, v_response, a_responses, a_disclosed);
+
+		assertTrue("Proof of disclosure should verify", proof.verify(pk, context, nonce1));
 	}
 }
