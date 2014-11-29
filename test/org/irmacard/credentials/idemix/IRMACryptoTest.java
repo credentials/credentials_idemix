@@ -277,4 +277,28 @@ public class IRMACryptoTest {
 
 		assertTrue("Proof of disclosure should verify", proof.verify(pk, context, nonce1));
 	}
+
+	@Test
+	public void fullIssuanceAndShowing() throws CredentialsException {
+		Random rnd = new Random();
+		IdemixSystemParameters params = pk.getSystemParameters();
+
+		BigInteger context = new BigInteger(params.l_h, rnd);
+		BigInteger n_1 = new BigInteger(params.l_statzk, rnd);
+		BigInteger secret = new BigInteger(params.l_m, rnd);
+
+		// Issuance
+		CredentialBuilder cb = new CredentialBuilder(pk, attributes, context);
+		IssueCommitmentMessage commit_msg = cb.commitToSecretAndProve(secret, n_1);
+		IdemixIssuer issuer = new IdemixIssuer(pk, sk, context);
+		IssueSignatureMessage msg = issuer.issueSignature(commit_msg, attributes, n_1);
+		IdemixCredential cred = cb.constructCredential(msg);
+
+		// Showing
+		n_1 = new BigInteger(params.l_statzk, rnd);
+		List<Integer> disclosed = Arrays.asList(1, 2);
+
+		ProofD proof = cred.createDisclosureProof(disclosed, context, n_1);
+		assertTrue("Proof of disclosure should verify", proof.verify(pk, context, n_1));
+	}
 }
