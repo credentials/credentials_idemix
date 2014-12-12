@@ -110,10 +110,17 @@ public class CredentialBuilder {
 
 	protected BigInteger commitmentToSecret() {
 		// State that needs to be stored
-		v_prime = Crypto.randomSignedInteger(params.l_v_prime);
+
+		// FIXME: Not according to protocol, only positives possible this way
+		//v_prime = Crypto.randomSignedInteger(params.l_v_prime);
+		v_prime = Crypto.randomUnsignedInteger(params.l_v_prime);
 
 		// U = S^{v_prime} * R_0^{s}
 		BigInteger Sv = pk.getGeneratorS().modPow(v_prime, n);
+		System.out.println(pk);
+		System.out.println(pk.getGeneratorR(0));
+		System.out.println(n);
+		System.out.println(s);
 		BigInteger R0s = pk.getGeneratorR(0).modPow(s, n);
 		BigInteger U = Sv.multiply(R0s).mod(n);
 
@@ -121,8 +128,11 @@ public class CredentialBuilder {
 	}
 
 	protected ProofU proveCommitment(BigInteger U, BigInteger n_1) {
-		BigInteger s_commit = Crypto.randomSignedInteger(params.l_s_commit);
-		BigInteger v_prime_commit = Crypto.randomSignedInteger(params.l_v_prime_commit);
+		// FIXME Not according to protocol, should be signed values
+		//BigInteger s_commit = Crypto.randomSignedInteger(params.l_s_commit);
+		//BigInteger v_prime_commit = Crypto.randomSignedInteger(params.l_v_prime_commit);
+		BigInteger s_commit = Crypto.randomUnsignedInteger(params.l_s_commit);
+		BigInteger v_prime_commit = Crypto.randomUnsignedInteger(params.l_v_prime_commit);
 
 		// U_commit = S^{v_prime_commit} * R_0^{s_commit}
 		BigInteger Sv = pk.getGeneratorS().modPow(v_prime_commit, n);

@@ -36,6 +36,11 @@ public class IssueSignatureMessage {
 		this.proof = proof;
 	}
 
+	public IssueSignatureMessage() {
+		signature = new CLSignature();
+		proof = new ProofS();
+	}
+
 	public CLSignature getSignature() {
 		return signature;
 	}

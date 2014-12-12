@@ -34,6 +34,9 @@ public class ProofS {
 		this.e_response = e_response;
 	}
 
+	public ProofS() {
+	}
+
 	/**
 	 * Verifies this proof against the given public key, signature, context and
 	 * nonce.
@@ -71,5 +74,13 @@ public class ProofS {
 		}
 
 		return matched;
+	}
+
+	public void set_c(BigInteger c) {
+		this.c = c;
+	}
+
+	public void set_e_response(BigInteger e_response) {
+		this.e_response = e_response;
 	}
 }

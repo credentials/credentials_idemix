@@ -71,4 +71,16 @@ public class ProofU {
 
 		return matched;
 	}
+
+	public BigInteger get_c() {
+		return c;
+	}
+
+	public BigInteger get_v_prime_response() {
+		return v_prime_response;
+	}
+
+	public BigInteger get_s_response() {
+		return s_response;
+	}
 }

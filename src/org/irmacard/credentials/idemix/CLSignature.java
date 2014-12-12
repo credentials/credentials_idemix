@@ -40,6 +40,21 @@ public class CLSignature {
 		this.v = v;
 	}
 
+	public CLSignature() {
+	}
+
+	public void setA(BigInteger A) {
+		this.A = A;
+	}
+
+	public void set_e(BigInteger e) {
+		this.e = e;
+	}
+
+	public void set_v(BigInteger v) {
+		this.v = v;
+	}
+
 	/**
 	 * Returns a Camenisch-Lysyanskaya signature using the public-private
 	 * key-pair (pk,sk) on the block of messages ms. Note that we follow the

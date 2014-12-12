@@ -44,6 +44,14 @@ public class IdemixCredential {
 		this.signature = signature;
 	}
 
+	public CLSignature getSignature() {
+		return signature;
+	}
+
+	public IdemixPublicKey getPublicKey() {
+		return issuer_pk;
+	}
+
 	public IdemixCredential(IdemixPublicKey issuer_pk, BigInteger secret,
 			List<BigInteger> attributes, CLSignature signature) {
 		this.issuer_pk = issuer_pk;
@@ -114,6 +122,10 @@ public class IdemixCredential {
 		}
 
 		return new ProofD(c, rand_sig.getA(), e_response, v_response, a_responses, a_disclosed);
+	}
+
+	public int getNrAttributes() {
+		return attributes.size();
 	}
 
 	private List<Integer> getUndisclosedAttributes(List<Integer> disclosed_attributes) {

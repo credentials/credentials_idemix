@@ -54,6 +54,11 @@ public class Crypto {
 		return attempt.subtract(maximum);
 	}
 
+	public static BigInteger randomUnsignedInteger(int bitlength) {
+		Random rnd = new Random();
+		return new BigInteger(bitlength, rnd);
+	}
+
 	/**
 	 * Creates a random element in the multiplicative group Z_{modulus}^*.
 	 *

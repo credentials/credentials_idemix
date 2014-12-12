@@ -125,4 +125,28 @@ public class ProofD {
 
 		return Z;
 	}
+
+	public BigInteger get_c() {
+		return c;
+	}
+
+	public BigInteger getA() {
+		return A;
+	}
+
+	public BigInteger get_e_response() {
+		return e_response;
+	}
+
+	public BigInteger get_v_response() {
+		return v_response;
+	}
+
+	public HashMap<Integer, BigInteger> get_a_responses() {
+		return a_responses;
+	}
+
+	public HashMap<Integer, BigInteger> get_a_disclosed() {
+		return a_disclosed;
+	}
 }

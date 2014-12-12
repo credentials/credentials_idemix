@@ -35,4 +35,17 @@ public class IdemixSystemParameters {
 	public final int l_v_commit = l_v + l_statzk + l_h;
 	public final int l_v_prime = l_n + l_statzk;
 	public final int l_v_prime_commit = l_n + 2*l_statzk + l_h;
+
+	public final int size_h = l_h / 8;
+	public final int size_n = l_n / 8;
+	public final int size_m = l_m / 8;
+	public final int size_statzk = l_statzk / 8;
+
+	public final int size_v = 213;
+	public final int size_e = 75;
+
+	public final int size_a_response = size_m + size_statzk + size_h;
+	public final int size_e_response = size_e + size_statzk + size_h;
+	public final int size_s_response = size_m + size_statzk + size_h + 1;
+	public final int size_v_response = size_v + size_statzk + size_h;
 }

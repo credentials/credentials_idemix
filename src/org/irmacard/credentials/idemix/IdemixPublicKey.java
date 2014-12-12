@@ -22,6 +22,7 @@ package org.irmacard.credentials.idemix;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
@@ -43,14 +44,41 @@ public class IdemixPublicKey extends ConfigurationParser {
 	private IdemixSystemParameters systemParameters = new IdemixSystemParameters();
 
 	public IdemixPublicKey(BigInteger n, BigInteger Z, BigInteger S,
-			List<BigInteger> R) throws InfoException {
+			List<BigInteger> R) {
 
 		super();
+
+		// Enable serialization
+		this.db = null;
 
 		this.n = n;
 		this.Z = Z;
 		this.S = S;
 		this.R = R;
+	}
+
+	public IdemixPublicKey(int size) {
+		R = new ArrayList<BigInteger>();
+		for(int i = 0; i < size; i++) {
+			R.add(null);
+		}
+	}
+
+	public void set_n(BigInteger n) {
+		this.n = n;
+	}
+
+	public void set_Z(BigInteger Z) {
+		this.Z = Z;
+	}
+
+	public void set_S(BigInteger S) {
+		this.S = S;
+	}
+
+	public void set_Ri(int i, BigInteger Ri) {
+		System.out.println("Setting R" + i + ": " + Ri);
+		R.set(i, Ri);
 	}
 
 	/**
@@ -111,5 +139,9 @@ public class IdemixPublicKey extends ConfigurationParser {
 
 	public IdemixSystemParameters getSystemParameters() {
 		return systemParameters;
+	}
+
+	public String toString() {
+		return "Public key: " + R.get(0);
 	}
 }
