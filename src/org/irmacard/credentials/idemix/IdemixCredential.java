@@ -128,6 +128,10 @@ public class IdemixCredential {
 		return attributes.size();
 	}
 
+	public BigInteger getAttribute(int i) {
+		return attributes.get(i);
+	}
+
 	private List<Integer> getUndisclosedAttributes(List<Integer> disclosed_attributes) {
 		List<Integer> undisclosed_attributes = new Vector<Integer>();
 		for(int i = 0; i < attributes.size(); i++) {
