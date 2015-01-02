@@ -27,6 +27,8 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 
+import org.irmacard.credentials.idemix.info.IdemixKeyStore;
+import org.irmacard.credentials.info.DescriptionStore;
 import org.irmacard.credentials.info.InfoException;
 import org.junit.Test;
 
@@ -67,6 +69,24 @@ public class LoadKeysTest {
 		URI public_key_loc = core.resolve("Surfnet/ipk.xml");
 		IdemixPublicKey pk = new IdemixPublicKey(public_key_loc);
 
+		assertTrue(pk.getGeneratorS().equals(S));
+		assertTrue(pk.getGeneratorZ().equals(Z));
+		for(int i = 0; i < R.size(); i++) {
+			assertTrue(pk.getGeneratorR(i).equals(R.get(i)));
+		}
+	}
+
+	@Test
+	public void autoLoadKeys() throws InfoException {
+		URI core = new File(System
+				.getProperty("user.dir")).toURI()
+				.resolve("irma_configuration/");
+		DescriptionStore.setCoreLocation(core);
+		DescriptionStore.getInstance();
+		IdemixKeyStore.setCoreLocation(core);
+		IdemixKeyStore key_store = IdemixKeyStore.getInstance();
+
+		IdemixPublicKey pk = key_store.getPublicKey("Surfnet");
 		assertTrue(pk.getGeneratorS().equals(S));
 		assertTrue(pk.getGeneratorZ().equals(Z));
 		for(int i = 0; i < R.size(); i++) {
