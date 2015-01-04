@@ -2,7 +2,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'maven'
 
-version = '0.8'
+version = '0.8.1'
 group = 'org.irmacard.credentials'
 
 // Our directory structure differs from the default
@@ -23,8 +23,7 @@ dependencies {
     compile "org.bouncycastle:bcprov-jdk15on:1.47"
     compile files('lib/cert-cvc-1.3.0.jar')
 
-    compile "org.irmacard.credentials:credentials_api:0.8"
-    compile "org.irmacard.idemix:idemix_terminal:0.8"
+    compile "org.irmacard.credentials:credentials_api:0.8.1"
 
     testCompile "junit:junit:4.11"
     testCompile "net.sourceforge.scuba:scuba_sc_j2se:0.0.3"
