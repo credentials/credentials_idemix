@@ -83,4 +83,12 @@ public class ProofS {
 	public void set_e_response(BigInteger e_response) {
 		this.e_response = e_response;
 	}
+
+	public BigInteger get_c() {
+		return c;
+	}
+
+	public BigInteger get_e_response() {
+		return e_response;
+	}
 }
