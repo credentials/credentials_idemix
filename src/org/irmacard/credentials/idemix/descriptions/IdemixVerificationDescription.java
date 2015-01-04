@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Random;
 
 import org.irmacard.credentials.idemix.IdemixPublicKey;
-import org.irmacard.credentials.idemix.info.IdemixKeyStore;
 import org.irmacard.credentials.idemix.util.Crypto;
 import org.irmacard.credentials.info.AttributeDescription;
 import org.irmacard.credentials.info.DescriptionStore;
@@ -34,21 +33,18 @@ import org.irmacard.credentials.info.VerificationDescription;
 
 public class IdemixVerificationDescription {
 	private VerificationDescription vd;
-	private IdemixPublicKey issuer_pk;
+	private IdemixCredentialDescription cd;
 
-	public IdemixVerificationDescription(VerificationDescription vd)
-			throws InfoException {
+	public IdemixVerificationDescription(VerificationDescription vd) throws InfoException {
 		this.vd = vd;
-		issuer_pk = IdemixKeyStore.getInstance().getPublicKey(
-				vd.getIssuerDescription().getID());
+		this.cd = new IdemixCredentialDescription(vd.getCredentialDescription());
 	}
 
 	public IdemixVerificationDescription(String verifier, String credential)
 			throws InfoException {
 		this.vd = DescriptionStore.getInstance()
 				.getVerificationDescriptionByName(verifier, credential);
-		issuer_pk = IdemixKeyStore.getInstance().getPublicKey(
-				vd.getIssuerDescription().getID());
+		this.cd = new IdemixCredentialDescription(vd.getCredentialDescription());
 	}
 
 	public List<Integer> getDisclosedAttributeIdxs() {
@@ -82,17 +78,11 @@ public class IdemixVerificationDescription {
 
 	public int numberOfAttributes() {
 		// Fixed attributes: Master Secret and Metadata
-		return vd.getCredentialDescription().getAttributes().size() + 2;
+		return cd.numberOfAttributes();
 	}
 
 	public String getAttributeName(int i) {
-		if(i == 0) {
-			return "master";
-		} else if (i == 1) {
-			return "metadata";
-		} else {
-			return vd.getCredentialDescription().getAttributeNames().get(i - 2);
-		}
+		return cd.getAttributeName(i);
 	}
 
 	public boolean isDisclosed(int i) {
@@ -115,11 +105,11 @@ public class IdemixVerificationDescription {
 	}
 
 	public IdemixPublicKey getIssuerPublicKey() {
-		return issuer_pk;
+		return cd.getPublicKey();
 	}
 
-	public BigInteger generateNonce() {
+	public BigInteger generateNonce() throws InfoException {
 		Random rnd = new Random();
-		return new BigInteger(issuer_pk.getSystemParameters().l_statzk, rnd);
+		return new BigInteger(cd.getPublicKey().getSystemParameters().l_statzk, rnd);
 	}
 }
