@@ -24,6 +24,8 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 
 import org.irmacard.credentials.idemix.IdemixPublicKey;
+import org.irmacard.credentials.idemix.IdemixSecretKey;
+import org.irmacard.credentials.info.CredentialDescription;
 import org.irmacard.credentials.info.DescriptionStore;
 import org.irmacard.credentials.info.InfoException;
 import org.irmacard.credentials.info.IssuerDescription;
@@ -38,6 +40,7 @@ public class IdemixKeyStore {
 	static private TreeWalkerI treeWalker;
 
 	static private final String PUBLIC_KEY_FILE = "ipk.xml";
+	static private final String PRIVATE_KEY_FILE = "private/isk.xml";
 
 	static IdemixKeyStore ds;
 
@@ -128,8 +131,29 @@ public class IdemixKeyStore {
 	}
 
 	public IdemixPublicKey getPublicKey(String issuer) throws InfoException {
-		return publicKeys.get(DescriptionStore.getInstance()
-				.getIssuerDescription(issuer));
+		IssuerDescription id = DescriptionStore.getInstance()
+				.getIssuerDescription(issuer);
+
+		if (publicKeys.containsKey(id)) {
+			return publicKeys.get(id);
+		} else {
+			throw new InfoException("Public key for issuer " + issuer
+					+ " not found.");
+		}
+	}
+
+	public IdemixSecretKey getSecretKey(CredentialDescription cd) throws InfoException {
+		return getSecretKey(cd.getIssuerDescription());
+	}
+
+	public IdemixSecretKey getSecretKey(IssuerDescription id) throws InfoException {
+		URI path;
+		try {
+			path = new URI(id.getID() + "/").resolve(PRIVATE_KEY_FILE);
+		} catch (URISyntaxException e) {
+			throw new RuntimeException(e);
+		}
+		return new IdemixSecretKey(treeWalker.retrieveFile(path));
 	}
 
 	public IdemixPublicKey getPublicKey(IssuerDescription id) {
