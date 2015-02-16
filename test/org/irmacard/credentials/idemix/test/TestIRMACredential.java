@@ -29,6 +29,7 @@ import javax.smartcardio.CardException;
 
 import net.sourceforge.scuba.smartcards.CardService;
 import net.sourceforge.scuba.smartcards.CardServiceException;
+
 import org.irmacard.credentials.Attributes;
 import org.irmacard.credentials.CredentialsException;
 import org.irmacard.credentials.idemix.IdemixCredentials;
@@ -49,6 +50,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import javax.smartcardio.CardTerminal;
+
+import net.sourceforge.scuba.smartcards.TerminalCardService;
 
 public class TestIRMACredential {
 	@BeforeClass
@@ -96,8 +100,24 @@ public class TestIRMACredential {
 		VerifyCredentialInformation vci = new VerifyCredentialInformation("Surfnet", "rootAll");
 		IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
 
-		CardService cs = TestSetup.getCardService();
-		IdemixCredentials ic = new IdemixCredentials(cs);
+		TerminalCardService cs = (TerminalCardService) TestSetup.getCardService();
+
+		IdemixService is = new IdemixService (cs);
+		try {
+			is.open();
+			is.selectApplication ();
+		} catch (CardServiceException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		CardTerminal terminal = cs.getTerminal ();
+		terminal.connect("*");
+		if (terminal.isCardPresent()) {
+			System.out.println ("with card");
+			terminal.connect("*");
+		} else
+			System.out.println ("without card");
+		IdemixCredentials ic = new IdemixCredentials(is);
 
 		Attributes attr = ic.verify(vspec);
 		
@@ -307,6 +327,7 @@ public class TestIRMACredential {
 		CardService cs = TestSetup.getCardService();
 		IdemixCredentials ic = new IdemixCredentials(cs);
 
+		for (int i = 0; i < 1000; i++) {
 		Attributes attr = ic.verify(vspec);
 
 		if (attr == null) {
@@ -316,6 +337,7 @@ public class TestIRMACredential {
 		}
 
 		attr.print();
+		}
 	}
 
 	@Test
@@ -482,12 +504,12 @@ public class TestIRMACredential {
 			CardServiceException, InfoException {
 		IssueCredentialInformation ici = new IssueCredentialInformation(
 				"MijnOverheid", "fullName");
-
+		
 		Attributes attributes = new Attributes();
-		attributes.add("firstnames", "Johan Pieter".getBytes());
-		attributes.add("firstname", "Johan".getBytes());
-		attributes.add("familyname", "Stuivezand".getBytes());
-		attributes.add("prefix", "van".getBytes());
+		attributes.add("firstnames", "Jaap-Henk".getBytes());
+		attributes.add("firstname", "Jaap-Henk".getBytes());
+		attributes.add("familyname", "Hoepman".getBytes());
+		attributes.add("prefix", " ".getBytes());
 
 		issue(ici, attributes);
 	}
@@ -520,7 +542,7 @@ public class TestIRMACredential {
 		Attributes attributes = new Attributes();
 		attributes.add("dateofbirth", "29-2-2004".getBytes());
 		attributes.add("placeofbirth", "Stuivezand".getBytes());
-		attributes.add("countryofbirth", "Nederland".getBytes());
+		attributes.add("countryofbirth", "The Netherlands".getBytes());
 		attributes.add("gender", "male".getBytes());
 
 		issue(ici, attributes);
@@ -552,7 +574,7 @@ public class TestIRMACredential {
 				"MijnOverheid", "ageHigher");
 
 		Attributes attributes = new Attributes();
-		attributes.add("over50", "yes".getBytes());
+		attributes.add("over50", "no".getBytes());
 		attributes.add("over60", "no".getBytes());
 		attributes.add("over65", "no".getBytes());
 		attributes.add("over75", "no".getBytes());
@@ -586,9 +608,8 @@ public class TestIRMACredential {
 				"IRMATube", "member");
 
 		Attributes attributes = new Attributes();
-		attributes.add("name", "J.P. Stuivezand".getBytes());
 		attributes.add("type", "regular".getBytes());
-		attributes.add("id", "123456".getBytes());
+		attributes.add("id", "1592371553".getBytes());
 
 		issue(ici, attributes);
 	}
@@ -625,11 +646,13 @@ public class TestIRMACredential {
 	public void issueIRMAWikiMemberCredential() throws CardException, CredentialsException,
 			CardServiceException, InfoException {
 		IssueCredentialInformation ici = new IssueCredentialInformation(
-				"IRMAWiki", "member");
+				"Thalia", "member");
 
 		Attributes attributes = new Attributes();
-		attributes.add("nickname", "Stuifje".getBytes());
 		attributes.add("type", "regular".getBytes());
+		attributes.add("nickname", "irmawikiuser".getBytes());
+		attributes.add("realname", "Irma Wiki User".getBytes());
+		attributes.add("email", "irmawikiuser@example.com".getBytes());
 
 		issue(ici, attributes);
 	}
@@ -661,6 +684,46 @@ public class TestIRMACredential {
 		verify(vci);
 	}
 
+	@Test
+	@Category(IssueTest.class)
+	public void issueThaliaCredential() throws CardException, CredentialsException,
+			CardServiceException, InfoException {
+		IssueCredentialInformation ici = new IssueCredentialInformation(
+				"Thalia", "thalia");
+
+		Attributes attributes = new Attributes();
+		attributes.add("memberID", "660202".getBytes());
+
+		issue(ici, attributes);
+	}
+
+	@Test
+	@Category(VerificationTest.class)
+	public void verifyThaliaCredential() throws CardException,
+			CredentialsException, CardServiceException, InfoException {
+		VerifyCredentialInformation vci = new VerifyCredentialInformation(
+				"Thalia", "thaliaAll");
+		verify(vci);
+	}
+
+	@Test
+	@Category(RemovalTest.class)
+	public void removeThaliaCredential() throws CardException,
+			CredentialsException, CardServiceException, InfoException {
+		CredentialDescription cd = DescriptionStore.getInstance()
+				.getCredentialDescriptionByName("Thalia", "thalia");
+		remove(cd);
+	}
+
+	@Test
+	@Category(VerificationTest.class)
+	public void verifyThaliaNone() throws CardException,
+			CredentialsException, CardServiceException, InfoException {
+		VerifyCredentialInformation vci = new VerifyCredentialInformation(
+				"Thalia", "surfnetRootNone");
+		verify(vci);
+	}
+ 
 	private void issue(IssueCredentialInformation ici, Attributes attributes)
 			throws CardException, CredentialsException, CardServiceException {
 		IdemixIssueSpecification spec = ici.getIdemixIssueSpecification();
@@ -712,9 +775,9 @@ public class TestIRMACredential {
         System.out.println("Data: " + "Radboud University".getBytes().toString() + " Length: " + "Radboud University".getBytes().length);
 
 		attributes.add("university", "Radboud University".getBytes());
-		attributes.add("studentCardNumber", "0812345673".getBytes());
-		attributes.add("studentID", "s1234567".getBytes());
-		attributes.add("level", "PhD".getBytes());
+		attributes.add("studentCardNumber", "Unknown".getBytes());
+		attributes.add("studentID", "s4530837".getBytes());
+		attributes.add("level", "master".getBytes());
 		
 		return attributes;
 	}
@@ -723,8 +786,8 @@ public class TestIRMACredential {
         // Return the attributes that have been revealed during the proof
         Attributes attributes = new Attributes();
 
-		attributes.add("userID", "u921154@ru.nl".getBytes());
-		attributes.add("securityHash", "DEADBEEF".getBytes());
+		attributes.add("userID", "j_henselmans@demo.irmacard.org".getBytes());	
+        attributes.add("securityHash", "00000000".getBytes());
 		
 		return attributes;
 	}
@@ -744,9 +807,9 @@ public class TestIRMACredential {
         Attributes attributes = new Attributes();
 
 		attributes.add("country", "Nederland".getBytes());
-		attributes.add("city", "Nijmegen".getBytes());
-		attributes.add("street", "Heyendaalseweg 135".getBytes());
-		attributes.add("zipcode", "6525 AJ".getBytes());
+		attributes.add("city", "Apeldoorn".getBytes());
+		attributes.add("street", "?".getBytes());
+		attributes.add("zipcode", "?".getBytes());
 		
 		return attributes;
     }
