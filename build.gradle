@@ -29,6 +29,15 @@ dependencies {
     testCompile "net.sourceforge.scuba:scuba_sc_j2se:0.0.3"
 }
 
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives sourcesJar
+}
+
 if ( project.hasProperty("mavenRepositoryIRMA") ) {
     uploadArchives.repositories.mavenDeployer {
         repository(url: mavenRepositoryIRMA)
