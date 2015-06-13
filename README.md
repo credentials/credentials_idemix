@@ -1,91 +1,8 @@
 # Credentials Idemix
 
-The Credentials Idemix API implements the high level credentials/credentials_api. It offers easy access to the credentials that are described in credentials/irma_configuration. For all these examples we assume that you obtained a `CardService` to talk to the card. You could for example use:
+The Credentials Idemix library implements IRMA credentials at a mathematical level. You need the [idemix_terminal](https://github.com/credentials/idemix_terminal) to use this library to actually communicate with an IRMA card. Normally, you will always use `idemix_terminal` and not rely on this library directly.
 
-```Java
-CardService cs = new TerminalCardService(
-    TerminalFactory.getDefault().terminals().list().get(0));
-```
-
-(Error handling omitted).  After setting up you can run:
-
-```Java
-VerifyCredentialInformation vci = new VerifyCredentialInformation(
-    "Surfnet", "rootNone");
-IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
-Attributes attr = new IdemixCredentials(cs).verify(vspec);
-```
-
-to verify the Surfnet root credential, while keeping all attributes hidden. When the credential verified, `attr` contains the revealed attributes (possibly represented by an empty list), otherwise `attr` is `null`. Similarly, a Surfnet root credential can be issued as follows: 
-
-```Java
-// Retrieve the issue specification and get the Issuer's private key
-IssueCredentialInformation ici = new IssueCredentialInformation("Surfnet", "root");
-IdemixIssueSpecification spec = ici.getIdemixIssueSpecification();
-IdemixPrivateKey isk = ici.getIdemixPrivateKey();
-
-// Setup the attributes that will be issued to the card
-Attributes attributes = new Attributes();
-attributes.add("userID", "s1234567@student.ru.nl".getBytes());
-attributes.add("securityHash", "DEADBEEF".getBytes());
-
-// Setup a connection and send pin
-IdemixService is = new IdemixService(TestSetup.getCardService());
-IdemixCredentials ic = new IdemixCredentials(is);
-ic.connect();
-is.sendPin({0x30, 0x30, 0x30, 0x30}); // TODO: Change to send the correct pin.
-
-// Issue the credential
-ic.issue(spec, isk, attributes, null); // null indicates default expiry
-```
-
-### Asynchronous use
-
-In some scenario's (like when using a web server) you don't have direct access to a card reader. The API offers a lower-level asynchronous access point, where you get the APDU that need to be send to the smart card, and can handle them in any way that you like.
-
-First, we select the credential as before
-
-```Java
-VerifyCredentialInformation vci = new VerifyCredentialInformation("Surfnet", "rootNone");
-IdemixVerifySpecification vspec = vci.getIdemixVerifySpecification();
-IdemixCredentials ic = new IdemixCredentials(null);
-```
-
-To keep this example simple, we use the regular `IdemixService` to send the commands to the card. Replace this with whatever suits your application best.
-
-```Java
-// Open channel to card
-IdemixService service = new IdemixService(cs);
-service.open();
-```
-
-First, we select the applet and process the resulting version number.
-
-```Java
-ProtocolResponse select_response = service.execute(
-IdemixSmartcard.selectApplicationCommand);
-CardVersion cv = new CardVersion(select_response.getData());
-vspec.setCardVersion(cv);
-```
-
-To verify a credential the verifier generates a nonce, before it generates the commands to send to the card. This nonce is also necessary to verify the responses. We'll want to store this nonce, for when the responses come in.
-
-```Java
-Nonce nonce = ic.generateNonce(vspec);
-```
-
-Next, we generate the actual verification commands, and send them to the card.
-
-```Java
-ProtocolCommands commands = ic.requestProofCommands(vspec, nonce);
-ProtocolResponses responses = service.execute(commands);
-```
-                
-Finally, we verify the attributes. Here we use the nonce that we generated earlier.
-
-```Java
-Attributes attr = ic.verifyProofResponses(vspec, nonce, responses);
-```
+This library itself works in two layers. The first layer implements the bare Idemix credentials. However, IRMA is more than just Idemix credentials, in particular we always include a validity date and the credential's semantics. We validate this in an IRMA layer on top of the bare Idemix credentials.
 
 ## Prerequisites
 
@@ -103,12 +20,11 @@ Internal dependencies:
  * credentials/credentials_api, The abstract IRMA credentials API
  * credentials/idemix_terminal, The IRMA idemix card terminal library
 
-Gradle will take care of the transitive dependencies. However, you must make sure that you [build and install the idemix_library](https://github.com/credentials/idemix_library/) yourself.
+Gradle will take care of the transitive dependencies.
 
 For running the tests:
 
  * JUnit,  (>= 4.8), the Java unit-testing library
- * Scuba: scuba_sc_j2se
 
 The build system depends on gradle version at least 1.12.
 
@@ -128,7 +44,7 @@ It will then be found by other gradle build scripts.
 
 ## Testing
 
-The tests will automaticall be run. If you want to force them to rerun use
+Gradle automatically runs the tests if the code has changed. If you want to force them to rerun use
 
     gradle cleanTest test
 
