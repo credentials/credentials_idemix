@@ -7,3 +7,5 @@ credentials_idemix.*jar
 .gradle/
 .settings/
 build/
+.idea/
+*.iml
