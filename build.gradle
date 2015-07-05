@@ -21,7 +21,7 @@ repositories {
 
 dependencies {
     compile "org.bouncycastle:bcprov-jdk15on:1.47"
-    compile "org.irmacard.credentials:credentials_api:0.8.1"
+    compile "org.irmacard.credentials:credentials_api:0.9.0"
 
     testCompile "junit:junit:4.11"
 }
