@@ -19,6 +19,7 @@
 
 package org.irmacard.credentials.idemix.info;
 
+import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
@@ -55,7 +56,9 @@ public class IdemixKeyStore {
 	 *            Location of configuration files.
 	 */
 	public static void setCoreLocation(URI coreLocation) {
-		CORE_LOCATION = coreLocation;
+		// Make sure we have the correct URI, including trailing slash
+		File core = new File(coreLocation);
+		CORE_LOCATION = core.toURI();
 	}
 
 	/**
