@@ -2,7 +2,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'maven'
 
-version = '0.9.0'
+version = '0.9.1'
 group = 'org.irmacard.credentials'
 
 // Our directory structure differs from the default
@@ -21,7 +21,7 @@ repositories {
 
 dependencies {
     compile "org.bouncycastle:bcprov-jdk15on:1.47"
-    compile "org.irmacard.credentials:credentials_api:0.9.0"
+    compile "org.irmacard.credentials:credentials_api:0.9.1"
 
     testCompile "junit:junit:4.11"
 }

@@ -127,10 +127,6 @@ public class IdemixKeyStore {
 				// Ignoring Entity when no key is found
 			}
 		}
-
-		for (IdemixPublicKey pk : publicKeys.values()) {
-			System.out.println(pk);
-		}
 	}
 
 	public IdemixPublicKey getPublicKey(String issuer) throws InfoException {

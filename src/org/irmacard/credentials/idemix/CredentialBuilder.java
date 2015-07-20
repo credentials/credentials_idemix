@@ -117,10 +117,6 @@ public class CredentialBuilder {
 
 		// U = S^{v_prime} * R_0^{s}
 		BigInteger Sv = pk.getGeneratorS().modPow(v_prime, n);
-		System.out.println(pk);
-		System.out.println(pk.getGeneratorR(0));
-		System.out.println(n);
-		System.out.println(s);
 		BigInteger R0s = pk.getGeneratorR(0).modPow(s, n);
 		BigInteger U = Sv.multiply(R0s).mod(n);
 

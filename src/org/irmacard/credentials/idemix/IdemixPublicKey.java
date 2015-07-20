@@ -103,7 +103,7 @@ public class IdemixPublicKey extends ConfigurationParser {
 		init(d);
 	}
 
-	private void init(Document d) {
+	private void init(Document d) throws InfoException {
 		n = new BigInteger(getFirstTagText(d, "n"));
 		Z = new BigInteger(getFirstTagText(d, "Z"));
 		S = new BigInteger(getFirstTagText(d, "S"));

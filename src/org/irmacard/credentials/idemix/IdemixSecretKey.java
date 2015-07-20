@@ -73,7 +73,7 @@ public class IdemixSecretKey extends ConfigurationParser {
 		init(d);
 	}
 
-	private void init(Document d) {
+	private void init(Document d) throws InfoException {
 		p = new BigInteger(getFirstTagText(d, "p"));
 		q = new BigInteger(getFirstTagText(d, "q"));
 		p_prime = new BigInteger(getFirstTagText(d, "pPrime"));
