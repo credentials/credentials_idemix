@@ -129,6 +129,13 @@ public class IdemixKeyStore {
 		}
 	}
 
+	public void updatePublicKey(IssuerDescription id, IdemixPublicKey ipk) {
+		if (publicKeys.containsKey(id)) {
+			publicKeys.remove(id);
+		}
+		publicKeys.put(id, ipk);
+	}
+
 	public IdemixPublicKey getPublicKey(String issuer) throws InfoException {
 		IssuerDescription id = DescriptionStore.getInstance()
 				.getIssuerDescription(issuer);
