@@ -80,12 +80,6 @@ public class IdemixKeyStore {
 	 *             if CoreLocation has not been set
 	 */
 	public static IdemixKeyStore getInstance() throws InfoException {
-		if (CORE_LOCATION == null && treeWalker == null) {
-			// TODO: Improve exception type
-			throw new InfoException(
-					"Please set CoreLocation before using the IdemixKeyStore");
-		}
-
 		if (ds == null) {
 			ds = new IdemixKeyStore();
 		}
@@ -96,9 +90,9 @@ public class IdemixKeyStore {
 	private IdemixKeyStore() throws InfoException {
 		if (CORE_LOCATION != null) {
 			treeWalker = new TreeWalker(CORE_LOCATION);
+			retrieveIdemixKeys();
 		}
 
-		retrieveIdemixKeys();
 	}
 
 	private void retrieveIdemixKeys() throws InfoException {
