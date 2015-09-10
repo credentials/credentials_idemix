@@ -26,14 +26,24 @@ import org.irmacard.credentials.idemix.IdemixPublicKey;
 import org.irmacard.credentials.idemix.info.IdemixKeyStore;
 import org.irmacard.credentials.idemix.util.Crypto;
 import org.irmacard.credentials.info.CredentialDescription;
+import org.irmacard.credentials.info.DescriptionStore;
 import org.irmacard.credentials.info.InfoException;
 
 public class IdemixCredentialDescription {
 	private CredentialDescription cd;
 	private IdemixPublicKey pk;
 
+	public IdemixCredentialDescription(String issuer, String cred) throws InfoException {
+		this.cd = DescriptionStore.getInstance().getCredentialDescriptionByName(issuer, cred);
+		setupPK();
+	}
+
 	public IdemixCredentialDescription(CredentialDescription cd) throws InfoException {
 		this.cd = cd;
+		setupPK();
+	}
+
+	private void setupPK() throws InfoException {
 		this.pk = IdemixKeyStore.getInstance().getPublicKey(cd.getIssuerID());
 	}
 
