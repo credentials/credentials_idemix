@@ -90,9 +90,11 @@ public class IdemixKeyStore {
 	private IdemixKeyStore() throws InfoException {
 		if (CORE_LOCATION != null) {
 			treeWalker = new TreeWalker(CORE_LOCATION);
-			retrieveIdemixKeys();
 		}
 
+		if (treeWalker != null) {
+			retrieveIdemixKeys();
+		}
 	}
 
 	private void retrieveIdemixKeys() throws InfoException {
