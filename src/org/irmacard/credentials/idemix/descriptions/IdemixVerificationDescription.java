@@ -108,7 +108,7 @@ public class IdemixVerificationDescription {
 		return cd.getPublicKey();
 	}
 
-	public BigInteger generateNonce() throws InfoException {
+	public BigInteger generateNonce() {
 		Random rnd = new Random();
 		return new BigInteger(cd.getPublicKey().getSystemParameters().l_statzk, rnd);
 	}
