@@ -34,9 +34,7 @@ import java.util.Vector;
 import org.irmacard.credentials.CredentialsException;
 import org.irmacard.credentials.idemix.messages.IssueCommitmentMessage;
 import org.irmacard.credentials.idemix.messages.IssueSignatureMessage;
-import org.irmacard.credentials.idemix.proofs.ProofD;
-import org.irmacard.credentials.idemix.proofs.ProofS;
-import org.irmacard.credentials.idemix.proofs.ProofU;
+import org.irmacard.credentials.idemix.proofs.*;
 import org.irmacard.credentials.idemix.util.Crypto;
 import org.irmacard.credentials.info.InfoException;
 import org.junit.Test;
@@ -263,6 +261,27 @@ public class IRMACryptoTest {
 		ProofD proof = cred.createDisclosureProof(disclosed, context, nonce1);
 
 		assertTrue("Proof of disclosure should verify", proof.verify(pk, context, nonce1));
+	}
+
+	@Test
+	public void testCombinedShowingProof() {
+		CLSignature signature1 = CLSignature.signMessageBlock(sk, pk, attributes);
+		IdemixCredential cred1 = new IdemixCredential(pk, attributes, signature1);
+
+		CLSignature signature2 = CLSignature.signMessageBlock(sk, pk, attributes);
+		IdemixCredential cred2 = new IdemixCredential(pk, attributes, signature2);
+
+		Random rnd = new Random();
+		IdemixSystemParameters params = pk.getSystemParameters();
+		BigInteger context = new BigInteger(params.l_h, rnd);
+		BigInteger nonce1 = new BigInteger(params.l_statzk, rnd);
+
+		ProofCollection collection = new ProofCollectionBuilder(context, nonce1)
+				.addProofD(cred1, Arrays.asList(1, 2))
+				.addProofD(cred2, Arrays.asList(1, 3))
+				.build();
+
+		assertTrue("Combined disclosure proofs should verify", collection.verify(context, nonce1, true));
 	}
 
 	@Test

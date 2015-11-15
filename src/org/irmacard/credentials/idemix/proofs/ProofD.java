@@ -62,14 +62,19 @@ public class ProofD {
 	}
 
 	public boolean verify(IdemixPublicKey pk, BigInteger context, BigInteger nonce1) {
+		return verify(pk, context, nonce1, null);
+	}
+
+	public boolean verify(IdemixPublicKey pk, BigInteger context, BigInteger nonce1, BigInteger challenge) {
 		if(!checkSizeResponses(pk)) {
 			return false;
 		}
 
-		BigInteger Z = reconstructZ(pk);
-
-		BigInteger c_prime = Crypto.sha256Hash(Crypto.asn1Encode(context, A, Z,
-				nonce1));
+		BigInteger c_prime = challenge;
+		if (c_prime == null) {
+			BigInteger Z = reconstructZ(pk);
+			c_prime = Crypto.sha256Hash(Crypto.asn1Encode(context, A, Z, nonce1));
+		}
 
 		boolean matched = c.compareTo(c_prime) == 0;
 
@@ -106,7 +111,7 @@ public class ProofD {
 		return true;
 	}
 
-	private BigInteger reconstructZ(IdemixPublicKey pk) {
+	public BigInteger reconstructZ(IdemixPublicKey pk) {
 		IdemixSystemParameters params = pk.getSystemParameters();
 		BigInteger n = pk.getModulus();
 
