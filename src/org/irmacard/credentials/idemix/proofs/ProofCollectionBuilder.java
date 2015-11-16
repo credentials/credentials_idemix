@@ -30,6 +30,7 @@
 
 package org.irmacard.credentials.idemix.proofs;
 
+import org.irmacard.credentials.idemix.CredentialBuilder;
 import org.irmacard.credentials.idemix.IdemixCredential;
 import org.irmacard.credentials.idemix.IdemixPublicKey;
 import org.irmacard.credentials.idemix.IdemixSystemParameters;
@@ -43,11 +44,14 @@ import java.util.Random;
 public class ProofCollectionBuilder {
 	private BigInteger context;
 	private BigInteger nonce;
+	private BigInteger U;
 
 	private List<IdemixCredential> credentials = new ArrayList<>();
 	private List<IdemixPublicKey> publicKeys = new ArrayList<>();
 	private List<BigInteger> toHash = new ArrayList<>();
 	private List<IdemixCredential.Commitment> commitments = new ArrayList<>();
+
+	CredentialBuilder.Commitment proofUcommitment;
 
 	private BigInteger skCommitment;
 
@@ -60,6 +64,10 @@ public class ProofCollectionBuilder {
 	}
 
 	public ProofCollectionBuilder addProofD(IdemixCredential credential, List<Integer> disclosed_attributes) {
+		if (proofUcommitment != null) {
+			throw new RuntimeException("A proofU has already been added, can't add more disclosure proofs");
+		}
+
 		IdemixCredential.Commitment commitment = credential.commit(disclosed_attributes, context, nonce, skCommitment);
 
 		credentials.add(credential);
@@ -70,11 +78,26 @@ public class ProofCollectionBuilder {
 		return this;
 	}
 
+	public ProofCollectionBuilder addProofU(CredentialBuilder.Commitment commitment) {
+		this.proofUcommitment = commitment;
+		this.U = commitment.getU();
+
+		toHash.add(U);
+		toHash.add(proofUcommitment.getUcommit());
+
+		return this;
+	}
+
 	public ProofCollection build() {
 		toHash.add(nonce);
 
 		BigInteger[] toHashArray = toHash.toArray(new BigInteger[toHash.size()]);
 		BigInteger challenge = Crypto.sha256Hash(Crypto.asn1Encode(toHashArray));
+
+		ProofU proofU = null;
+		if (proofUcommitment != null) {
+			proofU = proofUcommitment.createProof(challenge);
+		}
 
 		List<ProofD> disclosureProofs = new ArrayList<>(credentials.size());
 		for (int i = 0; i < credentials.size(); ++i) {
@@ -82,6 +105,31 @@ public class ProofCollectionBuilder {
 			publicKeys.add(credentials.get(i).getPublicKey());
 		}
 
-		return new ProofCollection(null, disclosureProofs, publicKeys);
+		ProofCollection proofs = new ProofCollection(proofU, disclosureProofs, publicKeys);
+		if (proofUcommitment != null) {
+			proofs.setProofUPublicKey(proofUcommitment.getPublicKey());
+			proofs.setU(U);
+		}
+		return proofs;
+	}
+
+	public BigInteger getContext() {
+		return context;
+	}
+
+	public BigInteger getNonce() {
+		return nonce;
+	}
+
+	public BigInteger getSecretKey() {
+		if (credentials == null || credentials.size() == 0) {
+			return null;
+		}
+
+		return credentials.get(0).getAttribute(0);
+	}
+
+	public BigInteger getSecretKeyCommitment() {
+		return skCommitment;
 	}
 }

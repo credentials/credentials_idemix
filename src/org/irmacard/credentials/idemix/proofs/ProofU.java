@@ -51,9 +51,14 @@ public class ProofU {
 		this.s_response = s_response;
 	}
 
-	public boolean verify(IdemixPublicKey pk, BigInteger U, BigInteger context, BigInteger nonce) {
+	public boolean verify(IdemixPublicKey pk, BigInteger U, BigInteger context,
+						  BigInteger nonce) {
+		return verify(pk, U, context, nonce, null);
+	}
+
+	public boolean verify(IdemixPublicKey pk, BigInteger U, BigInteger context,
+						  BigInteger nonce, BigInteger challenge) {
 		IdemixSystemParameters params = pk.getSystemParameters();
-		BigInteger n = pk.getModulus();
 
 		// Check range of v_prime_response
 		BigInteger maximum = Crypto.TWO.pow(params.l_v_prime_commit + 1).subtract(BigInteger.ONE);
@@ -64,15 +69,12 @@ public class ProofU {
 			return false;
 		}
 
-		// Reconstruct U_commit
-		// U_commit = U^{-c} * S^{v_prime_response} * R_0^{s_response}
-		BigInteger Uc = U.modPow(this.c.negate(), n);
-		BigInteger Sv = pk.getGeneratorS().modPow(this.v_prime_response, n);
-		BigInteger R0s = pk.getGeneratorR(0).modPow(this.s_response, n);
-		BigInteger U_commit = Uc.multiply(Sv).multiply(R0s).mod(n);
-
 		// Recalculate hash
-		BigInteger c_prime = Crypto.sha256Hash(Crypto.asn1Encode(context, U, U_commit, nonce));
+		BigInteger c_prime = challenge;
+		if (c_prime == null) {
+			BigInteger U_commit = reconstructU_commit(U, pk);
+			c_prime = Crypto.sha256Hash(Crypto.asn1Encode(context, U, U_commit, nonce));
+		}
 
 		boolean matched = c.compareTo(c_prime) == 0;
 
@@ -81,6 +83,19 @@ public class ProofU {
 		}
 
 		return matched;
+	}
+
+	public BigInteger reconstructU_commit(BigInteger U, IdemixPublicKey pk) {
+		IdemixSystemParameters params = pk.getSystemParameters();
+		BigInteger n = pk.getModulus();
+
+		// Reconstruct U_commit
+		// U_commit = U^{-c} * S^{v_prime_response} * R_0^{s_response}
+		BigInteger Uc = U.modPow(this.c.negate(), n);
+		BigInteger Sv = pk.getGeneratorS().modPow(this.v_prime_response, n);
+		BigInteger R0s = pk.getGeneratorR(0).modPow(this.s_response, n);
+
+		return Uc.multiply(Sv).multiply(R0s).mod(n);
 	}
 
 	public BigInteger get_c() {
