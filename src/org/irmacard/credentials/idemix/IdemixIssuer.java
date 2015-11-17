@@ -36,6 +36,7 @@ import java.util.List;
 import org.irmacard.credentials.CredentialsException;
 import org.irmacard.credentials.idemix.messages.IssueCommitmentMessage;
 import org.irmacard.credentials.idemix.messages.IssueSignatureMessage;
+import org.irmacard.credentials.idemix.proofs.ProofCollection;
 import org.irmacard.credentials.idemix.proofs.ProofS;
 import org.irmacard.credentials.idemix.util.Crypto;
 
@@ -57,24 +58,46 @@ public class IdemixIssuer {
 	/**
 	 * Returns a signature and corresponding proof on the given attributes. As
 	 * per the protocol, it will include the commitment U into the signature.
-	 * Note that the signature itself does not verify (@see
-	 * signCommitmentAndAttributes).
+	 * Note that the signature itself does not verify (see
+	 * {@link #signCommitmentAndAttributes(BigInteger, List)}).
+	 * <p>
+	 * If the IssueCommitmentMessage contains multiple proofs of knowledge in a
+	 * {@link ProofCollection} then this method verifies the validity of all these
+	 * proofs, but it does not check if the disclosure proofs with the correct
+	 * attributes are included in the collection (as we have no way of knowing
+	 * which attributes are expected here).
 	 *
-	 * @param U
-	 *            Commitment to the user's secret
+	 * @param msg
+	 *            Message from the user, containing U; one or more proofs of knowledge; and
+	 *            the nonce over which we should create our own proof of knowledge
 	 * @param attrs
 	 *            Attributes to include in the signature
 	 * @param nonce1
 	 *            Nonce from the recipient
 	 * @return Signature on attributes+commitments and the proof of correctness
-	 * @throws CredentialsException when the commitment proof is not correct
+	 * @throws CredentialsException when the commitment proof(s) is/are not correct
 	 */
 	protected IssueSignatureMessage issueSignature(IssueCommitmentMessage msg,
 			List<BigInteger> attrs, BigInteger nonce1) throws CredentialsException {
-
 		BigInteger U = msg.getCommitment();
-		if(!msg.getCommitmentProof().verify(pk, U, context, nonce1)) {
-			throw new CredentialsException("The commitment proof is not correct");
+
+		if (msg.getCombinedProofs() == null && msg.getCommitmentProof() == null) {
+			throw new CredentialsException("No ProofU found in message");
+		}
+
+		if (msg.getCombinedProofs() != null) {
+			ProofCollection proofs = msg.getCombinedProofs();
+			if (proofs.getU() == null) {
+				proofs.setU(U);
+			}
+			if (!proofs.verify(context, nonce1, true)) {
+				throw new CredentialsException("The combined proofs are not correct");
+			}
+		}
+		else {
+			if (!msg.getCommitmentProof().verify(pk, U, context, nonce1)) {
+				throw new CredentialsException("The commitment proof is not correct");
+			}
 		}
 
 		CLSignature signature = signCommitmentAndAttributes(U, attrs);

@@ -38,6 +38,8 @@ import java.util.Vector;
 import org.irmacard.credentials.CredentialsException;
 import org.irmacard.credentials.idemix.messages.IssueCommitmentMessage;
 import org.irmacard.credentials.idemix.messages.IssueSignatureMessage;
+import org.irmacard.credentials.idemix.proofs.ProofCollection;
+import org.irmacard.credentials.idemix.proofs.ProofCollectionBuilder;
 import org.irmacard.credentials.idemix.proofs.ProofU;
 import org.irmacard.credentials.idemix.util.Crypto;
 
@@ -46,6 +48,8 @@ public class CredentialBuilder {
 	private BigInteger s;
 	private BigInteger v_prime;
 	private BigInteger n_2;
+	private BigInteger U;
+	private ProofCollectionBuilder proofsBuilder;
 
 	// Immutable Input
 	private final IdemixPublicKey pk;
@@ -63,6 +67,11 @@ public class CredentialBuilder {
 
 		this.params = pk.getSystemParameters();
 		this.n = pk.getModulus();
+	}
+
+	public CredentialBuilder(IdemixPublicKey pk, List<BigInteger> attrs, ProofCollectionBuilder proofsBuilder) {
+		this(pk, attrs, proofsBuilder.getContext());
+		this.proofsBuilder = proofsBuilder;
 	}
 
 	/**
@@ -83,10 +92,39 @@ public class CredentialBuilder {
 		setSecret(secret);
 
 		BigInteger U = commitmentToSecret();
-		ProofU proofU = proveCommitment(U, nonce1);
+		ProofU proofU = proveCommitment(nonce1);
 		n_2 = createReceiverNonce();
 
 		return new IssueCommitmentMessage(U, proofU, n_2);
+	}
+
+	/**
+	 * Create a response to the challenge sent by the issuer, consisting of a commitment to the secret key, and a proof
+	 * of correctness of this commitment that is cryptographically bound to the disclosure proofs contained in the
+	 * ProofCollectionBuilder.
+	 */
+	public IssueCommitmentMessage createCombinedCommitmentMessage() {
+		if (proofsBuilder == null) {
+			throw new RuntimeException("Can't create bound proof, no proofsBuilder has been specified");
+		}
+
+		BigInteger sk = proofsBuilder.getSecretKey();
+		if (sk == null) {
+			sk = new BigInteger(pk.getSystemParameters().l_m, new Random());
+		}
+		setSecret(sk);
+
+		BigInteger U = commitmentToSecret();
+		BigInteger nonce = proofsBuilder.getNonce();
+		BigInteger skCommit = proofsBuilder.getSecretKeyCommitment();
+
+		proofsBuilder.addProofU(new Commitment(nonce, skCommit));
+
+		ProofCollection proofs = proofsBuilder.build();
+
+		n_2 = createReceiverNonce();
+
+		return new IssueCommitmentMessage(U, proofs, n_2);
 	}
 
 	public IdemixCredential constructCredential(IssueSignatureMessage msg)
@@ -114,48 +152,90 @@ public class CredentialBuilder {
 		return new IdemixCredential(pk, s, attributes, signature);
 	}
 
-	protected void setSecret(BigInteger secret) {
+	public void setSecret(BigInteger secret) {
 		// State that needs to be stored
 		this.s = secret;
 	}
 
-	protected BigInteger commitmentToSecret() {
-		// State that needs to be stored
+	public BigInteger commitmentToSecret() {
+		if (U == null) {
+			// FIXME: Not according to protocol, only positives possible this way
+			//v_prime = Crypto.randomSignedInteger(params.l_v_prime);
+			v_prime = Crypto.randomUnsignedInteger(params.l_v_prime);
 
-		// FIXME: Not according to protocol, only positives possible this way
-		//v_prime = Crypto.randomSignedInteger(params.l_v_prime);
-		v_prime = Crypto.randomUnsignedInteger(params.l_v_prime);
-
-		// U = S^{v_prime} * R_0^{s}
-		BigInteger Sv = pk.getGeneratorS().modPow(v_prime, n);
-		BigInteger R0s = pk.getGeneratorR(0).modPow(s, n);
-		BigInteger U = Sv.multiply(R0s).mod(n);
+			// U = S^{v_prime} * R_0^{s}
+			BigInteger Sv = pk.getGeneratorS().modPow(v_prime, n);
+			BigInteger R0s = pk.getGeneratorR(0).modPow(s, n);
+			U = Sv.multiply(R0s).mod(n);
+		}
 
 		return U;
 	}
 
-	protected ProofU proveCommitment(BigInteger U, BigInteger n_1) {
-		// FIXME Not according to protocol, should be signed values
-		//BigInteger s_commit = Crypto.randomSignedInteger(params.l_s_commit);
-		//BigInteger v_prime_commit = Crypto.randomSignedInteger(params.l_v_prime_commit);
-		BigInteger s_commit = Crypto.randomUnsignedInteger(params.l_s_commit);
-		BigInteger v_prime_commit = Crypto.randomUnsignedInteger(params.l_v_prime_commit);
-
-		// U_commit = S^{v_prime_commit} * R_0^{s_commit}
-		BigInteger Sv = pk.getGeneratorS().modPow(v_prime_commit, n);
-		BigInteger R0s = pk.getGeneratorR(0).modPow(s_commit, n);
-		BigInteger U_commit = Sv.multiply(R0s).mod(n);
-
-		BigInteger c = Crypto.sha256Hash(Crypto.asn1Encode(context, U, U_commit, n_1));
-
-		BigInteger s_response = s_commit.add(c.multiply(s));
-		BigInteger v_prime_response = v_prime_commit.add(c.multiply(v_prime));
-
-		return new ProofU(c, v_prime_response, s_response);
+	protected ProofU proveCommitment(BigInteger n_1) {
+		Commitment commitment = commit(n_1, null);
+		return commitment.createProof(null);
 	}
 
-	private BigInteger createReceiverNonce() {
+	public BigInteger createReceiverNonce() {
 		Random rnd = new Random();
 		return new BigInteger(params.l_statzk, rnd);
+	}
+
+	public Commitment commit(BigInteger nonce1, BigInteger skCommit) {
+		return new Commitment(nonce1, skCommit);
+	}
+
+	/**
+	 * Container for a commitment for the proof of knowledge of the secret key and v_prime. See the
+	 * {@link ProofCollectionBuilder} class for more information.
+	 */
+	public class Commitment {
+		BigInteger s_commit;
+		BigInteger v_prime_commit;
+		BigInteger n_1;
+		BigInteger U_commit;
+
+		private Commitment(BigInteger nonce1, BigInteger skCommit) {
+			// FIXME Not according to protocol, should be signed values
+			//BigInteger s_commit = Crypto.randomSignedInteger(params.l_s_commit);
+			//BigInteger v_prime_commit = Crypto.randomSignedInteger(params.l_v_prime_commit);
+
+			this.n_1 = nonce1;
+			this.v_prime_commit = Crypto.randomUnsignedInteger(params.l_v_prime_commit);
+			this.s_commit = skCommit;
+			if (s_commit == null) {
+				s_commit = Crypto.randomUnsignedInteger(params.l_s_commit);
+			}
+
+			// U_commit = S^{v_prime_commit} * R_0^{s_commit}
+			BigInteger Sv = pk.getGeneratorS().modPow(v_prime_commit, n);
+			BigInteger R0s = pk.getGeneratorR(0).modPow(s_commit, n);
+			U_commit = Sv.multiply(R0s).mod(n);
+		}
+
+		public ProofU createProof(BigInteger challenge) {
+			BigInteger c = challenge;
+			if (c == null) {
+				c = Crypto.sha256Hash(Crypto.asn1Encode(context, commitmentToSecret(), U_commit, n_1));
+			}
+
+			BigInteger s_response = s_commit.add(c.multiply(s));
+			BigInteger v_prime_response = v_prime_commit.add(c.multiply(v_prime));
+
+			return new ProofU(c, v_prime_response, s_response);
+		}
+
+		public BigInteger getU() {
+			return commitmentToSecret();
+		}
+
+		public BigInteger getUcommit() {
+			return U_commit;
+		}
+
+		public IdemixPublicKey getPublicKey() {
+			return pk;
+		}
 	}
 }

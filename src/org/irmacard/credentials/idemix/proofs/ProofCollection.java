@@ -57,6 +57,7 @@ import java.util.List;
  *
  * <p>Construct instances of this class using {@link ProofCollectionBuilder}.</p>
  */
+@SuppressWarnings("unused")
 public class ProofCollection {
 	private List<ProofD> disclosureProofs;
 	private ProofU proofU;
@@ -67,7 +68,6 @@ public class ProofCollection {
 	public ProofCollection(ProofU proofU, List<ProofD> disclosureProofs) {
 		this.disclosureProofs = disclosureProofs;
 		this.proofU = proofU;
-		populatePublicKeyArray();
 	}
 
 	public ProofCollection(ProofU proofU, List<ProofD> disclosureProofs, List<IdemixPublicKey> publicKeys) {
@@ -76,16 +76,19 @@ public class ProofCollection {
 		this.publicKeys = publicKeys;
 	}
 
-	private void populatePublicKeyArray() {
+	/**
+	 * Helper function to populate the public key array for the disclosure proof, by extracting the credential id
+	 * from the metadata attribute and looking up the corresponding public key for each credential in the
+	 * {@link IdemixKeyStore}.
+	 */
+	public void populatePublicKeyArray() {
 		if (disclosureProofs == null || disclosureProofs.size() == 0) {
 			return;
 		}
 		publicKeys = new ArrayList<>(disclosureProofs.size());
 
 		for (ProofD proof : disclosureProofs) {
-			Attributes attrs = new Attributes();
-			attrs.add(Attributes.META_DATA_FIELD, proof.get_a_disclosed().get(1).toByteArray());
-			short id = attrs.getCredentialID();
+			short id = Attributes.extractCredentialId(proof.get_a_disclosed().get(1));
 			try {
 				CredentialDescription cd = DescriptionStore.getInstance().getCredentialDescription(id);
 				IdemixPublicKey pk = IdemixKeyStore.getInstance().getPublicKey(cd.getIssuerDescription());
@@ -103,7 +106,7 @@ public class ProofCollection {
 		BigInteger challenge, response;
 
 		if (proofU == null && (disclosureProofs == null || disclosureProofs.size() == 0)) {
-			return false;
+			return true; // All proofs (i.e. none) are bound to all other proofs (i.e. none)
 		}
 
 		if (proofU == null) {
@@ -112,12 +115,6 @@ public class ProofCollection {
 		} else {
 			challenge = proofU.get_c();
 			response = proofU.get_s_response();
-		}
-
-		if (proofU != null) {
-			if (!challenge.equals(proofU.get_c()) || !response.equals(proofU.get_s_response())) {
-				return false;
-			}
 		}
 
 		if (disclosureProofs != null) {
@@ -131,6 +128,11 @@ public class ProofCollection {
 		return challenge.equals(reconstructChallenge(context, nonce));
 	}
 
+	/**
+	 * Verify the contained disclosure proof. Note that if the proof is valid as separate unbound proof but isBound
+	 * is set to true, then this method will return false if the current instance also contains disclosure proofs
+	 * @param isBound if the proofs should be bound or not
+	 */
 	public boolean verifyProofU(BigInteger context, BigInteger nonce, boolean isBound) {
 		if (proofU == null) {
 			return true;
@@ -147,13 +149,18 @@ public class ProofCollection {
 		}
 	}
 
+	/**
+	 * Verify the contained disclosure proofs. Note that if the proofs are valid as separate unbound proofs but isBound
+	 * is set to true, then this method will return false.
+	 * @param isBound if the proofs should be bound or not
+	 */
 	public boolean verifyProofDs(BigInteger context, BigInteger nonce, boolean isBound) {
 		if (disclosureProofs == null || disclosureProofs.size() == 0) {
 			return true;
 		}
 
 		if (publicKeys == null || (disclosureProofs.size() != publicKeys.size())) {
-			populatePublicKeyArray();
+			throw new RuntimeException("No public keys to verify the proofs against");
 		}
 
 		BigInteger challenge = reconstructChallenge(context, nonce);
@@ -179,9 +186,15 @@ public class ProofCollection {
 
 	/**
 	 * Checks the validity of all contained proofs. If they must be bound then they are considered valid only if they
-	 * are. If they need not be bound, however, then they are still considered valid if they are.
+	 * are. However, if they need not be bound but the hashes and secret-key-responses indicate that they are, then
+	 * they will still be considered valid only if they are valid as bound proofs.
+	 * @throws RuntimeException if the collection contains no proofs
 	 */
 	public boolean verify(BigInteger context, BigInteger nonce, boolean shouldBeBound) {
+		if (proofU == null && (disclosureProofs == null || disclosureProofs.size() == 0)) {
+			throw new RuntimeException("ProofCollection contains no proofs, can't verify");
+		}
+
 		if (shouldBeBound && !isBound(context, nonce)) {
 			return false;
 		}
@@ -193,9 +206,9 @@ public class ProofCollection {
 	}
 
 	/**
-	 * <p>Reconstruct the challenge that should have been used in the proofs, based on the commitments and group
-	 * elements of which knowledge is being proved (along with the context and nonce). The challenge is the hash over
-	 * the following elements:
+	 * <p>Reconstruct the challenge that should have been used in the proofs if they had been cryptographically bound,
+	 * based on the commitments and group elements of which knowledge is being proved (along with the context and
+	 * nonce). The challenge is the hash over the following elements:
 	 * <ul>
 	 *     <li>the context,</li>
 	 *     <li>A and Z (the commitment, not the element from the Idemix public key) for each disclosure proof,</li>

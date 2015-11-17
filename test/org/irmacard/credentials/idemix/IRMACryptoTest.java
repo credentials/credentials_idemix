@@ -25,11 +25,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Random;
-import java.util.Vector;
+import java.util.*;
 
 import org.irmacard.credentials.CredentialsException;
 import org.irmacard.credentials.idemix.messages.IssueCommitmentMessage;
@@ -130,7 +126,7 @@ public class IRMACryptoTest {
 		cb.setSecret(secret);
 
 		BigInteger U = cb.commitmentToSecret();
-		ProofU proofU = cb.proveCommitment(U, n_1);
+		ProofU proofU = cb.proveCommitment(n_1);
 
 		assertTrue(proofU.verify(pk, U, context, n_1));
 	}
@@ -317,8 +313,9 @@ public class IRMACryptoTest {
 
 		// Issuance
 		CredentialBuilder cb = new CredentialBuilder(pk, attributes, context);
-		IssueCommitmentMessage commit_msg = cb.commitToSecretAndProve(secret, n_1);
 		IdemixIssuer issuer = new IdemixIssuer(pk, sk, context);
+
+		IssueCommitmentMessage commit_msg = cb.commitToSecretAndProve(secret, n_1);
 		IssueSignatureMessage msg = issuer.issueSignature(commit_msg, attributes, n_1);
 		IdemixCredential cred = cb.constructCredential(msg);
 
@@ -326,6 +323,123 @@ public class IRMACryptoTest {
 		n_1 = new BigInteger(params.l_statzk, rnd);
 		List<Integer> disclosed = Arrays.asList(1, 2);
 
+		ProofD proof = cred.createDisclosureProof(disclosed, context, n_1);
+		assertTrue("Proof of disclosure should verify", proof.verify(pk, context, n_1));
+	}
+
+	@Test
+	public void testFullBoundIssuanceAndShowing() throws CredentialsException {
+		// Initialize parameters
+		Random rnd = new Random();
+		IdemixSystemParameters params = pk.getSystemParameters();
+		BigInteger context = new BigInteger(params.l_h, rnd);
+		BigInteger n_1 = new BigInteger(params.l_statzk, rnd);
+
+		// Create credential that will be shown during issuing
+		CLSignature signature1 = CLSignature.signMessageBlock(sk, pk, attributes);
+		IdemixCredential cred1 = new IdemixCredential(pk, attributes, signature1);
+		ProofCollectionBuilder builder = new ProofCollectionBuilder(context, n_1)
+				.addProofD(cred1, Arrays.asList(1, 2));
+
+		// Initialize builder and issuer
+		CredentialBuilder cb = new CredentialBuilder(pk, attributes, builder);
+		IdemixIssuer issuer = new IdemixIssuer(pk, sk, context);
+
+		// Do the issuing. Note that we do not check here if the commit_msg contains the required disclosure proofs
+		// (although it does); that should be done at a higher level.
+		IssueCommitmentMessage commit_msg = cb.createCombinedCommitmentMessage();
+		IssueSignatureMessage msg = issuer.issueSignature(commit_msg, attributes, n_1);
+		IdemixCredential cred2 = cb.constructCredential(msg);
+
+		// Showing
+		n_1 = new BigInteger(params.l_statzk, rnd);
+		List<Integer> disclosed = Arrays.asList(1, 3);
+		ProofD proof = cred2.createDisclosureProof(disclosed, context, n_1);
+		assertTrue("Proof of disclosure should verify", proof.verify(pk, context, n_1));
+	}
+
+	@Test
+	public void testWronglyBoundProofs() throws CredentialsException {
+		CLSignature signature1 = CLSignature.signMessageBlock(sk, pk, attributes);
+		IdemixCredential cred1 = new IdemixCredential(pk, attributes, signature1);
+
+		// Attributes for our second credential, with a different secret key (i.e. the first attribute)
+		List<BigInteger> attributes2 = Arrays.asList(
+				new BigInteger(1, "alpha".getBytes()),
+				new BigInteger(1, "beta".getBytes()),
+				new BigInteger(1, "gamma".getBytes()),
+				new BigInteger(1, "delta".getBytes()));
+		CLSignature signature2 = CLSignature.signMessageBlock(sk, pk, attributes2);
+		IdemixCredential cred2 = new IdemixCredential(pk, attributes, signature2);
+
+		Random rnd = new Random();
+		IdemixSystemParameters params = pk.getSystemParameters();
+		BigInteger context = new BigInteger(params.l_h, rnd);
+		BigInteger nonce1 = new BigInteger(params.l_statzk, rnd);
+
+		ProofCollection collection = new ProofCollectionBuilder(context, nonce1)
+				.addProofD(cred1, Arrays.asList(1, 2))
+				.addProofD(cred2, Arrays.asList(1, 3))
+				.build();
+
+		// The proof collection should be invalid both as bound and as unbound proofs
+		System.out.println("TEST: Will warn that hash doesn't match, that is expected");
+		assertTrue("Combined disclosure proofs should not verify", !collection.verify(context, nonce1, false));
+		assertTrue("Combined disclosure proofs should not verify", !collection.verify(context, nonce1, true));
+	}
+
+	/**
+	 * We construct one disclosure proof using a ProofCollectionBuilder, and see if it verifies as a normal unbound
+	 * proof.
+	 */
+	@Test
+	public void testBoundDisclosureProofBackwardsCompatible() {
+		CLSignature signature = CLSignature.signMessageBlock(sk, pk, attributes);
+		IdemixCredential cred = new IdemixCredential(pk, attributes, signature);
+		List<Integer> disclosed = Arrays.asList(1, 2);
+
+		Random rnd = new Random();
+		IdemixSystemParameters params = pk.getSystemParameters();
+
+		BigInteger context = new BigInteger(params.l_h, rnd);
+		BigInteger nonce1 = new BigInteger(params.l_statzk, rnd);
+		ProofD proof = new ProofCollectionBuilder(context, nonce1)
+				.addProofD(cred, Arrays.asList(1, 2))
+				.build()
+				.getProofD(0);
+
+		assertTrue("Proof of disclosure should verify", proof.verify(pk, context, nonce1));
+	}
+
+	/**
+	 * We construct a proof of knowledge of the secret key and v_prime using a ProofCollectionBuilder, and see if it
+	 * verifies as a normal unbound proof
+	 */
+	@Test
+	public void testBoundProofUBackwardsCompatible() throws CredentialsException {
+		// Initialize parameters
+		Random rnd = new Random();
+		IdemixSystemParameters params = pk.getSystemParameters();
+		BigInteger context = new BigInteger(params.l_h, rnd);
+		BigInteger n_1 = new BigInteger(params.l_statzk, rnd);
+		ProofCollectionBuilder builder = new ProofCollectionBuilder(context, n_1);
+
+		// Initialize builder and issuer
+		CredentialBuilder cb = new CredentialBuilder(pk, attributes, builder);
+		IdemixIssuer issuer = new IdemixIssuer(pk, sk, context);
+
+		// Create the proofU using the ProofCollectionBuilder, extract it, and put it in a vanilla IssueCommitmentMessage
+		IssueCommitmentMessage commit_msg = cb.createCombinedCommitmentMessage();
+		ProofU proofU = commit_msg.getCombinedProofs().getProofU();
+		commit_msg = new IssueCommitmentMessage(commit_msg.getCommitment(), proofU, commit_msg.getNonce2());
+
+		// Do the issuing
+		IssueSignatureMessage msg = issuer.issueSignature(commit_msg, attributes, n_1);
+		IdemixCredential cred = cb.constructCredential(msg);
+
+		// Showing
+		n_1 = new BigInteger(params.l_statzk, rnd);
+		List<Integer> disclosed = Arrays.asList(1, 3);
 		ProofD proof = cred.createDisclosureProof(disclosed, context, n_1);
 		assertTrue("Proof of disclosure should verify", proof.verify(pk, context, n_1));
 	}
