@@ -160,7 +160,7 @@ public class Crypto {
 		BigInteger prime = end;
 
 		// Ensure that the generated prime is never too big
-		while (prime.compareTo(end) > 0) {
+		while (prime.compareTo(end) >= 0) {
 			BigInteger offset = new BigInteger(length_in_bits, rnd);
 			prime = start.add(offset).nextProbablePrime();
 		}
