@@ -108,6 +108,10 @@ public class IdemixKeyStore {
 		}
 	}
 
+	public static boolean isLocationSet() {
+		return CORE_LOCATION != null;
+	}
+
 	private void retrieveIdemixKeys() throws InfoException {
 		DescriptionStore ds = DescriptionStore.getInstance();
 
