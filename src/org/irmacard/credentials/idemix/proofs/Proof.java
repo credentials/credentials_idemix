@@ -35,16 +35,42 @@ import org.irmacard.credentials.idemix.IdemixPublicKey;
 import java.math.BigInteger;
 import java.util.List;
 
+/**
+ * Noninteractive zero-knowledge proofs.
+ */
 public interface Proof {
+	/**
+	 * Verify this proof against the given public key, context, and nonce, assuming it is unbound.
+	 * @return True if valid, false otherwise
+	 */
 	boolean verify(IdemixPublicKey pk, BigInteger context, BigInteger nonce);
 
+	/**
+	 * Verify this proof against the given public key, context, nonce, and challenge.
+	 * @param challenge The challenge to verify against
+	 * @return True if valid, false otherwise
+	 */
 	boolean verify(IdemixPublicKey pk, BigInteger context, BigInteger nonce, BigInteger challenge);
 
+	/**
+	 * Returns integers that should be included in the hash when calculating the challenge during verification.
+	 * @param pk The public key this {@link Proof} is being verified against
+	 */
 	List<BigInteger> getChallengeContribution(IdemixPublicKey pk);
 
+	/**
+	 * Returns the public key against which the proof should verify.
+	 * @return The {@link IdemixPublicKey}, or null if it could not be determined from this proof
+	 */
 	IdemixPublicKey extractPublicKey();
 
+	/**
+	 * Gets the challenge of this proof.
+	 */
 	BigInteger get_c();
 
+	/**
+	 * Gets the response for the secret key of this proof.
+	 */
 	BigInteger getSecretKeyResponse();
 }

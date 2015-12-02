@@ -51,7 +51,8 @@ import java.util.List;
  * </ol>
  * </p>
  *
- * <p>Construct instances of this class using {@link ProofListBuilder}.</p>
+ * <p>Construct instances of this class using {@link ProofListBuilder}. Currently it only supports having a single
+ * {@link ProofU}.</p>
  */
 @SuppressWarnings("unused")
 public class ProofList extends ArrayList<Proof> {
@@ -60,7 +61,7 @@ public class ProofList extends ArrayList<Proof> {
 	transient private List<IdemixPublicKey> publicKeys = new ArrayList<>();
 
 	/**
-	 * Helper function to populate the public key array for the disclosure proof, by extracting the credential id
+	 * Helper function to populate the public key array for the disclosure proofs, by extracting the credential id
 	 * from the metadata attribute and looking up the corresponding public key for each credential in the
 	 * {@link IdemixKeyStore}.
 	 */
@@ -73,6 +74,7 @@ public class ProofList extends ArrayList<Proof> {
 		int i = 0;
 
 		for (Proof proof : this)
+			// If the proof is a proofU then .extractPublicKey() returns null - in which the line below changes nothing.
 			publicKeys.set(++i, proof.extractPublicKey());
 	}
 
@@ -164,6 +166,9 @@ public class ProofList extends ArrayList<Proof> {
 		return Crypto.sha256Hash(Crypto.asn1Encode(toHashArray));
 	}
 
+	/**
+	 * If the final proof is a {@link ProofU}, return it.
+	 */
 	public ProofU getProofU() {
 		Proof last = get(size()-1);
 		if (last instanceof ProofU) {
