@@ -71,11 +71,11 @@ public class ProofList extends ArrayList<Proof> {
 		}
 
 		publicKeys = new ArrayList<>(size());
-		int i = 0;
 
 		for (Proof proof : this)
-			// If the proof is a proofU then .extractPublicKey() returns null - in which the line below changes nothing.
-			publicKeys.set(++i, proof.extractPublicKey());
+			// If the proof is a proofU then .extractPublicKey() returns null, so not all publicKeys will have
+			// non-null entries.
+			publicKeys.add(proof.extractPublicKey());
 	}
 
 	/**
@@ -167,14 +167,27 @@ public class ProofList extends ArrayList<Proof> {
 	}
 
 	/**
-	 * If the final proof is a {@link ProofU}, return it.
+	 * Get the i-th {@link ProofU} in this proof list.
+	 */
+	public ProofU getProofU(int i) {
+		int seen = 0;
+
+		for (Proof proof : this) {
+			if (proof instanceof ProofU) {
+				if (seen == i)
+					return (ProofU) proof;
+				seen++;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Get the first {@link ProofU} in this proof list.
 	 */
 	public ProofU getProofU() {
-		Proof last = get(size()-1);
-		if (last instanceof ProofU) {
-			return (ProofU) last;
-		}
-		return null;
+		return getProofU(0);
 	}
 
 	public List<IdemixPublicKey> getPublicKeys() {

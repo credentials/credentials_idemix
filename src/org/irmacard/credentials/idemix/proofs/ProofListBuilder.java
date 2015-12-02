@@ -62,9 +62,9 @@ public class ProofListBuilder {
 
 	private List<IdemixCredential> credentials = new ArrayList<>();
 	private List<BigInteger> toHash = new ArrayList<>();
+	private List<BigInteger> toHashU = new ArrayList<>();
 	private List<IdemixCredential.Commitment> commitments = new ArrayList<>();
-
-	CredentialBuilder.Commitment proofUcommitment;
+	private List<CredentialBuilder.Commitment> proofUcommitments = new ArrayList<>();
 
 	private BigInteger skCommitment;
 
@@ -94,10 +94,9 @@ public class ProofListBuilder {
 	 * Add a proof for the commitment to the secret key and v_prime for issuing.
 	 */
 	public ProofListBuilder addProofU(CredentialBuilder.Commitment commitment) {
-		this.proofUcommitment = commitment;
-
-		// In order to ensure that U and the commitment to U get added last to the toHash array, we don't add these
-		// elements here to toHash, but in the build() method.
+		this.proofUcommitments.add(commitment);
+		toHashU.add(commitment.getU());
+		toHashU.add(commitment.getUcommit());
 
 		return this;
 	}
@@ -107,17 +106,14 @@ public class ProofListBuilder {
 	 * @throws RuntimeException if no proofs have been added yet
 	 */
 	public ProofList build() {
-		if (proofUcommitment == null && credentials.size() == 0) { // Nothing to do? Probably a mistake
+		if (proofUcommitments.size() == 0 && credentials.size() == 0) { // Nothing to do? Probably a mistake
 			throw new RuntimeException("No proofs have been added, can't build an empty proof collection");
 		}
 
-		if (proofUcommitment != null) {
-			toHash.add(proofUcommitment.getU());
-			toHash.add(proofUcommitment.getUcommit());
-		}
+		toHash.addAll(toHashU);
 		toHash.add(nonce);
-
 		BigInteger[] toHashArray = toHash.toArray(new BigInteger[toHash.size()]);
+
 		BigInteger challenge = Crypto.sha256Hash(Crypto.asn1Encode(toHashArray));
 
 		ProofList proofs = new ProofList();
@@ -127,9 +123,9 @@ public class ProofListBuilder {
 			proofs.addPublicKey(credentials.get(i).getPublicKey());
 		}
 
-		if (proofUcommitment != null) {
-			proofs.add(proofUcommitment.createProof(challenge));
-			proofs.addPublicKey(proofUcommitment.getPublicKey());
+		for (CredentialBuilder.Commitment commitment : proofUcommitments) {
+			proofs.add(commitment.createProof(challenge));
+			proofs.addPublicKey(commitment.getPublicKey());
 		}
 
 		return proofs;
