@@ -95,7 +95,7 @@ public class CredentialBuilder {
 		ProofU proofU = proveCommitment(nonce1);
 		n_2 = createReceiverNonce();
 
-		return new IssueCommitmentMessage(U, proofU, n_2);
+		return new IssueCommitmentMessage(proofU, n_2);
 	}
 
 	/**
@@ -124,7 +124,7 @@ public class CredentialBuilder {
 
 		n_2 = createReceiverNonce();
 
-		return new IssueCommitmentMessage(U, proofs, n_2);
+		return new IssueCommitmentMessage(proofs, n_2);
 	}
 
 	public IdemixCredential constructCredential(IssueSignatureMessage msg)
@@ -223,7 +223,7 @@ public class CredentialBuilder {
 			BigInteger s_response = s_commit.add(c.multiply(s));
 			BigInteger v_prime_response = v_prime_commit.add(c.multiply(v_prime));
 
-			return new ProofU(c, v_prime_response, s_response);
+			return new ProofU(getU(), c, v_prime_response, s_response);
 		}
 
 		public BigInteger getU() {

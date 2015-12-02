@@ -60,7 +60,6 @@ import java.util.Random;
 public class ProofCollectionBuilder {
 	private BigInteger context;
 	private BigInteger nonce;
-	private BigInteger U;
 
 	private List<IdemixCredential> credentials = new ArrayList<>();
 	private List<IdemixPublicKey> publicKeys = new ArrayList<>();
@@ -98,7 +97,6 @@ public class ProofCollectionBuilder {
 	 */
 	public ProofCollectionBuilder addProofU(CredentialBuilder.Commitment commitment) {
 		this.proofUcommitment = commitment;
-		this.U = commitment.getU();
 
 		// In order to ensure that U and the commitment to U get added last to the toHash array, we don't add these
 		// elements here to toHash, but in the build() method.
@@ -116,7 +114,7 @@ public class ProofCollectionBuilder {
 		}
 
 		if (proofUcommitment != null) {
-			toHash.add(U);
+			toHash.add(proofUcommitment.getU());
 			toHash.add(proofUcommitment.getUcommit());
 		}
 		toHash.add(nonce);
@@ -138,7 +136,6 @@ public class ProofCollectionBuilder {
 		ProofCollection proofs = new ProofCollection(proofU, disclosureProofs, publicKeys);
 		if (proofUcommitment != null) {
 			proofs.setProofUPublicKey(proofUcommitment.getPublicKey());
-			proofs.setU(U);
 		}
 		return proofs;
 	}

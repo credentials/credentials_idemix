@@ -41,26 +41,19 @@ import org.irmacard.credentials.idemix.proofs.ProofU;
  *
  */
 public class IssueCommitmentMessage {
-	private BigInteger U;
 	private ProofU proofU;
 	private ProofCollection combinedProofs;
 	private BigInteger n_2;
 
-	public IssueCommitmentMessage(BigInteger U, ProofU proofU, BigInteger n_2) {
-		this.U = U;
+	public IssueCommitmentMessage(ProofU proofU, BigInteger n_2) {
 		this.proofU = proofU;
 		this.n_2 = n_2;
 	}
 
-	public IssueCommitmentMessage(BigInteger U, ProofCollection combinedProofs, BigInteger n_2) {
-		this.U = U;
+	public IssueCommitmentMessage(ProofCollection combinedProofs, BigInteger n_2) {
 		this.combinedProofs = combinedProofs;
 		this.proofU = combinedProofs.getProofU();
 		this.n_2 = n_2;
-	}
-
-	public BigInteger getCommitment() {
-		return U;
 	}
 
 	public ProofU getCommitmentProof() {

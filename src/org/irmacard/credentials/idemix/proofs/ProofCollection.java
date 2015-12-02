@@ -61,7 +61,6 @@ import java.util.List;
 public class ProofCollection {
 	private List<ProofD> disclosureProofs;
 	private ProofU proofU;
-	private BigInteger U;
 	transient private List<IdemixPublicKey> publicKeys;
 	transient private IdemixPublicKey proofUPublicKey;
 
@@ -136,16 +135,14 @@ public class ProofCollection {
 	public boolean verifyProofU(BigInteger context, BigInteger nonce, boolean isBound) {
 		if (proofU == null) {
 			return true;
-		} else if (U == null){
-			throw new RuntimeException("proofU is set but U is missing");
 		}
 
 		IdemixPublicKey pk = getProofUPublicKey();
 		if (isBound) {
 			BigInteger challenge = reconstructChallenge(context, nonce);
-			return proofU.verify(pk, U, context, nonce, challenge);
+			return proofU.verify(pk, context, nonce, challenge);
 		} else {
-			return proofU.verify(pk, U, context, nonce);
+			return proofU.verify(pk, context, nonce);
 		}
 	}
 
@@ -234,21 +231,13 @@ public class ProofCollection {
 		}
 		if (proofU != null) {
 			pk = proofUPublicKey;
-			toHash.add(U);
-			toHash.add(proofU.reconstructU_commit(U, pk));
+			toHash.add(proofU.getU());
+			toHash.add(proofU.reconstructU_commit(pk));
 		}
 		toHash.add(nonce);
 
 		BigInteger[] toHashArray = toHash.toArray(new BigInteger[toHash.size()]);
 		return Crypto.sha256Hash(Crypto.asn1Encode(toHashArray));
-	}
-
-	public BigInteger getU() {
-		return U;
-	}
-
-	public void setU(BigInteger u) {
-		U = u;
 	}
 
 	public ProofU getProofU() {

@@ -79,23 +79,22 @@ public class IdemixIssuer {
 	 */
 	protected IssueSignatureMessage issueSignature(IssueCommitmentMessage msg,
 			List<BigInteger> attrs, BigInteger nonce1) throws CredentialsException {
-		BigInteger U = msg.getCommitment();
-
 		if (msg.getCombinedProofs() == null && msg.getCommitmentProof() == null) {
 			throw new CredentialsException("No ProofU found in message");
 		}
 
+		BigInteger U;
+
 		if (msg.getCombinedProofs() != null) {
 			ProofCollection proofs = msg.getCombinedProofs();
-			if (proofs.getU() == null) {
-				proofs.setU(U);
-			}
+			U = proofs.getProofU().getU();
 			if (!proofs.verify(context, nonce1, true)) {
 				throw new CredentialsException("The combined proofs are not correct");
 			}
 		}
 		else {
-			if (!msg.getCommitmentProof().verify(pk, U, context, nonce1)) {
+			U = msg.getCommitmentProof().getU();
+			if (!msg.getCommitmentProof().verify(pk, context, nonce1)) {
 				throw new CredentialsException("The commitment proof is not correct");
 			}
 		}

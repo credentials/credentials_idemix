@@ -41,23 +41,23 @@ import org.irmacard.credentials.idemix.util.Crypto;
  * issuance protocol.
  */
 public class ProofU {
+	private BigInteger U;
 	private BigInteger c;
 	private BigInteger v_prime_response;
 	private BigInteger s_response;
 
-	public ProofU(BigInteger c, BigInteger v_prime_response, BigInteger s_response) {
+	public ProofU(BigInteger U, BigInteger c, BigInteger v_prime_response, BigInteger s_response) {
+		this.U = U;
 		this.c = c;
 		this.v_prime_response = v_prime_response;
 		this.s_response = s_response;
 	}
 
-	public boolean verify(IdemixPublicKey pk, BigInteger U, BigInteger context,
-						  BigInteger nonce) {
-		return verify(pk, U, context, nonce, null);
+	public boolean verify(IdemixPublicKey pk, BigInteger context, BigInteger nonce) {
+		return verify(pk, context, nonce, null);
 	}
 
-	public boolean verify(IdemixPublicKey pk, BigInteger U, BigInteger context,
-						  BigInteger nonce, BigInteger challenge) {
+	public boolean verify(IdemixPublicKey pk, BigInteger context, BigInteger nonce, BigInteger challenge) {
 		IdemixSystemParameters params = pk.getSystemParameters();
 
 		// Check range of v_prime_response
@@ -72,7 +72,7 @@ public class ProofU {
 		// Recalculate hash
 		BigInteger c_prime = challenge;
 		if (c_prime == null) {
-			BigInteger U_commit = reconstructU_commit(U, pk);
+			BigInteger U_commit = reconstructU_commit(pk);
 			c_prime = Crypto.sha256Hash(Crypto.asn1Encode(context, U, U_commit, nonce));
 		}
 
@@ -85,7 +85,7 @@ public class ProofU {
 		return matched;
 	}
 
-	public BigInteger reconstructU_commit(BigInteger U, IdemixPublicKey pk) {
+	public BigInteger reconstructU_commit(IdemixPublicKey pk) {
 		IdemixSystemParameters params = pk.getSystemParameters();
 		BigInteger n = pk.getModulus();
 
@@ -97,6 +97,8 @@ public class ProofU {
 
 		return Uc.multiply(Sv).multiply(R0s).mod(n);
 	}
+
+	public BigInteger getU() { return U; }
 
 	public BigInteger get_c() {
 		return c;
