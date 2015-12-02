@@ -31,6 +31,8 @@
 package org.irmacard.credentials.idemix.proofs;
 
 import java.math.BigInteger;
+import java.util.Arrays;
+import java.util.List;
 
 import org.irmacard.credentials.idemix.IdemixPublicKey;
 import org.irmacard.credentials.idemix.IdemixSystemParameters;
@@ -86,12 +88,21 @@ public class ProofU implements Proof {
 	}
 
 	@Override
-	public byte[] getChallengeContribution(IdemixPublicKey pk) {
-		return Crypto.asn1Encode(U, reconstructU_commit(pk));
+	public List<BigInteger> getChallengeContribution(IdemixPublicKey pk) {
+		return Arrays.asList(U, reconstructU_commit(pk));
+	}
+
+	@Override
+	public IdemixPublicKey extractPublicKey() {
+		return null;
+	}
+
+	@Override
+	public BigInteger getSecretKeyResponse() {
+		return get_s_response();
 	}
 
 	public BigInteger reconstructU_commit(IdemixPublicKey pk) {
-		IdemixSystemParameters params = pk.getSystemParameters();
 		BigInteger n = pk.getModulus();
 
 		// Reconstruct U_commit

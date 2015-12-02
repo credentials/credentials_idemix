@@ -128,7 +128,7 @@ public class IRMACryptoTest {
 		BigInteger U = cb.commitmentToSecret();
 		ProofU proofU = cb.proveCommitment(n_1);
 
-		assertTrue(proofU.verify(pk, U, context, n_1));
+		assertTrue(proofU.verify(pk, context, n_1));
 	}
 
 	@Test
@@ -140,9 +140,9 @@ public class IRMACryptoTest {
 		BigInteger v_prime_response = new BigInteger("930401833442556048954810956066821001094106683380918922610147216724718347679854246682690061274042716015957693675615113399347898060611144526167949042936228868420203309360695585386210327439216083389841383395698722832808268885873389302262079691644125050748391319832394519920382663304621540520277648619992590872190274152359156399474623649137315708728792245711389032617438368799004840694779408839779419604877135070624376537994035936");
 		BigInteger s_response = new BigInteger("59776396667523329313292302350278517468587673934875085337674938789292900859071752886820910103285722288747559744087880906618151651690169988337871960870439882357345503256963847251");
 
-		ProofU proofU = new ProofU(c, v_prime_response, s_response);
+		ProofU proofU = new ProofU(U, c, v_prime_response, s_response);
 
-		assertTrue(proofU.verify(pk, U, context, n_1));
+		assertTrue(proofU.verify(pk, context, n_1));
 	}
 
 	@Test
@@ -156,7 +156,7 @@ public class IRMACryptoTest {
 
 		CredentialBuilder cb = new CredentialBuilder(pk, null, context);
 		IssueCommitmentMessage msg = cb.commitToSecretAndProve(secret, n_1);
-		assertTrue(msg.getCommitmentProof().verify(pk, msg.getCommitment(), context, n_1));
+		assertTrue(msg.getCommitmentProof().verify(pk, context, n_1));
 	}
 
 	@Test
@@ -272,7 +272,7 @@ public class IRMACryptoTest {
 		BigInteger context = new BigInteger(params.l_h, rnd);
 		BigInteger nonce1 = new BigInteger(params.l_statzk, rnd);
 
-		ProofCollection collection = new ProofCollectionBuilder(context, nonce1)
+		ProofList collection = new ProofListBuilder(context, nonce1)
 				.addProofD(cred1, Arrays.asList(1, 2))
 				.addProofD(cred2, Arrays.asList(1, 3))
 				.build();
@@ -338,7 +338,7 @@ public class IRMACryptoTest {
 		// Create credential that will be shown during issuing
 		CLSignature signature1 = CLSignature.signMessageBlock(sk, pk, attributes);
 		IdemixCredential cred1 = new IdemixCredential(pk, attributes, signature1);
-		ProofCollectionBuilder builder = new ProofCollectionBuilder(context, n_1)
+		ProofListBuilder builder = new ProofListBuilder(context, n_1)
 				.addProofD(cred1, Arrays.asList(1, 2));
 
 		// Initialize builder and issuer
@@ -377,19 +377,19 @@ public class IRMACryptoTest {
 		BigInteger context = new BigInteger(params.l_h, rnd);
 		BigInteger nonce1 = new BigInteger(params.l_statzk, rnd);
 
-		ProofCollection collection = new ProofCollectionBuilder(context, nonce1)
+		ProofList proofs = new ProofListBuilder(context, nonce1)
 				.addProofD(cred1, Arrays.asList(1, 2))
 				.addProofD(cred2, Arrays.asList(1, 3))
 				.build();
 
 		// The proof collection should be invalid both as bound and as unbound proofs
 		System.out.println("TEST: Will warn that hash doesn't match, that is expected");
-		assertTrue("Combined disclosure proofs should not verify", !collection.verify(context, nonce1, false));
-		assertTrue("Combined disclosure proofs should not verify", !collection.verify(context, nonce1, true));
+		assertTrue("Combined disclosure proofs should not verify", !proofs.verify(context, nonce1, false));
+		assertTrue("Combined disclosure proofs should not verify", !proofs.verify(context, nonce1, true));
 	}
 
 	/**
-	 * We construct one disclosure proof using a ProofCollectionBuilder, and see if it verifies as a normal unbound
+	 * We construct one disclosure proof using a ProofListBuilder, and see if it verifies as a normal unbound
 	 * proof.
 	 */
 	@Test
@@ -403,16 +403,16 @@ public class IRMACryptoTest {
 
 		BigInteger context = new BigInteger(params.l_h, rnd);
 		BigInteger nonce1 = new BigInteger(params.l_statzk, rnd);
-		ProofD proof = new ProofCollectionBuilder(context, nonce1)
+		ProofD proof = (ProofD) new ProofListBuilder(context, nonce1)
 				.addProofD(cred, Arrays.asList(1, 2))
 				.build()
-				.getProofD(0);
+				.get(0);
 
 		assertTrue("Proof of disclosure should verify", proof.verify(pk, context, nonce1));
 	}
 
 	/**
-	 * We construct a proof of knowledge of the secret key and v_prime using a ProofCollectionBuilder, and see if it
+	 * We construct a proof of knowledge of the secret key and v_prime using a ProofListBuilder, and see if it
 	 * verifies as a normal unbound proof
 	 */
 	@Test
@@ -422,16 +422,16 @@ public class IRMACryptoTest {
 		IdemixSystemParameters params = pk.getSystemParameters();
 		BigInteger context = new BigInteger(params.l_h, rnd);
 		BigInteger n_1 = new BigInteger(params.l_statzk, rnd);
-		ProofCollectionBuilder builder = new ProofCollectionBuilder(context, n_1);
+		ProofListBuilder builder = new ProofListBuilder(context, n_1);
 
 		// Initialize builder and issuer
 		CredentialBuilder cb = new CredentialBuilder(pk, attributes, builder);
 		IdemixIssuer issuer = new IdemixIssuer(pk, sk, context);
 
-		// Create the proofU using the ProofCollectionBuilder, extract it, and put it in a vanilla IssueCommitmentMessage
+		// Create the proofU using the ProofListBuilder, extract it, and put it in a vanilla IssueCommitmentMessage
 		IssueCommitmentMessage commit_msg = cb.createCombinedCommitmentMessage();
 		ProofU proofU = commit_msg.getCombinedProofs().getProofU();
-		commit_msg = new IssueCommitmentMessage(commit_msg.getCommitment(), proofU, commit_msg.getNonce2());
+		commit_msg = new IssueCommitmentMessage(proofU, commit_msg.getNonce2());
 
 		// Do the issuing
 		IssueSignatureMessage msg = issuer.issueSignature(commit_msg, attributes, n_1);

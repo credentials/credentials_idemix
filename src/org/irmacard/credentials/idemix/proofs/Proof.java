@@ -33,11 +33,18 @@ package org.irmacard.credentials.idemix.proofs;
 import org.irmacard.credentials.idemix.IdemixPublicKey;
 
 import java.math.BigInteger;
+import java.util.List;
 
 public interface Proof {
 	boolean verify(IdemixPublicKey pk, BigInteger context, BigInteger nonce);
 
 	boolean verify(IdemixPublicKey pk, BigInteger context, BigInteger nonce, BigInteger challenge);
 
-	byte[] getChallengeContribution(IdemixPublicKey pk);
+	List<BigInteger> getChallengeContribution(IdemixPublicKey pk);
+
+	IdemixPublicKey extractPublicKey();
+
+	BigInteger get_c();
+
+	BigInteger getSecretKeyResponse();
 }

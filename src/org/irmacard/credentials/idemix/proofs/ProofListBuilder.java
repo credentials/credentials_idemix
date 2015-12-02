@@ -32,7 +32,6 @@ package org.irmacard.credentials.idemix.proofs;
 
 import org.irmacard.credentials.idemix.CredentialBuilder;
 import org.irmacard.credentials.idemix.IdemixCredential;
-import org.irmacard.credentials.idemix.IdemixPublicKey;
 import org.irmacard.credentials.idemix.IdemixSystemParameters;
 import org.irmacard.credentials.idemix.util.Crypto;
 
@@ -42,7 +41,7 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * <p>A builder for {@link ProofCollection}s, for creating cryptographically bound proofs of knowledge. It works as
+ * <p>A builder for {@link ProofList}s, for creating cryptographically bound proofs of knowledge. It works as
  * follows.
  * <ul>
  *     <li>When adding a credential for which some attributes should be disclosed, or the commitment to the secret
@@ -53,16 +52,15 @@ import java.util.Random;
  *     <li>When building the proofs using {@link #build()}, the challenge for the second step in the Schnorr
  *     Sigma-protocol is calculated, as the hash over the context, the commitments and the elements of which
  *     knowledge is being proved, and the nonce. Using this the responses (the third step of the Sigma-protocol) are
- *     calculated and a new {@link ProofCollection} is populated.</li>
+ *     calculated and a new {@link ProofList} is populated.</li>
  * </ul>
  * </p>
  */
-public class ProofCollectionBuilder {
+public class ProofListBuilder {
 	private BigInteger context;
 	private BigInteger nonce;
 
 	private List<IdemixCredential> credentials = new ArrayList<>();
-	private List<IdemixPublicKey> publicKeys = new ArrayList<>();
 	private List<BigInteger> toHash = new ArrayList<>();
 	private List<IdemixCredential.Commitment> commitments = new ArrayList<>();
 
@@ -70,7 +68,7 @@ public class ProofCollectionBuilder {
 
 	private BigInteger skCommitment;
 
-	public ProofCollectionBuilder(BigInteger context, BigInteger nonce) {
+	public ProofListBuilder(BigInteger context, BigInteger nonce) {
 		this.context = context;
 		this.nonce = nonce;
 		this.skCommitment = new BigInteger(new IdemixSystemParameters().l_m_commit, new Random());
@@ -81,7 +79,7 @@ public class ProofCollectionBuilder {
 	/**
 	 * Add a proof for the specified credential and attributes.
 	 */
-	public ProofCollectionBuilder addProofD(IdemixCredential credential, List<Integer> disclosed_attributes) {
+	public ProofListBuilder addProofD(IdemixCredential credential, List<Integer> disclosed_attributes) {
 		IdemixCredential.Commitment commitment = credential.commit(disclosed_attributes, context, nonce, skCommitment);
 
 		credentials.add(credential);
@@ -95,7 +93,7 @@ public class ProofCollectionBuilder {
 	/**
 	 * Add a proof for the commitment to the secret key and v_prime for issuing.
 	 */
-	public ProofCollectionBuilder addProofU(CredentialBuilder.Commitment commitment) {
+	public ProofListBuilder addProofU(CredentialBuilder.Commitment commitment) {
 		this.proofUcommitment = commitment;
 
 		// In order to ensure that U and the commitment to U get added last to the toHash array, we don't add these
@@ -105,10 +103,10 @@ public class ProofCollectionBuilder {
 	}
 
 	/**
-	 * Completes the proofs, and returns a new {@link ProofCollection} that contains them.
+	 * Completes the proofs, and returns a new {@link ProofList} that contains them.
 	 * @throws RuntimeException if no proofs have been added yet
 	 */
-	public ProofCollection build() {
+	public ProofList build() {
 		if (proofUcommitment == null && credentials.size() == 0) { // Nothing to do? Probably a mistake
 			throw new RuntimeException("No proofs have been added, can't build an empty proof collection");
 		}
@@ -122,21 +120,18 @@ public class ProofCollectionBuilder {
 		BigInteger[] toHashArray = toHash.toArray(new BigInteger[toHash.size()]);
 		BigInteger challenge = Crypto.sha256Hash(Crypto.asn1Encode(toHashArray));
 
-		ProofU proofU = null;
-		if (proofUcommitment != null) {
-			proofU = proofUcommitment.createProof(challenge);
-		}
+		ProofList proofs = new ProofList();
 
-		List<ProofD> disclosureProofs = new ArrayList<>(credentials.size());
 		for (int i = 0; i < credentials.size(); ++i) {
-			disclosureProofs.add(commitments.get(i).createProof(challenge));
-			publicKeys.add(credentials.get(i).getPublicKey());
+			proofs.add(commitments.get(i).createProof(challenge));
+			proofs.addPublicKey(credentials.get(i).getPublicKey());
 		}
 
-		ProofCollection proofs = new ProofCollection(proofU, disclosureProofs, publicKeys);
 		if (proofUcommitment != null) {
-			proofs.setProofUPublicKey(proofUcommitment.getPublicKey());
+			proofs.add(proofUcommitment.createProof(challenge));
+			proofs.addPublicKey(proofUcommitment.getPublicKey());
 		}
+
 		return proofs;
 	}
 

@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Vector;
 
-import org.irmacard.credentials.idemix.proofs.ProofCollectionBuilder;
+import org.irmacard.credentials.idemix.proofs.ProofListBuilder;
 import org.irmacard.credentials.idemix.proofs.ProofD;
 import org.irmacard.credentials.idemix.util.Crypto;
 
@@ -118,7 +118,7 @@ public class IdemixCredential {
 
 	/**
 	 * Container for a commitment for a disclosure proof of this credential. See the
-	 * {@link ProofCollectionBuilder} class for more information.
+	 * {@link ProofListBuilder} class for more information.
 	 */
 	public class Commitment {
 		BigInteger context;

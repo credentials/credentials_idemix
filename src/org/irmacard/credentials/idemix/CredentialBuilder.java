@@ -38,8 +38,8 @@ import java.util.Vector;
 import org.irmacard.credentials.CredentialsException;
 import org.irmacard.credentials.idemix.messages.IssueCommitmentMessage;
 import org.irmacard.credentials.idemix.messages.IssueSignatureMessage;
-import org.irmacard.credentials.idemix.proofs.ProofCollection;
-import org.irmacard.credentials.idemix.proofs.ProofCollectionBuilder;
+import org.irmacard.credentials.idemix.proofs.ProofList;
+import org.irmacard.credentials.idemix.proofs.ProofListBuilder;
 import org.irmacard.credentials.idemix.proofs.ProofU;
 import org.irmacard.credentials.idemix.util.Crypto;
 
@@ -49,7 +49,7 @@ public class CredentialBuilder {
 	private BigInteger v_prime;
 	private BigInteger n_2;
 	private BigInteger U;
-	private ProofCollectionBuilder proofsBuilder;
+	private ProofListBuilder proofsBuilder;
 
 	// Immutable Input
 	private final IdemixPublicKey pk;
@@ -69,7 +69,7 @@ public class CredentialBuilder {
 		this.n = pk.getModulus();
 	}
 
-	public CredentialBuilder(IdemixPublicKey pk, List<BigInteger> attrs, ProofCollectionBuilder proofsBuilder) {
+	public CredentialBuilder(IdemixPublicKey pk, List<BigInteger> attrs, ProofListBuilder proofsBuilder) {
 		this(pk, attrs, proofsBuilder.getContext());
 		this.proofsBuilder = proofsBuilder;
 	}
@@ -91,7 +91,6 @@ public class CredentialBuilder {
 
 		setSecret(secret);
 
-		BigInteger U = commitmentToSecret();
 		ProofU proofU = proveCommitment(nonce1);
 		n_2 = createReceiverNonce();
 
@@ -101,7 +100,7 @@ public class CredentialBuilder {
 	/**
 	 * Create a response to the challenge sent by the issuer, consisting of a commitment to the secret key, and a proof
 	 * of correctness of this commitment that is cryptographically bound to the disclosure proofs contained in the
-	 * ProofCollectionBuilder.
+	 * ProofListBuilder.
 	 */
 	public IssueCommitmentMessage createCombinedCommitmentMessage() {
 		if (proofsBuilder == null) {
@@ -114,13 +113,12 @@ public class CredentialBuilder {
 		}
 		setSecret(sk);
 
-		BigInteger U = commitmentToSecret();
 		BigInteger nonce = proofsBuilder.getNonce();
 		BigInteger skCommit = proofsBuilder.getSecretKeyCommitment();
 
 		proofsBuilder.addProofU(new Commitment(nonce, skCommit));
 
-		ProofCollection proofs = proofsBuilder.build();
+		ProofList proofs = proofsBuilder.build();
 
 		n_2 = createReceiverNonce();
 
@@ -140,7 +138,7 @@ public class CredentialBuilder {
 				.get_v().add(v_prime));
 
 		// Verify signature
-		List<BigInteger> exponents = new Vector<BigInteger>();
+		List<BigInteger> exponents = new Vector<>();
 		exponents.add(s);
 		exponents.addAll(attributes);
 
@@ -188,7 +186,7 @@ public class CredentialBuilder {
 
 	/**
 	 * Container for a commitment for the proof of knowledge of the secret key and v_prime. See the
-	 * {@link ProofCollectionBuilder} class for more information.
+	 * {@link ProofListBuilder} class for more information.
 	 */
 	public class Commitment {
 		BigInteger s_commit;

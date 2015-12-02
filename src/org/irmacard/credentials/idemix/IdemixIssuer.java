@@ -36,7 +36,7 @@ import java.util.List;
 import org.irmacard.credentials.CredentialsException;
 import org.irmacard.credentials.idemix.messages.IssueCommitmentMessage;
 import org.irmacard.credentials.idemix.messages.IssueSignatureMessage;
-import org.irmacard.credentials.idemix.proofs.ProofCollection;
+import org.irmacard.credentials.idemix.proofs.ProofList;
 import org.irmacard.credentials.idemix.proofs.ProofS;
 import org.irmacard.credentials.idemix.util.Crypto;
 
@@ -62,7 +62,7 @@ public class IdemixIssuer {
 	 * {@link #signCommitmentAndAttributes(BigInteger, List)}).
 	 * <p>
 	 * If the IssueCommitmentMessage contains multiple proofs of knowledge in a
-	 * {@link ProofCollection} then this method verifies the validity of all these
+	 * {@link ProofList} then this method verifies the validity of all these
 	 * proofs, but it does not check if the disclosure proofs with the correct
 	 * attributes are included in the collection (as we have no way of knowing
 	 * which attributes are expected here).
@@ -86,7 +86,7 @@ public class IdemixIssuer {
 		BigInteger U;
 
 		if (msg.getCombinedProofs() != null) {
-			ProofCollection proofs = msg.getCombinedProofs();
+			ProofList proofs = msg.getCombinedProofs();
 			U = proofs.getProofU().getU();
 			if (!proofs.verify(context, nonce1, true)) {
 				throw new CredentialsException("The combined proofs are not correct");

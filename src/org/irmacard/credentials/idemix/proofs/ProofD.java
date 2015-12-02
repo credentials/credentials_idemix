@@ -31,12 +31,19 @@
 package org.irmacard.credentials.idemix.proofs;
 
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map.Entry;
 
+import org.irmacard.credentials.Attributes;
 import org.irmacard.credentials.idemix.IdemixPublicKey;
 import org.irmacard.credentials.idemix.IdemixSystemParameters;
+import org.irmacard.credentials.idemix.info.IdemixKeyStore;
 import org.irmacard.credentials.idemix.util.Crypto;
+import org.irmacard.credentials.info.CredentialDescription;
+import org.irmacard.credentials.info.DescriptionStore;
+import org.irmacard.credentials.info.InfoException;
 
 public class ProofD implements Proof {
 	private BigInteger c;
@@ -86,8 +93,24 @@ public class ProofD implements Proof {
 	}
 
 	@Override
-	public byte[] getChallengeContribution(IdemixPublicKey pk) {
-		return Crypto.asn1Encode(A, reconstructZ(pk));
+	public List<BigInteger> getChallengeContribution(IdemixPublicKey pk) {
+		return Arrays.asList(A, reconstructZ(pk));
+	}
+
+	@Override
+	public IdemixPublicKey extractPublicKey() {
+		short id = Attributes.extractCredentialId(get_a_disclosed().get(1));
+		try {
+			CredentialDescription cd = DescriptionStore.getInstance().getCredentialDescription(id);
+			return IdemixKeyStore.getInstance().getPublicKey(cd.getIssuerDescription());
+		} catch (InfoException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
+	public BigInteger getSecretKeyResponse() {
+		return get_a_responses().get(0);
 	}
 
 	private boolean checkSizeResponses(IdemixPublicKey pk) {
@@ -142,9 +165,9 @@ public class ProofD implements Proof {
 			BigInteger tmp = pk.getGeneratorR(idx).modPow(response, n);
 			Rs = Rs.multiply(tmp).mod(n);
 		}
-		BigInteger Z = known_c.multiply(Ae).multiply(Rs).multiply(Sv).mod(n);
 
-		return Z;
+		// Return Z
+		return known_c.multiply(Ae).multiply(Rs).multiply(Sv).mod(n);
 	}
 
 	public BigInteger get_c() {
