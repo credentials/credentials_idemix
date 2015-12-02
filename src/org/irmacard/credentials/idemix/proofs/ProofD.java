@@ -38,7 +38,7 @@ import org.irmacard.credentials.idemix.IdemixPublicKey;
 import org.irmacard.credentials.idemix.IdemixSystemParameters;
 import org.irmacard.credentials.idemix.util.Crypto;
 
-public class ProofD {
+public class ProofD implements Proof {
 	private BigInteger c;
 	private BigInteger A;
 	private BigInteger e_response;
@@ -83,6 +83,11 @@ public class ProofD {
 		}
 
 		return matched;
+	}
+
+	@Override
+	public byte[] getChallengeContribution(IdemixPublicKey pk) {
+		return Crypto.asn1Encode(A, reconstructZ(pk));
 	}
 
 	private boolean checkSizeResponses(IdemixPublicKey pk) {

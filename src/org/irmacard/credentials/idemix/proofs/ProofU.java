@@ -40,7 +40,7 @@ import org.irmacard.credentials.idemix.util.Crypto;
  * Represents a proof of correctness of the commitment in the first phase of the
  * issuance protocol.
  */
-public class ProofU {
+public class ProofU implements Proof {
 	private BigInteger U;
 	private BigInteger c;
 	private BigInteger v_prime_response;
@@ -83,6 +83,11 @@ public class ProofU {
 		}
 
 		return matched;
+	}
+
+	@Override
+	public byte[] getChallengeContribution(IdemixPublicKey pk) {
+		return Crypto.asn1Encode(U, reconstructU_commit(pk));
 	}
 
 	public BigInteger reconstructU_commit(IdemixPublicKey pk) {
