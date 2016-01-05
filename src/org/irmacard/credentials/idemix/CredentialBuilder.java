@@ -32,7 +32,7 @@ package org.irmacard.credentials.idemix;
 
 import java.math.BigInteger;
 import java.util.List;
-import java.util.Random;
+import java.security.SecureRandom;
 import java.util.Vector;
 
 import org.irmacard.credentials.CredentialsException;
@@ -155,7 +155,7 @@ public class CredentialBuilder {
 	}
 
 	private BigInteger createReceiverNonce() {
-		Random rnd = new Random();
+		SecureRandom rnd = new SecureRandom();
 		return new BigInteger(params.l_statzk, rnd);
 	}
 }

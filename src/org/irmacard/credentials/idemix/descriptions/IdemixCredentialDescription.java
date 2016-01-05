@@ -31,7 +31,7 @@
 package org.irmacard.credentials.idemix.descriptions;
 
 import java.math.BigInteger;
-import java.util.Random;
+import java.security.SecureRandom;
 
 import org.irmacard.credentials.idemix.IdemixPublicKey;
 import org.irmacard.credentials.idemix.info.IdemixKeyStore;
@@ -87,7 +87,7 @@ public class IdemixCredentialDescription {
 	}
 
 	public BigInteger generateNonce() throws InfoException {
-		Random rnd = new Random();
+		SecureRandom rnd = new SecureRandom();
 		return new BigInteger(pk.getSystemParameters().l_statzk, rnd);
 	}
 }

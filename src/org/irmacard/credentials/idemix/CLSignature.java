@@ -32,7 +32,7 @@ package org.irmacard.credentials.idemix;
 
 import java.math.BigInteger;
 import java.util.List;
-import java.util.Random;
+import java.security.SecureRandom;
 
 import org.irmacard.credentials.idemix.util.Crypto;
 
@@ -111,7 +111,7 @@ public class CLSignature {
 
 		BigInteger R = Crypto.representToBases(Rs, ms, n);
 
-		Random rnd = new Random();
+		SecureRandom rnd = new SecureRandom();
 
 		BigInteger v_tilde = new BigInteger(params.l_v - 1, rnd);
 		BigInteger two_l_v = new BigInteger("2").pow(params.l_v - 1);
@@ -162,7 +162,7 @@ public class CLSignature {
 		IdemixSystemParameters params = pk.getSystemParameters();
 		BigInteger n = pk.getModulus();
 
-		Random rnd = new Random();
+		SecureRandom rnd = new SecureRandom();
 
 		BigInteger randomizer = new BigInteger(params.l_r_a, rnd);
 		BigInteger A_prime = A.multiply(pk.getGeneratorS().modPow(randomizer, n)).mod(n);
