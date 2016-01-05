@@ -35,7 +35,7 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
-import java.util.Random;
+import java.security.SecureRandom;
 
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.ASN1Integer;
@@ -53,7 +53,7 @@ public class Crypto {
 	 * @return				a random signed integer in the given range
 	 */
 	public static BigInteger randomSignedInteger(int bitlength) {
-		Random rnd = new Random();
+		SecureRandom rnd = new SecureRandom();
 
 		BigInteger maximum = TWO.pow(bitlength).subtract(BigInteger.ONE);
 		BigInteger unsigned_maximum = maximum.multiply(TWO);
@@ -66,7 +66,7 @@ public class Crypto {
 	}
 
 	public static BigInteger randomUnsignedInteger(int bitlength) {
-		Random rnd = new Random();
+		SecureRandom rnd = new SecureRandom();
 		return new BigInteger(bitlength, rnd);
 	}
 
@@ -78,7 +78,7 @@ public class Crypto {
 	 * @return An elemement in Z_{modulus}^*
 	 */
 	public static BigInteger randomElementMultiplicativeGroup(BigInteger modulus) {
-		Random rnd = new Random();
+		SecureRandom rnd = new SecureRandom();
 		BigInteger result = BigInteger.ZERO;
 
 		while(result.compareTo(BigInteger.ZERO) <= 0 ||
@@ -156,7 +156,7 @@ public class Crypto {
 	 * @return A number in the given range that is probably prime
 	 */
 	public static BigInteger probablyPrimeInBitRange(int start_in_bits, int length_in_bits) {
-		Random rnd = new Random();
+		SecureRandom rnd = new SecureRandom();
 		BigInteger start = TWO.pow(start_in_bits);
 		BigInteger end = start.add(TWO.pow(length_in_bits));
 		BigInteger prime = end;

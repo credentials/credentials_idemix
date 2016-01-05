@@ -33,7 +33,7 @@ package org.irmacard.credentials.idemix;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Random;
+import java.security.SecureRandom;
 import java.util.Vector;
 
 import org.irmacard.credentials.idemix.proofs.ProofListBuilder;
@@ -142,7 +142,7 @@ public class IdemixCredential {
 
 		private Commitment(List<Integer> disclosed_attributes, BigInteger context,
 						   BigInteger nonce1, BigInteger skCommit) {
-			Random rnd = new Random();
+			SecureRandom rnd = new SecureRandom();
 			IdemixSystemParameters params = issuer_pk.getSystemParameters();
 			BigInteger n = issuer_pk.getModulus();
 
