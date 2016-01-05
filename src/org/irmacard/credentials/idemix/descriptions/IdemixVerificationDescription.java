@@ -33,7 +33,7 @@ package org.irmacard.credentials.idemix.descriptions;
 import java.math.BigInteger;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Random;
+import java.security.SecureRandom;
 
 import org.irmacard.credentials.idemix.IdemixPublicKey;
 import org.irmacard.credentials.idemix.util.Crypto;
@@ -120,7 +120,7 @@ public class IdemixVerificationDescription {
 	}
 
 	public BigInteger generateNonce() {
-		Random rnd = new Random();
+		SecureRandom rnd = new SecureRandom();
 		return new BigInteger(cd.getPublicKey().getSystemParameters().l_statzk, rnd);
 	}
 }
