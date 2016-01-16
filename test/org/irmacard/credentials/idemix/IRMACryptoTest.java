@@ -338,16 +338,17 @@ public class IRMACryptoTest {
 		// Create credential that will be shown during issuing
 		CLSignature signature1 = CLSignature.signMessageBlock(sk, pk, attributes);
 		IdemixCredential cred1 = new IdemixCredential(pk, attributes, signature1);
-		ProofListBuilder builder = new ProofListBuilder(context, n_1)
-				.addProofD(cred1, Arrays.asList(1, 2));
 
 		// Initialize builder and issuer
-		CredentialBuilder cb = new CredentialBuilder(pk, attributes, builder);
+		CredentialBuilder cb = new CredentialBuilder(pk, attributes, context);
 		IdemixIssuer issuer = new IdemixIssuer(pk, sk, context);
 
 		// Do the issuing. Note that we do not check here if the commit_msg contains the required disclosure proofs
 		// (although it does); that should be done at a higher level.
-		IssueCommitmentMessage commit_msg = cb.createCombinedCommitmentMessage();
+		ProofListBuilder builder = new ProofListBuilder(context, n_1)
+				.addProofD(cred1, Arrays.asList(1, 2))
+				.addCredentialBuilder(cb);
+		IssueCommitmentMessage commit_msg = new IssueCommitmentMessage(builder.build(), cb.getNonce2());
 		IssueSignatureMessage msg = issuer.issueSignature(commit_msg, attributes, n_1);
 		IdemixCredential cred2 = cb.constructCredential(msg);
 
@@ -422,14 +423,14 @@ public class IRMACryptoTest {
 		IdemixSystemParameters params = pk.getSystemParameters();
 		BigInteger context = new BigInteger(params.l_h, rnd);
 		BigInteger n_1 = new BigInteger(params.l_statzk, rnd);
-		ProofListBuilder builder = new ProofListBuilder(context, n_1);
 
 		// Initialize builder and issuer
-		CredentialBuilder cb = new CredentialBuilder(pk, attributes, builder);
+		CredentialBuilder cb = new CredentialBuilder(pk, attributes, context);
 		IdemixIssuer issuer = new IdemixIssuer(pk, sk, context);
 
 		// Create the proofU using the ProofListBuilder, extract it, and put it in a vanilla IssueCommitmentMessage
-		IssueCommitmentMessage commit_msg = cb.createCombinedCommitmentMessage();
+		ProofListBuilder builder = new ProofListBuilder(context, n_1).addCredentialBuilder(cb);
+		IssueCommitmentMessage commit_msg = new IssueCommitmentMessage(builder.build(), cb.getNonce2());
 		ProofU proofU = commit_msg.getCombinedProofs().getProofU();
 		commit_msg = new IssueCommitmentMessage(proofU, commit_msg.getNonce2());
 

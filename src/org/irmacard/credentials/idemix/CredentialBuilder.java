@@ -38,7 +38,6 @@ import java.util.Vector;
 import org.irmacard.credentials.CredentialsException;
 import org.irmacard.credentials.idemix.messages.IssueCommitmentMessage;
 import org.irmacard.credentials.idemix.messages.IssueSignatureMessage;
-import org.irmacard.credentials.idemix.proofs.ProofList;
 import org.irmacard.credentials.idemix.proofs.ProofListBuilder;
 import org.irmacard.credentials.idemix.proofs.ProofU;
 import org.irmacard.credentials.idemix.util.Crypto;
@@ -49,7 +48,6 @@ public class CredentialBuilder {
 	private BigInteger v_prime;
 	private BigInteger n_2;
 	private BigInteger U;
-	private ProofListBuilder proofsBuilder;
 
 	// Immutable Input
 	private final IdemixPublicKey pk;
@@ -69,9 +67,13 @@ public class CredentialBuilder {
 		this.n = pk.getModulus();
 	}
 
-	public CredentialBuilder(IdemixPublicKey pk, List<BigInteger> attrs, ProofListBuilder proofsBuilder) {
-		this(pk, attrs, proofsBuilder.getContext());
-		this.proofsBuilder = proofsBuilder;
+	public CredentialBuilder(IdemixPublicKey pk, List<BigInteger> attrs, BigInteger context, BigInteger nonce2) {
+		this(pk, attrs, context);
+		this.n_2 = nonce2;
+	}
+
+	public IdemixPublicKey getPublicKey() {
+		return pk;
 	}
 
 	/**
@@ -95,34 +97,6 @@ public class CredentialBuilder {
 		n_2 = createReceiverNonce();
 
 		return new IssueCommitmentMessage(proofU, n_2);
-	}
-
-	/**
-	 * Create a response to the challenge sent by the issuer, consisting of a commitment to the secret key, and a proof
-	 * of correctness of this commitment that is cryptographically bound to the disclosure proofs contained in the
-	 * ProofListBuilder.
-	 */
-	public IssueCommitmentMessage createCombinedCommitmentMessage() {
-		if (proofsBuilder == null) {
-			throw new RuntimeException("Can't create bound proof, no proofsBuilder has been specified");
-		}
-
-		BigInteger sk = proofsBuilder.getSecretKey();
-		if (sk == null) {
-			sk = new BigInteger(pk.getSystemParameters().l_m, new SecureRandom());
-		}
-		setSecret(sk);
-
-		BigInteger nonce = proofsBuilder.getNonce();
-		BigInteger skCommit = proofsBuilder.getSecretKeyCommitment();
-
-		proofsBuilder.addProofU(new Commitment(nonce, skCommit));
-
-		ProofList proofs = proofsBuilder.build();
-
-		n_2 = createReceiverNonce();
-
-		return new IssueCommitmentMessage(proofs, n_2);
 	}
 
 	public IdemixCredential constructCredential(IssueSignatureMessage msg)
@@ -155,6 +129,18 @@ public class CredentialBuilder {
 		this.s = secret;
 	}
 
+	public BigInteger getSecret() {
+		return s;
+	}
+
+	public BigInteger getNonce2() {
+		return n_2;
+	}
+
+	public void setNonce2(BigInteger nonce2) {
+		this.n_2 = nonce2;
+	}
+
 	public BigInteger commitmentToSecret() {
 		if (U == null) {
 			// FIXME: Not according to protocol, only positives possible this way
@@ -175,12 +161,18 @@ public class CredentialBuilder {
 		return commitment.createProof(null);
 	}
 
+	public static BigInteger createReceiverNonce(IdemixPublicKey pk) {
+		return new BigInteger(pk.getSystemParameters().l_statzk, new SecureRandom());
+	}
+
 	public BigInteger createReceiverNonce() {
-		SecureRandom rnd = new SecureRandom();
-		return new BigInteger(params.l_statzk, rnd);
+		return createReceiverNonce(pk);
 	}
 
 	public Commitment commit(BigInteger nonce1, BigInteger skCommit) {
+		if (n_2 == null)
+			n_2 = createReceiverNonce();
+
 		return new Commitment(nonce1, skCommit);
 	}
 
@@ -234,6 +226,10 @@ public class CredentialBuilder {
 
 		public IdemixPublicKey getPublicKey() {
 			return pk;
+		}
+
+		public BigInteger getSecretKey() {
+			return s;
 		}
 	}
 }

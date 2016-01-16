@@ -36,6 +36,7 @@ import org.irmacard.credentials.idemix.IdemixSystemParameters;
 import org.irmacard.credentials.idemix.util.Crypto;
 
 import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -46,7 +47,7 @@ import java.util.Random;
  * <ul>
  *     <li>When adding a credential for which some attributes should be disclosed, or the commitment to the secret
  *     key and v_prime for a new credential (see {@link #addProofD(IdemixCredential, List)} and
- *     {@link #addProofU(CredentialBuilder.Commitment)} respectively), a Pedersen commitment to randomness
+ *     {@link #addCredentialBuilder(CredentialBuilder)} respectively), a Pedersen commitment to randomness
  *     (see the {@link IdemixCredential.Commitment} and {@link CredentialBuilder.Commitment} classes) is made
  *     for each of the numbers that are to be kept secret (the first step in the Schnorr Sigma-protocol).</li>
  *     <li>When building the proofs using {@link #build()}, the challenge for the second step in the Schnorr
@@ -66,6 +67,7 @@ public class ProofListBuilder {
 	private List<IdemixCredential.Commitment> commitments = new ArrayList<>();
 	private List<CredentialBuilder.Commitment> proofUcommitments = new ArrayList<>();
 
+	private BigInteger secret;
 	private BigInteger skCommitment;
 
 	public ProofListBuilder(BigInteger context, BigInteger nonce) {
@@ -91,9 +93,25 @@ public class ProofListBuilder {
 	}
 
 	/**
+	 * Add a credential builder for a new credential, from which to construct a proof for the commitment to the secret
+	 * key and v_prime for issuing. If the builder does not yet have a secret key, we generate one.
+	 */
+	public ProofListBuilder addCredentialBuilder(CredentialBuilder builder) {
+		if (builder.getSecret() == null) {
+			BigInteger sk = getSecretKey();
+			if (sk == null) {
+				sk = new BigInteger(builder.getPublicKey().getSystemParameters().l_m, new SecureRandom());
+			}
+			builder.setSecret(sk);
+		}
+
+		return addProofU(builder.commit(nonce, skCommitment));
+	}
+
+	/**
 	 * Add a proof for the commitment to the secret key and v_prime for issuing.
 	 */
-	public ProofListBuilder addProofU(CredentialBuilder.Commitment commitment) {
+	private ProofListBuilder addProofU(CredentialBuilder.Commitment commitment) {
 		this.proofUcommitments.add(commitment);
 		toHashU.add(commitment.getU());
 		toHashU.add(commitment.getUcommit());
@@ -140,15 +158,18 @@ public class ProofListBuilder {
 	}
 
 	/**
-	 * Gets the secret key (the first attribute) of one of the credentials. If no credentials have been added yet,
-	 * returns null.
+	 * Gets the secret key of one of the credentials or commitments. If no credentials or commitments
+	 * have been added yet, returns null.
 	 */
 	public BigInteger getSecretKey() {
-		if (credentials == null || credentials.size() == 0) {
-			return null;
+		if (secret == null) {
+			if (credentials != null && credentials.size() > 0)
+				secret = credentials.get(0).getAttribute(0);
+			if (proofUcommitments != null && proofUcommitments.size() > 0)
+				secret = proofUcommitments.get(0).getSecretKey();
 		}
 
-		return credentials.get(0).getAttribute(0);
+		return secret;
 	}
 
 	public BigInteger getSecretKeyCommitment() {

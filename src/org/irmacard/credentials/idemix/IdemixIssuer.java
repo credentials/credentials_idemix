@@ -77,8 +77,13 @@ public class IdemixIssuer {
 	 * @return Signature on attributes+commitments and the proof of correctness
 	 * @throws CredentialsException when the commitment proof(s) is/are not correct
 	 */
-	protected IssueSignatureMessage issueSignature(IssueCommitmentMessage msg,
+	public IssueSignatureMessage issueSignature(IssueCommitmentMessage msg,
 			List<BigInteger> attrs, BigInteger nonce1) throws CredentialsException {
+		return issueSignature(msg, attrs, 0, nonce1);
+	}
+
+	public IssueSignatureMessage issueSignature(IssueCommitmentMessage msg,
+			List<BigInteger> attrs, int index, BigInteger nonce1) throws CredentialsException {
 		if (msg.getCombinedProofs() == null && msg.getCommitmentProof() == null) {
 			throw new CredentialsException("No ProofU found in message");
 		}
@@ -87,7 +92,7 @@ public class IdemixIssuer {
 
 		if (msg.getCombinedProofs() != null) {
 			ProofList proofs = msg.getCombinedProofs();
-			U = proofs.getProofU().getU();
+			U = proofs.getProofU(index).getU();
 			if (!proofs.verify(context, nonce1, true)) {
 				throw new CredentialsException("The combined proofs are not correct");
 			}
