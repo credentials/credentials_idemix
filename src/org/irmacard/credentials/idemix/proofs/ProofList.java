@@ -209,4 +209,13 @@ public class ProofList extends ArrayList<Proof> {
 	public void setPublicKey(int i, IdemixPublicKey pk) {
 		publicKeys.set(i, pk);
 	}
+
+	public int getProofDCount() {
+		int i = 0;
+		for (Proof proof : this)
+			if (proof instanceof ProofD)
+				++i;
+
+		return i;
+	}
 }
