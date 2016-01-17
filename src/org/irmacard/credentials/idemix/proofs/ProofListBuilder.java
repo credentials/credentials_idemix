@@ -157,6 +157,10 @@ public class ProofListBuilder {
 		return nonce;
 	}
 
+	public void setSecretKey(BigInteger secret) {
+		this.secret = secret;
+	}
+
 	/**
 	 * Gets the secret key of one of the credentials or commitments. If no credentials or commitments
 	 * have been added yet, returns null.
