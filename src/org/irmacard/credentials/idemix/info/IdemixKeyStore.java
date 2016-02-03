@@ -56,8 +56,8 @@ public class IdemixKeyStore {
 
 	static IdemixKeyStore ds;
 
-	HashMap<IssuerDescription, IdemixPublicKey> publicKeys =
-			new HashMap<IssuerDescription, IdemixPublicKey>();
+	private HashMap<String, IdemixPublicKey> publicKeys = new HashMap<String, IdemixPublicKey>();
+	private HashMap<String, IdemixSecretKey> secretKeys = new HashMap<String, IdemixSecretKey>();
 
 	/**
 	 * Define the CoreLocation. This has to be set before using the
@@ -87,8 +87,7 @@ public class IdemixKeyStore {
 	 * Get DescriptionStore instance
 	 *
 	 * @return The IdemixKeyStore instance
-	 * @throws Exception
-	 *             if CoreLocation has not been set
+	 * @throws InfoException if instantiating the IdemixKeyStore failed
 	 */
 	public static IdemixKeyStore getInstance() throws InfoException {
 		if (ds == null) {
@@ -116,9 +115,10 @@ public class IdemixKeyStore {
 		DescriptionStore ds = DescriptionStore.getInstance();
 
 		for (IssuerDescription id : ds.getIssuerDescriptions()) {
-			URI path;
+			URI pkPath, skPath;
 			try {
-				path = new URI(id.getID() + "/").resolve(PUBLIC_KEY_FILE);
+				pkPath = new URI(id.getID() + "/").resolve(PUBLIC_KEY_FILE);
+				skPath = new URI(id.getID() + "/").resolve(PRIVATE_KEY_FILE);
 			} catch (URISyntaxException e) {
 				e.printStackTrace();
 				throw new RuntimeException();
@@ -131,32 +131,33 @@ public class IdemixKeyStore {
 				 * by IssuerDescription and Verifier Description, or something
 				 * like that.
 				 */
-				IdemixPublicKey ipk = new IdemixPublicKey(
-						treeWalker.retrieveFile(path));
-				publicKeys.put(id, ipk);
+				IdemixPublicKey ipk = new IdemixPublicKey(treeWalker.retrieveFile(pkPath));
+				publicKeys.put(id.getID(), ipk);
 			} catch (InfoException e) {
 				// Ignoring Entity when no key is found
+			}
+
+			try {
+				IdemixSecretKey isk = new IdemixSecretKey(treeWalker.retrieveFile(skPath));
+				secretKeys.put(id.getID(), isk);
+			} catch (InfoException e) {
+				// Ignore absence of secret key
 			}
 		}
 	}
 
 	public void updatePublicKey(IssuerDescription id, IdemixPublicKey ipk) {
-		if (publicKeys.containsKey(id)) {
-			publicKeys.remove(id);
+		if (publicKeys.containsKey(id.getID())) {
+			publicKeys.remove(id.getID());
 		}
-		publicKeys.put(id, ipk);
+		publicKeys.put(id.getID(), ipk);
 	}
 
 	public IdemixPublicKey getPublicKey(String issuer) throws InfoException {
-		IssuerDescription id = DescriptionStore.getInstance()
-				.getIssuerDescription(issuer);
+		if (publicKeys.containsKey(issuer))
+			return publicKeys.get(issuer);
 
-		if (publicKeys.containsKey(id)) {
-			return publicKeys.get(id);
-		} else {
-			throw new InfoException("Public key for issuer " + issuer
-					+ " not found.");
-		}
+		throw new InfoException("Public key for issuer " + issuer + " not found.");
 	}
 
 	public IdemixSecretKey getSecretKey(CredentialDescription cd) throws InfoException {
@@ -164,16 +165,13 @@ public class IdemixKeyStore {
 	}
 
 	public IdemixSecretKey getSecretKey(IssuerDescription id) throws InfoException {
-		URI path;
-		try {
-			path = new URI(id.getID() + "/").resolve(PRIVATE_KEY_FILE);
-		} catch (URISyntaxException e) {
-			throw new RuntimeException(e);
-		}
-		return new IdemixSecretKey(treeWalker.retrieveFile(path));
+		if (secretKeys.containsKey(id.getID()))
+			return secretKeys.get(id.getID());
+
+		throw new InfoException("Secret key for issuer " + id.getID() + " not found");
 	}
 
 	public IdemixPublicKey getPublicKey(IssuerDescription id) {
-		return publicKeys.get(id);
+		return publicKeys.get(id.getID());
 	}
 }
