@@ -30,19 +30,16 @@
 
 package org.irmacard.credentials.idemix.info;
 
-import java.io.File;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.HashMap;
-
+import org.apache.http.client.HttpClient;
 import org.irmacard.credentials.idemix.IdemixPublicKey;
 import org.irmacard.credentials.idemix.IdemixSecretKey;
-import org.irmacard.credentials.info.CredentialDescription;
-import org.irmacard.credentials.info.DescriptionStore;
-import org.irmacard.credentials.info.InfoException;
-import org.irmacard.credentials.info.IssuerDescription;
-import org.irmacard.credentials.info.TreeWalker;
-import org.irmacard.credentials.info.TreeWalkerI;
+import org.irmacard.credentials.info.*;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.HashMap;
 
 /**
  * TODO: Change print statements to proper Logging statements
@@ -55,6 +52,10 @@ public class IdemixKeyStore {
 	static private final String PRIVATE_KEY_FILE = "private/isk.xml";
 
 	static IdemixKeyStore ds;
+
+	static private IdemixKeyStoreSerializer serializer;
+	static private IdemixKeyStoreDeserializerI deserializer;
+	static private HttpClient httpClient;
 
 	private HashMap<String, IdemixPublicKey> publicKeys = new HashMap<String, IdemixPublicKey>();
 	private HashMap<String, IdemixSecretKey> secretKeys = new HashMap<String, IdemixSecretKey>();
@@ -83,6 +84,18 @@ public class IdemixKeyStore {
 		IdemixKeyStore.treeWalker = treeWalker;
 	}
 
+	public static void setDeserializer(IdemixKeyStoreDeserializerI deserializer) {
+		IdemixKeyStore.deserializer = deserializer;
+	}
+
+	public static void setSerializer(IdemixKeyStoreSerializer serializer) {
+		IdemixKeyStore.serializer = serializer;
+	}
+
+	public static void setHttpClient(HttpClient client) {
+		IdemixKeyStore.httpClient = client;
+	}
+
 	/**
 	 * Get DescriptionStore instance
 	 *
@@ -91,59 +104,28 @@ public class IdemixKeyStore {
 	 */
 	public static IdemixKeyStore getInstance() throws InfoException {
 		if (ds == null) {
-			ds = new IdemixKeyStore();
+			if (CORE_LOCATION != null) {
+				treeWalker = new TreeWalker(CORE_LOCATION);
+			}
+
+			if (treeWalker != null && deserializer == null) {
+				deserializer = new IdemixKeyStoreDeserializer(CORE_LOCATION, treeWalker);
+			}
+
+			if (deserializer != null) {
+				ds = deserializer.deserializeIdemixKeyStore();
+			}
 		}
 
 		return ds;
 	}
 
-	private IdemixKeyStore() throws InfoException {
-		if (CORE_LOCATION != null) {
-			treeWalker = new TreeWalker(CORE_LOCATION);
-		}
-
-		if (treeWalker != null) {
-			retrieveIdemixKeys();
-		}
+	public static void setInstance(IdemixKeyStore instance) {
+		ds = instance;
 	}
 
 	public static boolean isLocationSet() {
 		return CORE_LOCATION != null;
-	}
-
-	private void retrieveIdemixKeys() throws InfoException {
-		DescriptionStore ds = DescriptionStore.getInstance();
-
-		for (IssuerDescription id : ds.getIssuerDescriptions()) {
-			URI pkPath, skPath;
-			try {
-				pkPath = new URI(id.getID() + "/").resolve(PUBLIC_KEY_FILE);
-				skPath = new URI(id.getID() + "/").resolve(PRIVATE_KEY_FILE);
-			} catch (URISyntaxException e) {
-				e.printStackTrace();
-				throw new RuntimeException();
-			}
-
-			try {
-				/*
-				 * TODO: this is a bit of cludge, better refactor
-				 * IssuerDescription into EntityDescription which is subclassed
-				 * by IssuerDescription and Verifier Description, or something
-				 * like that.
-				 */
-				IdemixPublicKey ipk = new IdemixPublicKey(treeWalker.retrieveFile(pkPath));
-				publicKeys.put(id.getID(), ipk);
-			} catch (InfoException e) {
-				// Ignoring Entity when no key is found
-			}
-
-			try {
-				IdemixSecretKey isk = new IdemixSecretKey(treeWalker.retrieveFile(skPath));
-				secretKeys.put(id.getID(), isk);
-			} catch (InfoException e) {
-				// Ignore absence of secret key
-			}
-		}
 	}
 
 	public void updatePublicKey(IssuerDescription id, IdemixPublicKey ipk) {
@@ -160,6 +142,10 @@ public class IdemixKeyStore {
 		throw new InfoException("Public key for issuer " + issuer + " not found.");
 	}
 
+	public void setPublicKey(String issuer, IdemixPublicKey pk) {
+		publicKeys.put(issuer, pk);
+	}
+
 	public IdemixSecretKey getSecretKey(CredentialDescription cd) throws InfoException {
 		return getSecretKey(cd.getIssuerDescription());
 	}
@@ -171,7 +157,32 @@ public class IdemixKeyStore {
 		throw new InfoException("Secret key for issuer " + id.getID() + " not found");
 	}
 
+	public void setSecretKey(String issuer, IdemixSecretKey sk) {
+		secretKeys.put(issuer, sk);
+	}
+
 	public IdemixPublicKey getPublicKey(IssuerDescription id) {
 		return publicKeys.get(id.getID());
+	}
+
+	public IssuerDescription downloadIssuer(String name) throws IOException, InfoException {
+		SchemeManager manager = DescriptionStore.getInstance().getSchemeManager("default");
+		if (manager == null)
+			throw new InfoException("Unknown scheme manager");
+
+		IssuerDescription issuer = DescriptionStore.getInstance().downloadIssuerDescription(name, false);
+
+		String url = manager.getUrl() + name + "/ipk.xml";
+		InputStream stream = DescriptionStore.doHttpRequest(url);
+
+		ds.updatePublicKey(issuer, new IdemixPublicKey(stream));
+
+		save();
+		return issuer;
+	}
+
+	protected void save() {
+		if (serializer != null)
+			serializer.saveIdemixKeyStore(this);
 	}
 }
