@@ -41,9 +41,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.HashMap;
 
-/**
- * TODO: Change print statements to proper Logging statements
- */
+@SuppressWarnings("unused")
 public class IdemixKeyStore {
 	static private URI CORE_LOCATION;
 	static private TreeWalkerI treeWalker;
@@ -57,8 +55,8 @@ public class IdemixKeyStore {
 	static private IdemixKeyStoreDeserializerI deserializer;
 	static private HttpClient httpClient;
 
-	private HashMap<String, IdemixPublicKey> publicKeys = new HashMap<String, IdemixPublicKey>();
-	private HashMap<String, IdemixSecretKey> secretKeys = new HashMap<String, IdemixSecretKey>();
+	private HashMap<String, IdemixPublicKey> publicKeys = new HashMap<>();
+	private HashMap<String, IdemixSecretKey> secretKeys = new HashMap<>();
 
 	/**
 	 * Define the CoreLocation. This has to be set before using the
@@ -77,8 +75,6 @@ public class IdemixKeyStore {
 	 * Define the TreeWalker. This allows crawling more difficult storage
 	 * systems, like Android's. This has to be set before using the
 	 * DescriptionStore or define a coreLocation instead.
-	 *
-	 * @param treeWalker
 	 */
 	public static void setTreeWalker(TreeWalkerI treeWalker) {
 		IdemixKeyStore.treeWalker = treeWalker;
