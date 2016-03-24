@@ -28,7 +28,9 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.irmacard.credentials.idemix.info.IdemixKeyStore;
+import org.irmacard.credentials.idemix.info.IdemixKeyStoreDeserializer;
 import org.irmacard.credentials.info.DescriptionStore;
+import org.irmacard.credentials.info.DescriptionStoreDeserializer;
 import org.irmacard.credentials.info.InfoException;
 import org.junit.Test;
 
@@ -81,9 +83,8 @@ public class LoadKeysTest {
 		URI core = new File(System
 				.getProperty("user.dir")).toURI()
 				.resolve("irma_configuration/");
-		DescriptionStore.setCoreLocation(core);
-		DescriptionStore.getInstance();
-		IdemixKeyStore.setCoreLocation(core);
+		DescriptionStore.initialize(new DescriptionStoreDeserializer(core));
+		IdemixKeyStore.initialize(new IdemixKeyStoreDeserializer(core));
 		IdemixKeyStore key_store = IdemixKeyStore.getInstance();
 
 		IdemixPublicKey pk = key_store.getPublicKey("Surfnet");

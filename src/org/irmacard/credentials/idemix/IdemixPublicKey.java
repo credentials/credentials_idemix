@@ -30,17 +30,18 @@
 
 package org.irmacard.credentials.idemix;
 
+import org.irmacard.credentials.info.ConfigurationParser;
+import org.irmacard.credentials.info.InfoException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
-
-import org.irmacard.credentials.info.ConfigurationParser;
-import org.irmacard.credentials.info.InfoException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 /**
  * Represents an Idemix public key.
@@ -112,6 +113,10 @@ public class IdemixPublicKey extends ConfigurationParser {
 		super();
 		Document d = parse(stream);
 		init(d);
+	}
+
+	public IdemixPublicKey(String xml) throws InfoException {
+		this(new ByteArrayInputStream(xml.getBytes()));
 	}
 
 	private void init(Document d) throws InfoException {

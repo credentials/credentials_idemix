@@ -35,52 +35,26 @@ import org.irmacard.credentials.idemix.IdemixPublicKey;
 import org.irmacard.credentials.idemix.IdemixSecretKey;
 import org.irmacard.credentials.info.*;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
 import java.util.HashMap;
 
 @SuppressWarnings("unused")
 public class IdemixKeyStore {
-	static private URI CORE_LOCATION;
-	static private TreeWalkerI treeWalker;
+	static public final String PUBLIC_KEY_FILE = "ipk.xml";
+	static public final String PRIVATE_KEY_FILE = "private/isk.xml";
+	static public final String GROUP_PARAMS_FILE = "gp.xml";
+	static public final String SYSTEM_PARAMS_FILE = "sp.xml";
 
-	static private final String PUBLIC_KEY_FILE = "ipk.xml";
-	static private final String PRIVATE_KEY_FILE = "private/isk.xml";
-
-	static IdemixKeyStore ds;
+	static private IdemixKeyStore ds;
 
 	static private IdemixKeyStoreSerializer serializer;
-	static private IdemixKeyStoreDeserializerI deserializer;
+	static private IdemixKeyStoreDeserializer deserializer;
 	static private HttpClient httpClient;
 
 	private HashMap<String, IdemixPublicKey> publicKeys = new HashMap<>();
 	private HashMap<String, IdemixSecretKey> secretKeys = new HashMap<>();
 
-	/**
-	 * Define the CoreLocation. This has to be set before using the
-	 * DescriptionStore or define a TreeWalker instead.
-	 *
-	 * @param coreLocation
-	 *            Location of configuration files.
-	 */
-	public static void setCoreLocation(URI coreLocation) {
-		// Make sure we have the correct URI, including trailing slash
-		File core = new File(coreLocation);
-		CORE_LOCATION = core.toURI();
-	}
-
-	/**
-	 * Define the TreeWalker. This allows crawling more difficult storage
-	 * systems, like Android's. This has to be set before using the
-	 * DescriptionStore or define a coreLocation instead.
-	 */
-	public static void setTreeWalker(TreeWalkerI treeWalker) {
-		IdemixKeyStore.treeWalker = treeWalker;
-	}
-
-	public static void setDeserializer(IdemixKeyStoreDeserializerI deserializer) {
+	public static void setDeserializer(IdemixKeyStoreDeserializer deserializer) {
 		IdemixKeyStore.deserializer = deserializer;
 	}
 
@@ -92,6 +66,30 @@ public class IdemixKeyStore {
 		IdemixKeyStore.httpClient = client;
 	}
 
+	public static void initialize(IdemixKeyStoreDeserializer deserializer,
+	                              IdemixKeyStoreSerializer serializer,
+	                              HttpClient client) throws InfoException {
+		IdemixKeyStore.deserializer = deserializer;
+		IdemixKeyStore.serializer = serializer;
+		IdemixKeyStore.httpClient = client;
+		initialize();
+	}
+
+	public static void initialize(IdemixKeyStoreDeserializer deserializer) throws InfoException {
+		IdemixKeyStore.deserializer = deserializer;
+		initialize();
+	}
+
+	public static void initialize() throws InfoException {
+		ds = new IdemixKeyStore();
+		if (deserializer != null)
+			new KeyTreeWalker(deserializer).deserializeIdemixKeyStore(ds);
+	}
+
+	public static boolean isInitialized() {
+		return ds != null;
+	}
+
 	/**
 	 * Get DescriptionStore instance
 	 *
@@ -99,19 +97,8 @@ public class IdemixKeyStore {
 	 * @throws InfoException if instantiating the IdemixKeyStore failed
 	 */
 	public static IdemixKeyStore getInstance() throws InfoException {
-		if (ds == null) {
-			if (CORE_LOCATION != null) {
-				treeWalker = new TreeWalker(CORE_LOCATION);
-			}
-
-			if (treeWalker != null && deserializer == null) {
-				deserializer = new IdemixKeyStoreDeserializer(CORE_LOCATION, treeWalker);
-			}
-
-			if (deserializer != null) {
-				ds = deserializer.deserializeIdemixKeyStore();
-			}
-		}
+		if (ds == null)
+			initialize();
 
 		return ds;
 	}
@@ -120,15 +107,15 @@ public class IdemixKeyStore {
 		ds = instance;
 	}
 
-	public static boolean isLocationSet() {
-		return CORE_LOCATION != null;
-	}
-
 	public void updatePublicKey(IssuerDescription id, IdemixPublicKey ipk) {
 		if (publicKeys.containsKey(id.getID())) {
 			publicKeys.remove(id.getID());
 		}
 		publicKeys.put(id.getID(), ipk);
+	}
+
+	public boolean containsPublicKey(String issuer) {
+		return publicKeys.containsKey(issuer);
 	}
 
 	public IdemixPublicKey getPublicKey(String issuer) throws InfoException {
@@ -144,6 +131,10 @@ public class IdemixKeyStore {
 
 	public IdemixSecretKey getSecretKey(CredentialDescription cd) throws InfoException {
 		return getSecretKey(cd.getIssuerDescription());
+	}
+
+	public boolean containsSecretKey(IssuerDescription id) {
+		return secretKeys.containsKey(id.getID());
 	}
 
 	public IdemixSecretKey getSecretKey(IssuerDescription id) throws InfoException {
@@ -166,19 +157,22 @@ public class IdemixKeyStore {
 		if (manager == null)
 			throw new InfoException("Unknown scheme manager");
 
-		IssuerDescription issuer = DescriptionStore.getInstance().downloadIssuerDescription(name, false);
+		IssuerDescription issuer = DescriptionStore.getInstance().getIssuerDescription(name);
+		if (issuer == null)
+			issuer = DescriptionStore.getInstance().downloadIssuerDescription(name);
 
-		String url = manager.getUrl() + name + "/ipk.xml";
-		InputStream stream = DescriptionStore.doHttpRequest(url);
+		String url = manager.getUrl() + name + "/";
 
-		ds.updatePublicKey(issuer, new IdemixPublicKey(stream));
+		String pkXml = DescriptionStore.inputStreamToString(DescriptionStore.doHttpRequest(url + PUBLIC_KEY_FILE));
+		String gpXml = DescriptionStore.inputStreamToString(DescriptionStore.doHttpRequest(url + GROUP_PARAMS_FILE));
+		String spXml = DescriptionStore.inputStreamToString(DescriptionStore.doHttpRequest(url + SYSTEM_PARAMS_FILE));
 
-		save();
-		return issuer;
-	}
+		IdemixPublicKey pk = new IdemixPublicKey(pkXml);
 
-	protected void save() {
+		updatePublicKey(issuer, pk);
 		if (serializer != null)
-			serializer.saveIdemixKeyStore(this);
+			serializer.saveIdemixKey(issuer, pkXml, gpXml, spXml);
+
+		return issuer;
 	}
 }
