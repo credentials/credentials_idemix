@@ -44,18 +44,13 @@ public class IdemixCredentialDescription {
 	private CredentialDescription cd;
 	private IdemixPublicKey pk;
 
-	public IdemixCredentialDescription(String issuer, String cred) throws InfoException {
-		this.cd = DescriptionStore.getInstance().getCredentialDescriptionByName(issuer, cred);
-		setupPK();
-	}
-
 	public IdemixCredentialDescription(CredentialDescription cd) throws InfoException {
 		this.cd = cd;
 		setupPK();
 	}
 
 	private void setupPK() throws InfoException {
-		this.pk = IdemixKeyStore.getInstance().getPublicKey(cd.getIssuerID());
+		this.pk = IdemixKeyStore.getInstance().getPublicKey(cd.getIssuerDescription());
 	}
 
 	public int numberOfAttributes() {

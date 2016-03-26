@@ -16,11 +16,11 @@ public class KeyTreeWalker {
 
 		for (IssuerDescription id : ds.getIssuerDescriptions()) {
 			try {
-				store.setPublicKey(id.getID(), deserializer.loadPublicKey(id.getID()));
+				store.setPublicKey(id.getIdentifier(), deserializer.loadPublicKey(id.getIdentifier()));
 			} catch (InfoException e) { /* ignore absence of public key */ }
 
 			try {
-				store.setSecretKey(id.getID(), deserializer.loadPrivateKey(id.getID()));
+				store.setSecretKey(id.getIdentifier(), deserializer.loadPrivateKey(id.getIdentifier()));
 			} catch (InfoException e) { /* ignore absence of private key */ }
 		}
 	}

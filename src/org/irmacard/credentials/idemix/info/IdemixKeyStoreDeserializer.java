@@ -5,14 +5,12 @@ import org.irmacard.credentials.idemix.IdemixSecretKey;
 import org.irmacard.credentials.info.BasicFileReader;
 import org.irmacard.credentials.info.FileReader;
 import org.irmacard.credentials.info.InfoException;
+import org.irmacard.credentials.info.IssuerIdentifier;
 
 import java.net.URI;
 
 @SuppressWarnings("unused")
 public class IdemixKeyStoreDeserializer {
-	static private final String PUBLIC_KEY_FILE = "ipk.xml";
-	static private final String PRIVATE_KEY_FILE = "private/isk.xml";
-
 	private FileReader fileReader;
 
 	public IdemixKeyStoreDeserializer(URI coreLocation) {
@@ -23,13 +21,13 @@ public class IdemixKeyStoreDeserializer {
 		this.fileReader = reader;
 	}
 
-	public IdemixPublicKey loadPublicKey(String issuer) throws InfoException {
-		String path = issuer + "/" + PUBLIC_KEY_FILE;
+	public IdemixPublicKey loadPublicKey(IssuerIdentifier issuer) throws InfoException {
+		String path = issuer.getPath(false) + "/" + IdemixKeyStore.PUBLIC_KEY_FILE;
 		return new IdemixPublicKey(fileReader.retrieveFile(path));
 	}
 
-	public IdemixSecretKey loadPrivateKey(String issuer) throws InfoException {
-		String path = issuer + "/" + PRIVATE_KEY_FILE;
+	public IdemixSecretKey loadPrivateKey(IssuerIdentifier issuer) throws InfoException {
+		String path = issuer.getPath(false) + "/" + IdemixKeyStore.PRIVATE_KEY_FILE;
 		return new IdemixSecretKey(fileReader.retrieveFile(path));
 	}
 }

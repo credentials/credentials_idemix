@@ -32,6 +32,7 @@ import org.irmacard.credentials.idemix.info.IdemixKeyStoreDeserializer;
 import org.irmacard.credentials.info.DescriptionStore;
 import org.irmacard.credentials.info.DescriptionStoreDeserializer;
 import org.irmacard.credentials.info.InfoException;
+import org.irmacard.credentials.info.IssuerIdentifier;
 import org.junit.Test;
 
 /**
@@ -87,7 +88,7 @@ public class LoadKeysTest {
 		IdemixKeyStore.initialize(new IdemixKeyStoreDeserializer(core));
 		IdemixKeyStore key_store = IdemixKeyStore.getInstance();
 
-		IdemixPublicKey pk = key_store.getPublicKey("Surfnet");
+		IdemixPublicKey pk = key_store.getPublicKey(new IssuerIdentifier("Surfnet"));
 		assertTrue(pk.getGeneratorS().equals(S));
 		assertTrue(pk.getGeneratorZ().equals(Z));
 		for(int i = 0; i < R.size(); i++) {

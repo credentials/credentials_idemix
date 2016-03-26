@@ -51,8 +51,8 @@ public class IdemixKeyStore {
 	static private IdemixKeyStoreDeserializer deserializer;
 	static private HttpClient httpClient;
 
-	private HashMap<String, IdemixPublicKey> publicKeys = new HashMap<>();
-	private HashMap<String, IdemixSecretKey> secretKeys = new HashMap<>();
+	private HashMap<IssuerIdentifier, IdemixPublicKey> publicKeys = new HashMap<>();
+	private HashMap<IssuerIdentifier, IdemixSecretKey> secretKeys = new HashMap<>();
 
 	public static void setDeserializer(IdemixKeyStoreDeserializer deserializer) {
 		IdemixKeyStore.deserializer = deserializer;
@@ -108,24 +108,39 @@ public class IdemixKeyStore {
 	}
 
 	public void updatePublicKey(IssuerDescription id, IdemixPublicKey ipk) {
-		if (publicKeys.containsKey(id.getID())) {
-			publicKeys.remove(id.getID());
+		if (publicKeys.containsKey(id.getIdentifier())) {
+			publicKeys.remove(id.getIdentifier());
 		}
-		publicKeys.put(id.getID(), ipk);
+		publicKeys.put(id.getIdentifier(), ipk);
 	}
 
+	@Deprecated
 	public boolean containsPublicKey(String issuer) {
+		return containsPublicKey(new IssuerIdentifier(issuer));
+	}
+
+	public boolean containsPublicKey(IssuerIdentifier issuer) {
 		return publicKeys.containsKey(issuer);
 	}
 
+	@Deprecated
 	public IdemixPublicKey getPublicKey(String issuer) throws InfoException {
+		return getPublicKey(new IssuerIdentifier(issuer));
+	}
+
+	public IdemixPublicKey getPublicKey(IssuerIdentifier issuer) throws InfoException {
 		if (publicKeys.containsKey(issuer))
 			return publicKeys.get(issuer);
 
 		throw new InfoException("Public key for issuer " + issuer + " not found.");
 	}
 
+	@Deprecated
 	public void setPublicKey(String issuer, IdemixPublicKey pk) {
+		setPublicKey(new IssuerIdentifier(issuer), pk);
+	}
+
+	public void setPublicKey(IssuerIdentifier issuer, IdemixPublicKey pk) {
 		publicKeys.put(issuer, pk);
 	}
 
@@ -134,34 +149,39 @@ public class IdemixKeyStore {
 	}
 
 	public boolean containsSecretKey(IssuerDescription id) {
-		return secretKeys.containsKey(id.getID());
+		return secretKeys.containsKey(id.getIdentifier());
 	}
 
 	public IdemixSecretKey getSecretKey(IssuerDescription id) throws InfoException {
-		if (secretKeys.containsKey(id.getID()))
-			return secretKeys.get(id.getID());
+		if (secretKeys.containsKey(id.getIdentifier()))
+			return secretKeys.get(id.getIdentifier());
 
 		throw new InfoException("Secret key for issuer " + id.getID() + " not found");
 	}
 
+	@Deprecated
 	public void setSecretKey(String issuer, IdemixSecretKey sk) {
+		setSecretKey(new IssuerIdentifier(issuer), sk);
+	}
+
+	public void setSecretKey(IssuerIdentifier issuer, IdemixSecretKey sk) {
 		secretKeys.put(issuer, sk);
 	}
 
 	public IdemixPublicKey getPublicKey(IssuerDescription id) {
-		return publicKeys.get(id.getID());
+		return publicKeys.get(id.getIdentifier());
 	}
 
-	public IssuerDescription downloadIssuer(String name) throws IOException, InfoException {
-		SchemeManager manager = DescriptionStore.getInstance().getSchemeManager("default");
+	public IssuerDescription downloadIssuer(IssuerIdentifier issuer) throws IOException, InfoException {
+		SchemeManager manager = DescriptionStore.getInstance().getSchemeManager(issuer.getSchemeManagerName());
 		if (manager == null)
 			throw new InfoException("Unknown scheme manager");
 
-		IssuerDescription issuer = DescriptionStore.getInstance().getIssuerDescription(name);
-		if (issuer == null)
-			issuer = DescriptionStore.getInstance().downloadIssuerDescription(name);
+		IssuerDescription id = DescriptionStore.getInstance().getIssuerDescription(issuer);
+		if (id == null)
+			id = DescriptionStore.getInstance().downloadIssuerDescription(issuer);
 
-		String url = manager.getUrl() + name + "/";
+		String url = manager.getUrl() + issuer.getPath(false) + "/";
 
 		String pkXml = DescriptionStore.inputStreamToString(DescriptionStore.doHttpRequest(url + PUBLIC_KEY_FILE));
 		String gpXml = DescriptionStore.inputStreamToString(DescriptionStore.doHttpRequest(url + GROUP_PARAMS_FILE));
@@ -169,10 +189,10 @@ public class IdemixKeyStore {
 
 		IdemixPublicKey pk = new IdemixPublicKey(pkXml);
 
-		updatePublicKey(issuer, pk);
+		updatePublicKey(id, pk);
 		if (serializer != null)
-			serializer.saveIdemixKey(issuer, pkXml, gpXml, spXml);
+			serializer.saveIdemixKey(id, pkXml, gpXml, spXml);
 
-		return issuer;
+		return id;
 	}
 }
