@@ -40,6 +40,8 @@ import org.junit.Test;
  *
  */
 public class LoadKeysTest {
+	static public final String schemeManager = "irma-demo";
+
 	static BigInteger p = new BigInteger("10436034022637868273483137633548989700482895839559909621411910579140541345632481969613724849214412062500244238926015929148144084368427474551770487566048119");
 	static BigInteger q = new BigInteger("9204968012315139729618449685392284928468933831570080795536662422367142181432679739143882888540883909887054345986640656981843559062844656131133512640733759");
 
@@ -60,7 +62,7 @@ public class LoadKeysTest {
 
 	@Test
 	public void loadSecretKey() throws InfoException {
-		URI secret_key_loc = core.resolve("Surfnet/private/isk.xml");
+		URI secret_key_loc = core.resolve("irma-demo/Surfnet/private/isk.xml");
 		IdemixSecretKey sk = new IdemixSecretKey(secret_key_loc);
 
 		assertTrue(sk.get_p().equals(p));
@@ -69,7 +71,7 @@ public class LoadKeysTest {
 
 	@Test
 	public void loadPublicKey() throws InfoException {
-		URI public_key_loc = core.resolve("Surfnet/ipk.xml");
+		URI public_key_loc = core.resolve(schemeManager + "/Surfnet/ipk.xml");
 		IdemixPublicKey pk = new IdemixPublicKey(public_key_loc);
 
 		assertTrue(pk.getGeneratorS().equals(S));
@@ -88,7 +90,7 @@ public class LoadKeysTest {
 		IdemixKeyStore.initialize(new IdemixKeyStoreDeserializer(core));
 		IdemixKeyStore key_store = IdemixKeyStore.getInstance();
 
-		IdemixPublicKey pk = key_store.getPublicKey(new IssuerIdentifier("Surfnet"));
+		IdemixPublicKey pk = key_store.getPublicKey(new IssuerIdentifier(schemeManager, "Surfnet"));
 		assertTrue(pk.getGeneratorS().equals(S));
 		assertTrue(pk.getGeneratorZ().equals(Z));
 		for(int i = 0; i < R.size(); i++) {

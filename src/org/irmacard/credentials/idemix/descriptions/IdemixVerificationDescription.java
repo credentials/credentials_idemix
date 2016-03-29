@@ -37,10 +37,7 @@ import java.security.SecureRandom;
 
 import org.irmacard.credentials.idemix.IdemixPublicKey;
 import org.irmacard.credentials.idemix.util.Crypto;
-import org.irmacard.credentials.info.AttributeDescription;
-import org.irmacard.credentials.info.DescriptionStore;
-import org.irmacard.credentials.info.InfoException;
-import org.irmacard.credentials.info.VerificationDescription;
+import org.irmacard.credentials.info.*;
 
 public class IdemixVerificationDescription {
 	private VerificationDescription vd;
@@ -51,7 +48,7 @@ public class IdemixVerificationDescription {
 		this.cd = new IdemixCredentialDescription(vd.getCredentialDescription());
 	}
 
-	public IdemixVerificationDescription(String verifier, String credential)
+	public IdemixVerificationDescription(IssuerIdentifier verifier, String credential)
 			throws InfoException {
 		this.vd = DescriptionStore.getInstance()
 				.getVerificationDescriptionByName(verifier, credential);
