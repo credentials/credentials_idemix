@@ -32,9 +32,7 @@ package org.irmacard.credentials.idemix;
 
 import java.math.BigInteger;
 
-import org.irmacard.credentials.Nonce;
-
-public class IdemixNonce implements Nonce {
+public class IdemixNonce {
 	private BigInteger n;
 	
 	public IdemixNonce(BigInteger n) {
