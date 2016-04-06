@@ -42,6 +42,7 @@ import org.irmacard.credentials.idemix.IdemixSystemParameters;
 import org.irmacard.credentials.idemix.info.IdemixKeyStore;
 import org.irmacard.credentials.idemix.util.Crypto;
 import org.irmacard.credentials.info.CredentialDescription;
+import org.irmacard.credentials.info.CredentialIdentifier;
 import org.irmacard.credentials.info.DescriptionStore;
 import org.irmacard.credentials.info.InfoException;
 
@@ -99,10 +100,11 @@ public class ProofD implements Proof {
 
 	@Override
 	public IdemixPublicKey extractPublicKey() {
-		short id = Attributes.extractCredentialId(get_a_disclosed().get(1));
+		Attributes attrs = new Attributes(get_a_disclosed());
+
+		CredentialIdentifier id = attrs.getCredentialIdentifier();
 		try {
-			CredentialDescription cd = DescriptionStore.getInstance().getCredentialDescription(id);
-			return IdemixKeyStore.getInstance().getPublicKey(cd.getIssuerDescription());
+			return IdemixKeyStore.getInstance().getPublicKey(id.getIssuerIdentifier());
 		} catch (InfoException e) {
 			throw new RuntimeException(e);
 		}

@@ -36,6 +36,7 @@ import java.util.List;
 import java.security.SecureRandom;
 import java.util.Vector;
 
+import org.irmacard.credentials.Attributes;
 import org.irmacard.credentials.idemix.proofs.ProofListBuilder;
 import org.irmacard.credentials.idemix.proofs.ProofD;
 import org.irmacard.credentials.idemix.util.Crypto;
@@ -104,6 +105,10 @@ public class IdemixCredential {
 
 	public BigInteger getAttribute(int i) {
 		return attributes.get(i);
+	}
+
+	public Attributes getAllAttributes() {
+		return new Attributes(attributes);
 	}
 
 	private List<Integer> getUndisclosedAttributes(List<Integer> disclosed_attributes) {

@@ -20,20 +20,26 @@
 
 package org.irmacard.credentials.idemix;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.math.BigInteger;
-import java.util.*;
-
+import org.irmacard.credentials.Attributes;
 import org.irmacard.credentials.CredentialsException;
+import org.irmacard.credentials.idemix.info.IdemixKeyStore;
+import org.irmacard.credentials.idemix.info.IdemixKeyStoreDeserializer;
 import org.irmacard.credentials.idemix.messages.IssueCommitmentMessage;
 import org.irmacard.credentials.idemix.messages.IssueSignatureMessage;
 import org.irmacard.credentials.idemix.proofs.*;
 import org.irmacard.credentials.idemix.util.Crypto;
+import org.irmacard.credentials.info.CredentialIdentifier;
+import org.irmacard.credentials.info.DescriptionStore;
+import org.irmacard.credentials.info.DescriptionStoreDeserializer;
 import org.irmacard.credentials.info.InfoException;
 import org.junit.Test;
+
+import java.io.File;
+import java.math.BigInteger;
+import java.net.URI;
+import java.util.*;
+
+import static org.junit.Assert.*;
 
 public class IRMACryptoTest {
 	static BigInteger p = new BigInteger("10436034022637868273483137633548989700482895839559909621411910579140541345632481969613724849214412062500244238926015929148144084368427474551770487566048119");
@@ -443,5 +449,50 @@ public class IRMACryptoTest {
 		List<Integer> disclosed = Arrays.asList(1, 3);
 		ProofD proof = cred.createDisclosureProof(disclosed, context, n_1);
 		assertTrue("Proof of disclosure should verify", proof.verify(pk, context, n_1));
+	}
+
+	@Test
+	public void AttributesTest() throws InfoException {
+		URI core = new File(System.getProperty("user.dir")).toURI().resolve("irma_configuration/");
+		DescriptionStore.initialize(new DescriptionStoreDeserializer(core));
+		IdemixKeyStore.initialize(new IdemixKeyStoreDeserializer(core));
+
+		CredentialIdentifier ageLower = new CredentialIdentifier("irma-demo.MijnOverheid.ageLower");
+		Date time = new Date(Calendar.getInstance().getTimeInMillis()
+				/ Attributes.EXPIRY_FACTOR * Attributes.EXPIRY_FACTOR);
+		short keyCounter = 3;
+		short duration = 10;
+
+		Attributes attributes = new Attributes();
+		attributes.add("over12", "yes".getBytes());
+		attributes.add("over16", "yes".getBytes());
+		attributes.add("over18", "no".getBytes());
+		attributes.add("over21", "no".getBytes());
+
+		attributes.setCredentialIdentifier(ageLower);
+		attributes.setKeyCounter(keyCounter);
+		attributes.setValidityDuration(duration);
+		attributes.setSigningDate(time);
+
+		ArrayList<BigInteger> bigints = attributes.toBigIntegers();
+		bigints.add(0, BigInteger.TEN); // secret key
+		CLSignature signature1 = CLSignature.signMessageBlock(sk, pk, bigints);
+		IdemixCredential cred1 = new IdemixCredential(pk, bigints, signature1);
+
+		Random rnd = new Random();
+		IdemixSystemParameters params = pk.getSystemParameters();
+		BigInteger context = new BigInteger(params.l_h, rnd);
+		BigInteger nonce1 = new BigInteger(params.l_statzk, rnd);
+
+		ProofList collection = new ProofListBuilder(context, nonce1)
+				.addProofD(cred1, Arrays.asList(1, 2))
+				.build();
+
+		Attributes disclosed = new Attributes(((ProofD)collection.get(0)).get_a_disclosed());
+		assertTrue("Attributes should be valid", disclosed.isValid());
+		assertTrue("Credential identifiers should match", disclosed.getCredentialIdentifier().equals(ageLower));
+		assertTrue("Key counters should match", disclosed.getKeyCounter() == keyCounter);
+		assertTrue("Validity duration should match", disclosed.getValidityDuration() == duration);
+		assertTrue("Issuing dates should match", disclosed.getSigningDate().equals(time));
 	}
 }
