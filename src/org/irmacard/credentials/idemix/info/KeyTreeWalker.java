@@ -33,6 +33,7 @@ package org.irmacard.credentials.idemix.info;
 import org.irmacard.credentials.info.DescriptionStore;
 import org.irmacard.credentials.info.InfoException;
 import org.irmacard.credentials.info.IssuerDescription;
+import org.irmacard.credentials.info.IssuerIdentifier;
 
 public class KeyTreeWalker {
 	private IdemixKeyStoreDeserializer deserializer;
@@ -45,13 +46,15 @@ public class KeyTreeWalker {
 		DescriptionStore ds = DescriptionStore.getInstance();
 
 		for (IssuerDescription id : ds.getIssuerDescriptions()) {
-			try {
-				store.setPublicKey(id.getIdentifier(), deserializer.loadPublicKey(id.getIdentifier()));
-			} catch (InfoException e) { /* ignore absence of public key */ }
+			IssuerIdentifier issuer = id.getIdentifier();
 
-			try {
-				store.setSecretKey(id.getIdentifier(), deserializer.loadPrivateKey(id.getIdentifier()));
-			} catch (InfoException e) { /* ignore absence of private key */ }
+			for (int i : deserializer.getPublicKeyCounters(issuer)) {
+				// We expect this public key here, throw exception if it's not here
+				store.setPublicKey(issuer, deserializer.loadPublicKey(issuer, i), i);
+				try {
+					store.setSecretKey(issuer, deserializer.loadPrivateKey(issuer, i), i);
+				} catch (InfoException e) { /* ignore absence of public or private key */ }
+			}
 		}
 	}
 }

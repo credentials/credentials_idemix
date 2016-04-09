@@ -30,6 +30,7 @@
 
 package org.irmacard.credentials.idemix;
 
+import org.irmacard.credentials.PublicKey;
 import org.irmacard.credentials.info.ConfigurationParser;
 import org.irmacard.credentials.info.InfoException;
 import org.w3c.dom.Document;
@@ -39,14 +40,13 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Vector;
+import java.util.*;
 
 /**
  * Represents an Idemix public key.
  */
-public class IdemixPublicKey extends ConfigurationParser {
+@SuppressWarnings("unused")
+public class IdemixPublicKey extends ConfigurationParser implements PublicKey {
 	private BigInteger n;
 	private BigInteger Z;
 	private BigInteger S;
@@ -54,6 +54,9 @@ public class IdemixPublicKey extends ConfigurationParser {
 	private List<BigInteger> R;
 
 	private IdemixSystemParameters systemParameters = new IdemixSystemParameters();
+
+	private int counter;
+	private Date expiryDate;
 
 	public IdemixPublicKey(BigInteger n, BigInteger Z, BigInteger S,
 			List<BigInteger> R) {
@@ -70,7 +73,7 @@ public class IdemixPublicKey extends ConfigurationParser {
 	}
 
 	public IdemixPublicKey(int size) {
-		R = new ArrayList<BigInteger>();
+		R = new ArrayList<>();
 		for(int i = 0; i < size; i++) {
 			R.add(null);
 		}
@@ -124,9 +127,12 @@ public class IdemixPublicKey extends ConfigurationParser {
 		Z = new BigInteger(getFirstTagText(d, "Z"));
 		S = new BigInteger(getFirstTagText(d, "S"));
 
+		counter = Integer.valueOf(getFirstTagText(d, "Counter"));
+		expiryDate = new Date(Long.valueOf(getFirstTagText(d, "ExpiryDate")) * 1000);
+
 		Element bases = ((Element) d.getElementsByTagName("Bases").item(0));
 		int num_bases = Integer.parseInt(bases.getAttribute("num"));
-		R = new Vector<BigInteger>();
+		R = new Vector<>();
 		for(int i = 0; i < num_bases; i++) {
 			String base = bases.getElementsByTagName("Base_" + i).item(0).getTextContent().trim();
 			R.add(new BigInteger(base));
@@ -159,5 +165,23 @@ public class IdemixPublicKey extends ConfigurationParser {
 
 	public String toString() {
 		return "Public key: " + R.get(0);
+	}
+
+	@Override
+	public int getCounter() {
+		return counter;
+	}
+
+	public Date getExpiryDate() {
+		return expiryDate;
+	}
+
+	public boolean isValid() {
+		return isValidOn(Calendar.getInstance().getTime());
+	}
+
+	@Override
+	public boolean isValidOn(Date date) {
+		return expiryDate.after(date);
 	}
 }

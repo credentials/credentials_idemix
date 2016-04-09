@@ -30,22 +30,21 @@
 
 package org.irmacard.credentials.idemix.proofs;
 
+import org.irmacard.credentials.Attributes;
+import org.irmacard.credentials.idemix.IdemixPublicKey;
+import org.irmacard.credentials.idemix.IdemixSystemParameters;
+import org.irmacard.credentials.idemix.info.IdemixKeyStore;
+import org.irmacard.credentials.idemix.util.Crypto;
+import org.irmacard.credentials.info.CredentialIdentifier;
+import org.irmacard.credentials.info.InfoException;
+
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
-import org.irmacard.credentials.Attributes;
-import org.irmacard.credentials.idemix.IdemixPublicKey;
-import org.irmacard.credentials.idemix.IdemixSystemParameters;
-import org.irmacard.credentials.idemix.info.IdemixKeyStore;
-import org.irmacard.credentials.idemix.util.Crypto;
-import org.irmacard.credentials.info.CredentialDescription;
-import org.irmacard.credentials.info.CredentialIdentifier;
-import org.irmacard.credentials.info.DescriptionStore;
-import org.irmacard.credentials.info.InfoException;
-
+@SuppressWarnings("unused")
 public class ProofD implements Proof {
 	private BigInteger c;
 	private BigInteger A;
@@ -104,7 +103,7 @@ public class ProofD implements Proof {
 
 		CredentialIdentifier id = attrs.getCredentialIdentifier();
 		try {
-			return IdemixKeyStore.getInstance().getPublicKey(id.getIssuerIdentifier());
+			return IdemixKeyStore.getInstance().getPublicKey(id.getIssuerIdentifier(), attrs.getKeyCounter());
 		} catch (InfoException e) {
 			throw new RuntimeException(e);
 		}

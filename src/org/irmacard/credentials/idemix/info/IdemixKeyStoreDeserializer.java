@@ -38,6 +38,7 @@ import org.irmacard.credentials.info.InfoException;
 import org.irmacard.credentials.info.IssuerIdentifier;
 
 import java.net.URI;
+import java.util.ArrayList;
 
 @SuppressWarnings("unused")
 public class IdemixKeyStoreDeserializer {
@@ -51,13 +52,34 @@ public class IdemixKeyStoreDeserializer {
 		this.fileReader = reader;
 	}
 
-	public IdemixPublicKey loadPublicKey(IssuerIdentifier issuer) throws InfoException {
-		String path = issuer.getPath(false) + "/" + IdemixKeyStore.PUBLIC_KEY_FILE;
-		return new IdemixPublicKey(fileReader.retrieveFile(path));
+	public String getPublicKeyPath(IssuerIdentifier issuer, int counter) {
+		return String.format(issuer.getPath(false) + "/" + IdemixKeyStore.PUBLIC_KEY_FILE, counter);
 	}
 
-	public IdemixSecretKey loadPrivateKey(IssuerIdentifier issuer) throws InfoException {
-		String path = issuer.getPath(false) + "/" + IdemixKeyStore.PRIVATE_KEY_FILE;
-		return new IdemixSecretKey(fileReader.retrieveFile(path));
+	public String getPrivateKeyPath(IssuerIdentifier issuer, int counter) {
+		return String.format(issuer.getPath(false) + "/" + IdemixKeyStore.PRIVATE_KEY_FILE, counter);
+	}
+
+	public ArrayList<Integer> getPublicKeyCounters(IssuerIdentifier issuer) throws InfoException {
+		String[] files = fileReader.list(issuer.getPath(false) + "/PublicKeys");
+		if (files == null || files.length == 0)
+			throw new InfoException("No keys found for issuer " + issuer);
+
+		ArrayList<Integer> counters = new ArrayList<>(files.length);
+		for (String filename : files) {
+			if (filename.startsWith("."))
+				continue;
+			counters.add(Integer.valueOf(filename.substring(0, filename.length() - 4)));
+		}
+
+		return counters;
+	}
+
+	public IdemixPublicKey loadPublicKey(IssuerIdentifier issuer, int counter) throws InfoException {
+		return new IdemixPublicKey(fileReader.retrieveFile(getPublicKeyPath(issuer, counter)));
+	}
+
+	public IdemixSecretKey loadPrivateKey(IssuerIdentifier issuer, int counter) throws InfoException {
+		return new IdemixSecretKey(fileReader.retrieveFile(getPrivateKeyPath(issuer, counter)));
 	}
 }
