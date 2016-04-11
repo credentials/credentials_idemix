@@ -186,7 +186,7 @@ public class IdemixKeyStore extends KeyStore {
 		if (manager == null)
 			throw new InfoException("Unknown scheme manager");
 
-		String url = manager.getUrl() + issuer.getPath(false) + "/";
+		String url = manager.getUrl() + "/" + issuer.getIssuerName() + "/";
 
 		String pkXml = DescriptionStore.inputStreamToString(
 				DescriptionStore.doHttpRequest(url + String.format(PUBLIC_KEY_FILE, counter)));
