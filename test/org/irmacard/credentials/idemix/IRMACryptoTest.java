@@ -460,7 +460,7 @@ public class IRMACryptoTest {
 		CredentialIdentifier ageLower = new CredentialIdentifier("irma-demo.MijnOverheid.ageLower");
 		Date time = new Date(Calendar.getInstance().getTimeInMillis()
 				/ Attributes.EXPIRY_FACTOR * Attributes.EXPIRY_FACTOR);
-		short keyCounter = 3;
+		short keyCounter = 0;
 		short duration = 10;
 
 		Attributes attributes = new Attributes();
