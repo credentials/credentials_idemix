@@ -30,16 +30,17 @@
 
 package org.irmacard.credentials.idemix;
 
+import org.irmacard.credentials.Attributes;
+import org.irmacard.credentials.idemix.proofs.ProofD;
+import org.irmacard.credentials.idemix.proofs.ProofListBuilder;
+import org.irmacard.credentials.idemix.util.Crypto;
+
 import java.math.BigInteger;
+import java.security.SecureRandom;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.security.SecureRandom;
 import java.util.Vector;
-
-import org.irmacard.credentials.Attributes;
-import org.irmacard.credentials.idemix.proofs.ProofListBuilder;
-import org.irmacard.credentials.idemix.proofs.ProofD;
-import org.irmacard.credentials.idemix.util.Crypto;
 
 /**
  * Represents an Idemix credential.
@@ -109,6 +110,10 @@ public class IdemixCredential {
 
 	public Attributes getAllAttributes() {
 		return new Attributes(attributes);
+	}
+
+	public int getKeyCounter() {
+		return new Attributes(attributes.get(1)).getKeyCounter();
 	}
 
 	private List<Integer> getUndisclosedAttributes(List<Integer> disclosed_attributes) {
