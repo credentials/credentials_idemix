@@ -30,13 +30,13 @@
 
 package org.irmacard.credentials.idemix.proofs;
 
-import org.irmacard.credentials.idemix.IdemixPublicKey;
-import org.irmacard.credentials.idemix.info.IdemixKeyStore;
-import org.irmacard.credentials.idemix.util.Crypto;
-
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.irmacard.credentials.idemix.IdemixPublicKey;
+import org.irmacard.credentials.idemix.info.IdemixKeyStore;
+import org.irmacard.credentials.idemix.util.Crypto;
 
 /**
  * <p>A collection of proofs of knowledge, for one or more disclosure proofs, or for the commitment to the private key
@@ -117,14 +117,20 @@ public class ProofList extends ArrayList<Proof> {
 
 		Proof proof;
 		IdemixPublicKey pk;
+
+		BigInteger challenge = null;
+		boolean bounded = isBound(context, nonce);
+		if (bounded) {
+			challenge = reconstructChallenge(context, nonce);
+		}
+
 		for (int i=0; i < size(); ++i) {
 			proof = get(i);
 			pk = publicKeys.get(i);
 			if (pk == null)
 				throw new RuntimeException("Missing public key for proof " + i + " of " + size());
 
-			if (isBound(context, nonce)) {
-				BigInteger challenge = reconstructChallenge(context, nonce);
+			if (bounded) {
 				if (!proof.verify(pk, context, nonce, challenge))
 					return false;
 			} else {
