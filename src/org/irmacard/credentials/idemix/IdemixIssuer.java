@@ -82,26 +82,43 @@ public class IdemixIssuer {
 		return issueSignature(msg, attrs, 0, nonce1);
 	}
 
-	public IssueSignatureMessage issueSignature(IssueCommitmentMessage msg,
-			List<BigInteger> attrs, int index, BigInteger nonce1) throws CredentialsException {
+	public void verifyCommitments(IssueCommitmentMessage msg, BigInteger nonce1) throws CredentialsException {
 		if (msg.getCombinedProofs() == null && msg.getCommitmentProof() == null) {
 			throw new CredentialsException("No ProofU found in message");
 		}
 
+		if (msg.getCombinedProofs() != null) {
+			ProofList proofs = msg.getCombinedProofs();
+			if(!proofs.verify(context, nonce1, true))
+				throw new CredentialsException("The combined proofs are not correct");
+		}
+		else {
+			if(!msg.getCommitmentProof().verify(pk, context, nonce1))
+				throw new CredentialsException("The commitment proof is not correct");
+		}
+	}
+
+	public IssueSignatureMessage issueSignature(IssueCommitmentMessage msg,
+			List<BigInteger> attrs, int index, BigInteger nonce1) throws CredentialsException {
+		verifyCommitments(msg, nonce1);
+		return issueSignatureNoCheck(msg, attrs, index, nonce1);
+	}
+
+	/**
+	 * ADVANCED! This version of issueSignature does _not_ check the supplied
+	 * proofs, you have to manually call verifyCommitments, and ensure that
+	 * there are no problems before using this method.
+	 */
+	public IssueSignatureMessage issueSignatureNoCheck(IssueCommitmentMessage msg,
+			List<BigInteger> attrs, int index, BigInteger nonce1) throws CredentialsException {
 		BigInteger U;
 
 		if (msg.getCombinedProofs() != null) {
 			ProofList proofs = msg.getCombinedProofs();
 			U = proofs.getProofU(index).getU();
-			if (!proofs.verify(context, nonce1, true)) {
-				throw new CredentialsException("The combined proofs are not correct");
-			}
 		}
 		else {
 			U = msg.getCommitmentProof().getU();
-			if (!msg.getCommitmentProof().verify(pk, context, nonce1)) {
-				throw new CredentialsException("The commitment proof is not correct");
-			}
 		}
 
 		CLSignature signature = signCommitmentAndAttributes(U, attrs);
