@@ -63,9 +63,6 @@ public class IdemixPublicKey extends ConfigurationParser implements PublicKey {
 
 		super();
 
-		// Enable serialization
-		this.db = null;
-
 		this.n = n;
 		this.Z = Z;
 		this.S = S;
