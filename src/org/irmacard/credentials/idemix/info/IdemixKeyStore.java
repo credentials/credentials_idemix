@@ -38,6 +38,7 @@ import org.irmacard.credentials.info.*;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 
 @SuppressWarnings("unused")
 public class IdemixKeyStore extends KeyStore {
@@ -127,6 +128,13 @@ public class IdemixKeyStore extends KeyStore {
 			return publicKeys.get(issuer).get(counter);
 
 		throw new InfoException("Public key " + counter + " for issuer " + issuer + " not found");
+	}
+
+	@Override
+	public void removePublicKeys(IssuerIdentifier issuer) {
+		for (Iterator<IssuerIdentifier> it = publicKeys.keySet().iterator(); it.hasNext(); )
+			if (it.next().equals(issuer))
+				it.remove();
 	}
 
 	public IdemixPublicKey getLatestPublicKey(IssuerIdentifier issuer) throws InfoException {
