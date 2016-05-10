@@ -111,18 +111,16 @@ public class ProofList extends ArrayList<Proof> {
 		if (publicKeys == null || (size() != publicKeys.size()))
 			throw new RuntimeException("No public keys to verify the proofs against");
 
-		if (shouldBeBound && !isBound(context, nonce)) {
+		boolean isBound = isBound(context, nonce);
+		if (shouldBeBound && !isBound) {
 			return false;
 		}
 
 		Proof proof;
 		IdemixPublicKey pk;
-
 		BigInteger challenge = null;
-		boolean bounded = isBound(context, nonce);
-		if (bounded) {
+		if (isBound)
 			challenge = reconstructChallenge(context, nonce);
-		}
 
 		for (int i=0; i < size(); ++i) {
 			proof = get(i);
@@ -130,7 +128,7 @@ public class ProofList extends ArrayList<Proof> {
 			if (pk == null)
 				throw new RuntimeException("Missing public key for proof " + i + " of " + size());
 
-			if (bounded) {
+			if (isBound) {
 				if (!proof.verify(pk, context, nonce, challenge))
 					return false;
 			} else {
