@@ -30,7 +30,6 @@
 
 package org.irmacard.credentials.idemix.info;
 
-import org.apache.http.client.HttpClient;
 import org.irmacard.credentials.idemix.IdemixPublicKey;
 import org.irmacard.credentials.idemix.IdemixSecretKey;
 import org.irmacard.credentials.info.*;
@@ -49,7 +48,6 @@ public class IdemixKeyStore extends KeyStore {
 
 	static private IdemixKeyStoreSerializer serializer;
 	static private IdemixKeyStoreDeserializer deserializer;
-	static private HttpClient httpClient;
 
 	private HashMap<IssuerIdentifier, HashMap<Integer,IdemixPublicKey>> publicKeys = new HashMap<>();
 	private HashMap<IssuerIdentifier, HashMap<Integer,IdemixSecretKey>> secretKeys = new HashMap<>();
@@ -62,16 +60,10 @@ public class IdemixKeyStore extends KeyStore {
 		IdemixKeyStore.serializer = serializer;
 	}
 
-	public static void setHttpClient(HttpClient client) {
-		IdemixKeyStore.httpClient = client;
-	}
-
 	public static void initialize(IdemixKeyStoreDeserializer deserializer,
-	                              IdemixKeyStoreSerializer serializer,
-	                              HttpClient client) throws InfoException {
+	                              IdemixKeyStoreSerializer serializer) throws InfoException {
 		IdemixKeyStore.deserializer = deserializer;
 		IdemixKeyStore.serializer = serializer;
-		IdemixKeyStore.httpClient = client;
 		initialize();
 	}
 
