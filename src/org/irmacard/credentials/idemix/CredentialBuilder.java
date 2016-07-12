@@ -145,7 +145,7 @@ public class CredentialBuilder {
 		if (U == null) {
 			// FIXME: Not according to protocol, only positives possible this way
 			//v_prime = Crypto.randomSignedInteger(params.l_v_prime);
-			v_prime = Crypto.randomUnsignedInteger(params.l_v_prime);
+			v_prime = Crypto.randomUnsignedInteger(params.get_l_v_prime());
 
 			// U = S^{v_prime} * R_0^{s}
 			BigInteger Sv = pk.getGeneratorS().modPow(v_prime, n);
@@ -161,8 +161,12 @@ public class CredentialBuilder {
 		return commitment.createProof(null);
 	}
 
+	public static BigInteger createReceiverNonce(IdemixSystemParameters params) {
+		return new BigInteger(params.get_l_statzk(), new SecureRandom());
+	}
+
 	public static BigInteger createReceiverNonce(IdemixPublicKey pk) {
-		return new BigInteger(pk.getSystemParameters().l_statzk, new SecureRandom());
+		return createReceiverNonce(pk.getSystemParameters());
 	}
 
 	public BigInteger createReceiverNonce() {
@@ -192,10 +196,10 @@ public class CredentialBuilder {
 			//BigInteger v_prime_commit = Crypto.randomSignedInteger(params.l_v_prime_commit);
 
 			this.n_1 = nonce1;
-			this.v_prime_commit = Crypto.randomUnsignedInteger(params.l_v_prime_commit);
+			this.v_prime_commit = Crypto.randomUnsignedInteger(params.get_l_v_prime_commit());
 			this.s_commit = skCommit;
 			if (s_commit == null) {
-				s_commit = Crypto.randomUnsignedInteger(params.l_s_commit);
+				s_commit = Crypto.randomUnsignedInteger(params.get_l_s_commit());
 			}
 
 			// U_commit = S^{v_prime_commit} * R_0^{s_commit}

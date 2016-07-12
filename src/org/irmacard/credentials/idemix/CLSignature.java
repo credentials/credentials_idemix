@@ -113,16 +113,16 @@ public class CLSignature {
 
 		SecureRandom rnd = new SecureRandom();
 
-		BigInteger v_tilde = new BigInteger(params.l_v - 1, rnd);
-		BigInteger two_l_v = new BigInteger("2").pow(params.l_v - 1);
+		BigInteger v_tilde = new BigInteger(params.get_l_v() - 1, rnd);
+		BigInteger two_l_v = new BigInteger("2").pow(params.get_l_v() - 1);
 		BigInteger v = two_l_v.add(v_tilde);
 
 		// Q = inv( S^v * R * U) * Z
 		BigInteger numerator = pk.getGeneratorS().modPow(v, n).multiply(R).multiply(U).mod(n);
 		BigInteger Q = pk.getGeneratorZ().multiply(numerator.modInverse(n)).mod(n);
 
-		BigInteger e = Crypto.probablyPrimeInBitRange(params.l_e - 1,
-				params.l_e_prime - 1);
+		BigInteger e = Crypto.probablyPrimeInBitRange(params.get_l_e() - 1,
+				params.get_l_e_prime() - 1);
 
 		// TODO: this is probably open to side channel attacks, maybe use a
 		// safe (raw) RSA signature?
@@ -138,8 +138,8 @@ public class CLSignature {
 		BigInteger n = pk.getModulus();
 
 		// Check that e in [2^{l_e - 1}, 2^{l_e - 1} + 2^{l_e_prime -1}]
-		BigInteger start = Crypto.TWO.pow(params.l_e - 1);
-		BigInteger end = start.add(Crypto.TWO.pow(params.l_e_prime - 1));
+		BigInteger start = Crypto.TWO.pow(params.get_l_e() - 1);
+		BigInteger end = start.add(Crypto.TWO.pow(params.get_l_e_prime() - 1));
 		if(e.compareTo(start) < 0 || e.compareTo(end) > 0) {
 			System.out.println("Prime in signature out of range");
 			return false;
@@ -164,7 +164,7 @@ public class CLSignature {
 
 		SecureRandom rnd = new SecureRandom();
 
-		BigInteger randomizer = new BigInteger(params.l_r_a, rnd);
+		BigInteger randomizer = new BigInteger(params.get_l_r_a(), rnd);
 		BigInteger A_prime = A.multiply(pk.getGeneratorS().modPow(randomizer, n)).mod(n);
 		BigInteger v_prime = v.subtract(e.multiply(randomizer));
 

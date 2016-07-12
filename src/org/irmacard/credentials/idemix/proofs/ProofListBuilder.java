@@ -32,7 +32,7 @@ package org.irmacard.credentials.idemix.proofs;
 
 import org.irmacard.credentials.idemix.CredentialBuilder;
 import org.irmacard.credentials.idemix.IdemixCredential;
-import org.irmacard.credentials.idemix.IdemixSystemParameters;
+import org.irmacard.credentials.idemix.IdemixSystemParameters1024;
 import org.irmacard.credentials.idemix.util.Crypto;
 
 import java.math.BigInteger;
@@ -73,7 +73,11 @@ public class ProofListBuilder {
 	public ProofListBuilder(BigInteger context, BigInteger nonce) {
 		this.context = context;
 		this.nonce = nonce;
-		this.skCommitment = new BigInteger(new IdemixSystemParameters().l_m_commit, new Random());
+
+		// The secret key may be used across credentials supporting different attribute sizes.
+		// So we should take it, and hence also its commitment, to fit within the smallest,
+		// otherwise we cannot perform the range proof showing that it is not too large.
+		this.skCommitment = new BigInteger(new IdemixSystemParameters1024().get_l_m_commit(), new Random());
 
 		toHash.add(context);
 	}
@@ -100,7 +104,8 @@ public class ProofListBuilder {
 		if (builder.getSecret() == null) {
 			BigInteger sk = getSecretKey();
 			if (sk == null) {
-				sk = new BigInteger(builder.getPublicKey().getSystemParameters().l_m, new SecureRandom());
+				// See comment in constructor
+				sk = new BigInteger(new IdemixSystemParameters1024().get_l_m(), new SecureRandom());
 			}
 			builder.setSecret(sk);
 		}

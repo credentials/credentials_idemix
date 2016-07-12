@@ -85,4 +85,11 @@ public class LoadKeysTest {
 			assertTrue(pk.getGeneratorR(i).equals(R.get(i)));
 		}
 	}
+
+	@Test
+	public void checkSystemParameters() {
+		assertTrue(new IdemixSystemParameters1024().isValid());
+		assertTrue(new IdemixSystemParameters2048().isValid());
+		assertTrue(new IdemixSystemParameters4096().isValid());
+	}
 }

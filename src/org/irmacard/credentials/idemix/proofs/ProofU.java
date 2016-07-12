@@ -63,7 +63,7 @@ public class ProofU implements Proof {
 		IdemixSystemParameters params = pk.getSystemParameters();
 
 		// Check range of v_prime_response
-		BigInteger maximum = Crypto.TWO.pow(params.l_v_prime_commit + 1).subtract(BigInteger.ONE);
+		BigInteger maximum = Crypto.TWO.pow(params.get_l_v_prime_commit() + 1).subtract(BigInteger.ONE);
 		BigInteger minimum = maximum.negate();
 		if (!(v_prime_response.compareTo(minimum) >= 0 && v_prime_response
 				.compareTo(maximum) <= 0)) {

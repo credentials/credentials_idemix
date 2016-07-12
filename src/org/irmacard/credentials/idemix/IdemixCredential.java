@@ -165,12 +165,12 @@ public class IdemixCredential {
 			rand_sig = signature.randomize(issuer_pk);
 
 			A = rand_sig.getA();
-			e_commit = new BigInteger(params.l_e_commit, rnd);
-			v_commit = new BigInteger(params.l_v_commit, rnd);
+			e_commit = new BigInteger(params.get_l_e_commit(), rnd);
+			v_commit = new BigInteger(params.get_l_v_commit(), rnd);
 
 			a_commits = new HashMap<>();
 			for(Integer i : undisclosed_attributes) {
-				a_commits.put(i, new BigInteger(params.l_m_commit, rnd));
+				a_commits.put(i, new BigInteger(params.get_l_m_commit(), rnd));
 			}
 
 			if (skCommit != null) {
@@ -199,7 +199,7 @@ public class IdemixCredential {
 				c = Crypto.sha256Hash(Crypto.asn1Encode(context, A, Z, nonce1));
 			}
 
-			BigInteger e_prime = rand_sig.get_e().subtract(Crypto.TWO.pow(params.l_e - 1));
+			BigInteger e_prime = rand_sig.get_e().subtract(Crypto.TWO.pow(params.get_l_e() - 1));
 			BigInteger e_response = e_commit.add(c.multiply(e_prime));
 			BigInteger v_response = v_commit.add(c.multiply(rand_sig.get_v()));
 

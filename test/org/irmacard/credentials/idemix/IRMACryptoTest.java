@@ -124,9 +124,9 @@ public class IRMACryptoTest {
 		Random rnd = new Random();
 		IdemixSystemParameters params = pk.getSystemParameters();
 
-		BigInteger context = new BigInteger(params.l_h, rnd);
-		BigInteger n_1 = new BigInteger(params.l_statzk, rnd);
-		BigInteger secret = new BigInteger(params.l_m, rnd);
+		BigInteger context = new BigInteger(params.get_l_h(), rnd);
+		BigInteger n_1 = new BigInteger(params.get_l_statzk(), rnd);
+		BigInteger secret = new BigInteger(params.get_l_m(), rnd);
 
 		CredentialBuilder cb = new CredentialBuilder(pk, null, context);
 		cb.setSecret(secret);
@@ -156,9 +156,9 @@ public class IRMACryptoTest {
 		Random rnd = new Random();
 		IdemixSystemParameters params = pk.getSystemParameters();
 
-		BigInteger context = new BigInteger(params.l_h, rnd);
-		BigInteger n_1 = new BigInteger(params.l_statzk, rnd);
-		BigInteger secret = new BigInteger(params.l_m, rnd);
+		BigInteger context = new BigInteger(params.get_l_h(), rnd);
+		BigInteger n_1 = new BigInteger(params.get_l_statzk(), rnd);
+		BigInteger secret = new BigInteger(params.get_l_m(), rnd);
 
 		CredentialBuilder cb = new CredentialBuilder(pk, null, context);
 		IssueCommitmentMessage msg = cb.commitToSecretAndProve(secret, n_1);
@@ -170,14 +170,14 @@ public class IRMACryptoTest {
 		Random rnd = new Random();
 
 		// Silly commitment, content doesn't matter for this test.
-		BigInteger exponent = new BigInteger(pk.getSystemParameters().l_m, rnd);
+		BigInteger exponent = new BigInteger(pk.getSystemParameters().get_l_m(), rnd);
 		BigInteger U = pk.getGeneratorS().modPow(exponent, pk.getModulus());
 
 		// Silly context
-		BigInteger context = new BigInteger(pk.getSystemParameters().l_h, rnd);
+		BigInteger context = new BigInteger(pk.getSystemParameters().get_l_h(), rnd);
 
 		// Nonce (normally from the credential recipient)
-		BigInteger nonce = new BigInteger(pk.getSystemParameters().l_statzk, rnd);
+		BigInteger nonce = new BigInteger(pk.getSystemParameters().get_l_statzk(), rnd);
 
 		IdemixIssuer issuer = new IdemixIssuer(pk, sk, context);
 		CLSignature sig = issuer.signCommitmentAndAttributes(U, attributes);
@@ -219,9 +219,9 @@ public class IRMACryptoTest {
 		Random rnd = new Random();
 		IdemixSystemParameters params = pk.getSystemParameters();
 
-		BigInteger context = new BigInteger(params.l_h, rnd);
-		BigInteger n_1 = new BigInteger(params.l_statzk, rnd);
-		BigInteger secret = new BigInteger(params.l_m, rnd);
+		BigInteger context = new BigInteger(params.get_l_h(), rnd);
+		BigInteger n_1 = new BigInteger(params.get_l_statzk(), rnd);
+		BigInteger secret = new BigInteger(params.get_l_m(), rnd);
 
 		CredentialBuilder cb = new CredentialBuilder(pk, null, context);
 		IssueCommitmentMessage commit_msg = cb.commitToSecretAndProve(secret, n_1);
@@ -235,9 +235,9 @@ public class IRMACryptoTest {
 		Random rnd = new Random();
 		IdemixSystemParameters params = pk.getSystemParameters();
 
-		BigInteger context = new BigInteger(params.l_h, rnd);
-		BigInteger n_1 = new BigInteger(params.l_statzk, rnd);
-		BigInteger secret = new BigInteger(params.l_m, rnd);
+		BigInteger context = new BigInteger(params.get_l_h(), rnd);
+		BigInteger n_1 = new BigInteger(params.get_l_statzk(), rnd);
+		BigInteger secret = new BigInteger(params.get_l_m(), rnd);
 
 		CredentialBuilder cb = new CredentialBuilder(pk, attributes, context);
 		IssueCommitmentMessage commit_msg = cb.commitToSecretAndProve(secret, n_1);
@@ -257,8 +257,8 @@ public class IRMACryptoTest {
 		Random rnd = new Random();
 		IdemixSystemParameters params = pk.getSystemParameters();
 
-		BigInteger context = new BigInteger(params.l_h, rnd);
-		BigInteger nonce1 = new BigInteger(params.l_statzk, rnd);
+		BigInteger context = new BigInteger(params.get_l_h(), rnd);
+		BigInteger nonce1 = new BigInteger(params.get_l_statzk(), rnd);
 
 		ProofD proof = cred.createDisclosureProof(disclosed, context, nonce1);
 
@@ -275,8 +275,8 @@ public class IRMACryptoTest {
 
 		Random rnd = new Random();
 		IdemixSystemParameters params = pk.getSystemParameters();
-		BigInteger context = new BigInteger(params.l_h, rnd);
-		BigInteger nonce1 = new BigInteger(params.l_statzk, rnd);
+		BigInteger context = new BigInteger(params.get_l_h(), rnd);
+		BigInteger nonce1 = new BigInteger(params.get_l_statzk(), rnd);
 
 		ProofList collection = new ProofListBuilder(context, nonce1)
 				.addProofD(cred1, Arrays.asList(1, 2))
@@ -313,9 +313,9 @@ public class IRMACryptoTest {
 		Random rnd = new Random();
 		IdemixSystemParameters params = pk.getSystemParameters();
 
-		BigInteger context = new BigInteger(params.l_h, rnd);
-		BigInteger n_1 = new BigInteger(params.l_statzk, rnd);
-		BigInteger secret = new BigInteger(params.l_m, rnd);
+		BigInteger context = new BigInteger(params.get_l_h(), rnd);
+		BigInteger n_1 = new BigInteger(params.get_l_statzk(), rnd);
+		BigInteger secret = new BigInteger(params.get_l_m(), rnd);
 
 		// Issuance
 		CredentialBuilder cb = new CredentialBuilder(pk, attributes, context);
@@ -326,7 +326,7 @@ public class IRMACryptoTest {
 		IdemixCredential cred = cb.constructCredential(msg);
 
 		// Showing
-		n_1 = new BigInteger(params.l_statzk, rnd);
+		n_1 = new BigInteger(params.get_l_statzk(), rnd);
 		List<Integer> disclosed = Arrays.asList(1, 2);
 
 		ProofD proof = cred.createDisclosureProof(disclosed, context, n_1);
@@ -338,8 +338,8 @@ public class IRMACryptoTest {
 		// Initialize parameters
 		Random rnd = new Random();
 		IdemixSystemParameters params = pk.getSystemParameters();
-		BigInteger context = new BigInteger(params.l_h, rnd);
-		BigInteger n_1 = new BigInteger(params.l_statzk, rnd);
+		BigInteger context = new BigInteger(params.get_l_h(), rnd);
+		BigInteger n_1 = new BigInteger(params.get_l_statzk(), rnd);
 
 		// Create credential that will be shown during issuing
 		CLSignature signature1 = CLSignature.signMessageBlock(sk, pk, attributes);
@@ -359,7 +359,7 @@ public class IRMACryptoTest {
 		IdemixCredential cred2 = cb.constructCredential(msg);
 
 		// Showing
-		n_1 = new BigInteger(params.l_statzk, rnd);
+		n_1 = new BigInteger(params.get_l_statzk(), rnd);
 		List<Integer> disclosed = Arrays.asList(1, 3);
 		ProofD proof = cred2.createDisclosureProof(disclosed, context, n_1);
 		assertTrue("Proof of disclosure should verify", proof.verify(pk, context, n_1));
@@ -381,8 +381,8 @@ public class IRMACryptoTest {
 
 		Random rnd = new Random();
 		IdemixSystemParameters params = pk.getSystemParameters();
-		BigInteger context = new BigInteger(params.l_h, rnd);
-		BigInteger nonce1 = new BigInteger(params.l_statzk, rnd);
+		BigInteger context = new BigInteger(params.get_l_h(), rnd);
+		BigInteger nonce1 = new BigInteger(params.get_l_statzk(), rnd);
 
 		ProofList proofs = new ProofListBuilder(context, nonce1)
 				.addProofD(cred1, Arrays.asList(1, 2))
@@ -408,8 +408,8 @@ public class IRMACryptoTest {
 		Random rnd = new Random();
 		IdemixSystemParameters params = pk.getSystemParameters();
 
-		BigInteger context = new BigInteger(params.l_h, rnd);
-		BigInteger nonce1 = new BigInteger(params.l_statzk, rnd);
+		BigInteger context = new BigInteger(params.get_l_h(), rnd);
+		BigInteger nonce1 = new BigInteger(params.get_l_statzk(), rnd);
 		ProofD proof = (ProofD) new ProofListBuilder(context, nonce1)
 				.addProofD(cred, Arrays.asList(1, 2))
 				.build()
@@ -427,8 +427,8 @@ public class IRMACryptoTest {
 		// Initialize parameters
 		Random rnd = new Random();
 		IdemixSystemParameters params = pk.getSystemParameters();
-		BigInteger context = new BigInteger(params.l_h, rnd);
-		BigInteger n_1 = new BigInteger(params.l_statzk, rnd);
+		BigInteger context = new BigInteger(params.get_l_h(), rnd);
+		BigInteger n_1 = new BigInteger(params.get_l_statzk(), rnd);
 
 		// Initialize builder and issuer
 		CredentialBuilder cb = new CredentialBuilder(pk, attributes, context);
@@ -445,7 +445,7 @@ public class IRMACryptoTest {
 		IdemixCredential cred = cb.constructCredential(msg);
 
 		// Showing
-		n_1 = new BigInteger(params.l_statzk, rnd);
+		n_1 = new BigInteger(params.get_l_statzk(), rnd);
 		List<Integer> disclosed = Arrays.asList(1, 3);
 		ProofD proof = cred.createDisclosureProof(disclosed, context, n_1);
 		assertTrue("Proof of disclosure should verify", proof.verify(pk, context, n_1));
@@ -481,8 +481,8 @@ public class IRMACryptoTest {
 
 		Random rnd = new Random();
 		IdemixSystemParameters params = pk.getSystemParameters();
-		BigInteger context = new BigInteger(params.l_h, rnd);
-		BigInteger nonce1 = new BigInteger(params.l_statzk, rnd);
+		BigInteger context = new BigInteger(params.get_l_h(), rnd);
+		BigInteger nonce1 = new BigInteger(params.get_l_statzk(), rnd);
 
 		ProofList collection = new ProofListBuilder(context, nonce1)
 				.addProofD(cred1, Arrays.asList(1, 2))

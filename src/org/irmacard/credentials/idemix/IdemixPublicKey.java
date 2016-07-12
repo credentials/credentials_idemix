@@ -53,7 +53,7 @@ public class IdemixPublicKey extends ConfigurationParser implements PublicKey {
 
 	private List<BigInteger> R;
 
-	private IdemixSystemParameters systemParameters = new IdemixSystemParameters();
+	private transient IdemixSystemParameters systemParameters;
 
 	private int counter;
 	private Date expiryDate;
@@ -136,6 +136,10 @@ public class IdemixPublicKey extends ConfigurationParser implements PublicKey {
 		}
 	}
 
+	public int getBitsize() {
+		return n.bitLength();
+	}
+
 	public BigInteger getModulus() {
 		return n;
 	}
@@ -157,6 +161,14 @@ public class IdemixPublicKey extends ConfigurationParser implements PublicKey {
 	}
 
 	public IdemixSystemParameters getSystemParameters() {
+		if (systemParameters == null) {
+			try {
+				systemParameters = IdemixSystemParameters.get(getBitsize());
+			} catch (InfoException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
 		return systemParameters;
 	}
 

@@ -118,7 +118,7 @@ public class ProofD implements Proof {
 		IdemixSystemParameters params = pk.getSystemParameters();
 
 		// Check range on the a_responses
-		BigInteger maximum = Crypto.TWO.pow(params.l_m_commit + 1).subtract(BigInteger.ONE);
+		BigInteger maximum = Crypto.TWO.pow(params.get_l_m_commit() + 1).subtract(BigInteger.ONE);
 		BigInteger minimum = maximum.negate();
 		for(BigInteger a_response : a_responses.values()) {
 			if(a_response.compareTo(minimum) < 0 ||
@@ -129,7 +129,7 @@ public class ProofD implements Proof {
 		}
 
 		// Check range e_response
-		maximum = Crypto.TWO.pow(params.l_e_commit + 1).subtract(BigInteger.ONE);
+		maximum = Crypto.TWO.pow(params.get_l_e_commit() + 1).subtract(BigInteger.ONE);
 		minimum = maximum.negate();
 		if(e_response.compareTo(minimum) < 0 ||
 				e_response.compareTo(maximum) > 0) {
@@ -145,7 +145,7 @@ public class ProofD implements Proof {
 		BigInteger n = pk.getModulus();
 
 		// known = Z / ( prod_{disclosed} R_i^{a_i} * A^{2^{l_e - 1}} )
-		BigInteger numerator = A.modPow(Crypto.TWO.pow(params.l_e - 1), n);
+		BigInteger numerator = A.modPow(Crypto.TWO.pow(params.get_l_e() - 1), n);
 		for(Entry<Integer, BigInteger> entry : a_disclosed.entrySet()) {
 			Integer idx = entry.getKey();
 			BigInteger attribute = entry.getValue();
