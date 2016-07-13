@@ -31,6 +31,8 @@
 package org.irmacard.credentials.idemix.proofs;
 
 import org.irmacard.credentials.idemix.IdemixPublicKey;
+import org.irmacard.credentials.info.InfoException;
+import org.irmacard.credentials.info.KeyException;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -62,7 +64,7 @@ public interface Proof {
 	 * Returns the public key against which the proof should verify.
 	 * @return The {@link IdemixPublicKey}, or null if it could not be determined from this proof
 	 */
-	IdemixPublicKey extractPublicKey();
+	IdemixPublicKey extractPublicKey() throws KeyException;
 
 	/**
 	 * Gets the challenge of this proof.

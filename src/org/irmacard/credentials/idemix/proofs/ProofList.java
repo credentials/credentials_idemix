@@ -37,6 +37,8 @@ import java.util.List;
 import org.irmacard.credentials.idemix.IdemixPublicKey;
 import org.irmacard.credentials.idemix.info.IdemixKeyStore;
 import org.irmacard.credentials.idemix.util.Crypto;
+import org.irmacard.credentials.info.InfoException;
+import org.irmacard.credentials.info.KeyException;
 
 /**
  * <p>A collection of proofs of knowledge, for one or more disclosure proofs, or for the commitment to the private key
@@ -65,7 +67,7 @@ public class ProofList extends ArrayList<Proof> {
 	 * from the metadata attribute and looking up the corresponding public key for each credential in the
 	 * {@link IdemixKeyStore}.
 	 */
-	public void populatePublicKeyArray() {
+	public void populatePublicKeyArray() throws KeyException {
 		if (size() == 0) {
 			return;
 		}

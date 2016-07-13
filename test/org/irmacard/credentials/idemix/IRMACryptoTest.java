@@ -28,10 +28,7 @@ import org.irmacard.credentials.idemix.messages.IssueCommitmentMessage;
 import org.irmacard.credentials.idemix.messages.IssueSignatureMessage;
 import org.irmacard.credentials.idemix.proofs.*;
 import org.irmacard.credentials.idemix.util.Crypto;
-import org.irmacard.credentials.info.CredentialIdentifier;
-import org.irmacard.credentials.info.DescriptionStore;
-import org.irmacard.credentials.info.DescriptionStoreDeserializer;
-import org.irmacard.credentials.info.InfoException;
+import org.irmacard.credentials.info.*;
 import org.junit.Test;
 
 import java.io.File;
@@ -452,7 +449,7 @@ public class IRMACryptoTest {
 	}
 
 	@Test
-	public void AttributesTest() throws InfoException {
+	public void AttributesTest() throws InfoException, KeyException {
 		URI core = new File(System.getProperty("user.dir")).toURI().resolve("irma_configuration/");
 		DescriptionStore.initialize(new DescriptionStoreDeserializer(core));
 		IdemixKeyStore.initialize(new IdemixKeyStoreDeserializer(core));

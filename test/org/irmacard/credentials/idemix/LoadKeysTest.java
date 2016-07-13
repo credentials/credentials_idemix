@@ -29,10 +29,7 @@ import java.util.List;
 
 import org.irmacard.credentials.idemix.info.IdemixKeyStore;
 import org.irmacard.credentials.idemix.info.IdemixKeyStoreDeserializer;
-import org.irmacard.credentials.info.DescriptionStore;
-import org.irmacard.credentials.info.DescriptionStoreDeserializer;
-import org.irmacard.credentials.info.InfoException;
-import org.irmacard.credentials.info.IssuerIdentifier;
+import org.irmacard.credentials.info.*;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -66,7 +63,7 @@ public class LoadKeysTest {
 	}
 
 	@Test
-	public void loadSecretKey() throws InfoException {
+	public void loadSecretKey() throws KeyException {
 		IdemixSecretKey sk =  IdemixKeyStore.getInstance()
 				.getSecretKey(new IssuerIdentifier(schemeManager, "Surfnet"), 0);
 
@@ -75,7 +72,7 @@ public class LoadKeysTest {
 	}
 
 	@Test
-	public void loadPublicKey() throws InfoException {
+	public void loadPublicKey() throws KeyException {
 		IdemixPublicKey pk = IdemixKeyStore.getInstance()
 				.getPublicKey(new IssuerIdentifier(schemeManager, "Surfnet"), 0);
 

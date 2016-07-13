@@ -88,11 +88,16 @@ public class IdemixKeyStore extends KeyStore {
 	 * Get DescriptionStore instance
 	 *
 	 * @return The IdemixKeyStore instance
-	 * @throws InfoException if instantiating the IdemixKeyStore failed
+	 * @throws StoreException if instantiating the IdemixKeyStore failed
 	 */
-	public static IdemixKeyStore getInstance() throws InfoException {
-		if (ds == null)
-			initialize();
+	public static IdemixKeyStore getInstance() throws StoreException {
+		if (ds == null) {
+			try {
+				initialize();
+			} catch (InfoException e) {
+				throw new StoreException(e);
+			}
+		}
 
 		return ds;
 	}
@@ -115,11 +120,11 @@ public class IdemixKeyStore extends KeyStore {
 	}
 
 	@Override
-	public IdemixPublicKey getPublicKey(IssuerIdentifier issuer, int counter) throws InfoException {
+	public IdemixPublicKey getPublicKey(IssuerIdentifier issuer, int counter) throws KeyException {
 		if (publicKeys.containsKey(issuer) && publicKeys.get(issuer).containsKey(counter))
 			return publicKeys.get(issuer).get(counter);
 
-		throw new InfoException("Public key " + counter + " for issuer " + issuer + " not found");
+		throw new KeyException("Public key " + counter + " for issuer " + issuer + " not found");
 	}
 
 	@Override
@@ -129,7 +134,7 @@ public class IdemixKeyStore extends KeyStore {
 				it.remove();
 	}
 
-	public IdemixPublicKey getLatestPublicKey(IssuerIdentifier issuer) throws InfoException {
+	public IdemixPublicKey getLatestPublicKey(IssuerIdentifier issuer) throws KeyException {
 		return getPublicKey(issuer, getKeyCounter(issuer));
 	}
 
@@ -139,14 +144,14 @@ public class IdemixKeyStore extends KeyStore {
 		return secretKeys.get(issuer).containsKey(counter);
 	}
 
-	public IdemixSecretKey getSecretKey(IssuerIdentifier issuer, int counter) throws InfoException {
+	public IdemixSecretKey getSecretKey(IssuerIdentifier issuer, int counter) throws KeyException {
 		if (secretKeys.containsKey(issuer) && secretKeys.get(issuer).containsKey(counter))
 			return secretKeys.get(issuer).get(counter);
 
-		throw new InfoException("Secret key " + counter + " for issuer " + issuer + " not found");
+		throw new KeyException("Secret key " + counter + " for issuer " + issuer + " not found");
 	}
 
-	public IdemixSecretKey getLatestSecretKey(IssuerIdentifier issuer) throws InfoException {
+	public IdemixSecretKey getLatestSecretKey(IssuerIdentifier issuer) throws KeyException {
 		return getSecretKey(issuer, getKeyCounter(issuer));
 	}
 
@@ -159,11 +164,11 @@ public class IdemixKeyStore extends KeyStore {
 
 	/**
 	 * Get the highest counter of all public keys that are stored for the specified issuer.
-	 * @throws InfoException if no public keys for the specified issuer are present
+	 * @throws KeyException if no public keys for the specified issuer are present
 	 */
-	public int getKeyCounter(IssuerIdentifier issuer) throws InfoException {
+	public int getKeyCounter(IssuerIdentifier issuer) throws KeyException {
 		if (publicKeys.get(issuer) == null)
-			throw new InfoException("No public keys for issuer " + issuer);
+			throw new KeyException("No public keys for issuer " + issuer);
 
 		// Put all counters in an array, sort it, and return the biggest element
 		Integer[] counters = new Integer[publicKeys.get(issuer).size()];
