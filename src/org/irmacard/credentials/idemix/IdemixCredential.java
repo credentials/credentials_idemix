@@ -36,6 +36,9 @@ import org.irmacard.credentials.idemix.proofs.ProofListBuilder;
 import org.irmacard.credentials.idemix.util.Crypto;
 
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Collections;
 import java.util.HashMap;
@@ -49,6 +52,8 @@ public class IdemixCredential {
 	private CLSignature signature;
 	private IdemixPublicKey issuer_pk;
 	private List<BigInteger> attributes;
+
+	private transient int hashCode = 0;
 
 	public IdemixCredential(IdemixPublicKey issuer_pk,
 			List<BigInteger> attributes, CLSignature signature) {
@@ -215,5 +220,27 @@ public class IdemixCredential {
 
 			return new ProofD(c, A, e_response, v_response, a_responses, a_disclosed);
 		}
+	}
+
+	@Override
+	public int hashCode() {
+		if (hashCode == 0) {
+			try {
+				MessageDigest hash = MessageDigest.getInstance("SHA-256");
+
+				hash.update(signature.getA().toByteArray());
+				hash.update(signature.get_e().toByteArray());
+				hash.update(signature.get_v().toByteArray());
+
+				for (BigInteger attr : attributes)
+					hash.update(attr.toByteArray());
+
+				hashCode = ByteBuffer.wrap(hash.digest()).getInt();
+			} catch (NoSuchAlgorithmException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
+		return hashCode;
 	}
 }

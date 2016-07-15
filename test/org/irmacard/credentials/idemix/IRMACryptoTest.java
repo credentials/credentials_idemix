@@ -117,6 +117,16 @@ public class IRMACryptoTest {
 	}
 
 	@Test
+	public void testCredentialHashCode() {
+		IdemixCredential cred1 = new IdemixCredential(pk, attributes,
+				CLSignature.signMessageBlock(sk, pk, attributes));
+		IdemixCredential cred2 = new IdemixCredential(pk, attributes,
+				CLSignature.signMessageBlock(sk, pk, attributes));
+
+		assertTrue(cred1.hashCode() != 0 && cred2.hashCode() != 0 && cred1.hashCode() != cred2.hashCode());
+	}
+
+	@Test
 	public void testProofU() {
 		Random rnd = new Random();
 		IdemixSystemParameters params = pk.getSystemParameters();
