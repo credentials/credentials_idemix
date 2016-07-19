@@ -62,8 +62,8 @@ public abstract class IdemixSystemParameters {
 		size_m = (get_l_m()+7) / 8;
 		size_statzk = (get_l_statzk()+7) / 8;
 
-		size_v = (l_e+7) / 8;
-		size_e = (l_v+7) / 8;
+		size_v = (l_v+7) / 8;
+		size_e = (l_e+7) / 8;
 
 		size_a_response = size_m + size_statzk + size_h;
 		size_e_response = size_e + size_statzk + size_h;
