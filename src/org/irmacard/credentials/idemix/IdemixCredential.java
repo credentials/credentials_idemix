@@ -31,7 +31,9 @@
 package org.irmacard.credentials.idemix;
 
 import org.irmacard.credentials.Attributes;
+import org.irmacard.credentials.idemix.proofs.ProofBuilder;
 import org.irmacard.credentials.idemix.proofs.ProofD;
+import org.irmacard.credentials.idemix.proofs.ProofDBuilder;
 import org.irmacard.credentials.idemix.proofs.ProofListBuilder;
 import org.irmacard.credentials.idemix.util.Crypto;
 
@@ -40,6 +42,8 @@ import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -82,11 +86,6 @@ public class IdemixCredential {
 		this.signature = signature;
 	}
 
-	public Commitment commit(List<Integer> disclosed_attributes, BigInteger context,
-							 BigInteger nonce1, BigInteger skCommitment) {
-		return new Commitment(disclosed_attributes, context, nonce1, skCommitment);
-	}
-
 	/**
 	 * A disclosure proof of this credential for the given set of disclosed
 	 * attributes. The proof also contains the revealed values.
@@ -101,8 +100,8 @@ public class IdemixCredential {
 	 * @return disclosure proof for the given disclosed attributes
 	 */
 	public ProofD createDisclosureProof(List<Integer> disclosed_attributes, BigInteger context, BigInteger nonce1) {
-		Commitment commitment = commit(disclosed_attributes, context, nonce1, null);
-		return commitment.createProof(null);
+		ProofDBuilder builder = new ProofDBuilder(this, disclosed_attributes);
+		return (ProofD) builder.createProof(context, nonce1);
 	}
 
 	public int getNrAttributes() {
@@ -129,97 +128,6 @@ public class IdemixCredential {
 			}
 		}
 		return undisclosed_attributes;
-	}
-
-	/**
-	 * Container for a commitment for a disclosure proof of this credential. See the
-	 * {@link ProofListBuilder} class for more information.
-	 */
-	public class Commitment {
-		BigInteger context;
-		BigInteger nonce1;
-		List<Integer> disclosed_attributes;
-		List<Integer> undisclosed_attributes;
-		CLSignature rand_sig;
-		BigInteger e_commit;
-		BigInteger v_commit;
-		HashMap<Integer, BigInteger> a_commits;
-		BigInteger A;
-		BigInteger Z;
-
-		public BigInteger getA() {
-			return A;
-		}
-
-		public BigInteger getZ() {
-			return Z;
-		}
-
-		private Commitment(List<Integer> disclosed_attributes, BigInteger context,
-						   BigInteger nonce1, BigInteger skCommit) {
-			SecureRandom rnd = new SecureRandom();
-			IdemixSystemParameters params = issuer_pk.getSystemParameters();
-			BigInteger n = issuer_pk.getModulus();
-
-			this.context = context;
-			this.nonce1 = nonce1;
-			this.disclosed_attributes = disclosed_attributes;
-
-			undisclosed_attributes = getUndisclosedAttributes(disclosed_attributes);
-
-			rand_sig = signature.randomize(issuer_pk);
-
-			A = rand_sig.getA();
-			e_commit = new BigInteger(params.get_l_e_commit(), rnd);
-			v_commit = new BigInteger(params.get_l_v_commit(), rnd);
-
-			a_commits = new HashMap<>();
-			for(Integer i : undisclosed_attributes) {
-				a_commits.put(i, new BigInteger(params.get_l_m_commit(), rnd));
-			}
-
-			if (skCommit != null) {
-				a_commits.put(0, skCommit);
-			}
-
-			// Z = A^{e_commit} * S^{v_commit}
-			//     PROD_{i \in undisclosed} ( R_i^{a_commits{i}} )
-			BigInteger Ae = rand_sig.getA().modPow(e_commit, n);
-			BigInteger Sv = issuer_pk.getGeneratorS().modPow(v_commit, n);
-			Z = Ae.multiply(Sv).mod(n);
-			for(Integer i : undisclosed_attributes) {
-				Z = Z.multiply(issuer_pk.getGeneratorR(i).modPow(a_commits.get(i), n)).mod(n);
-			}
-		}
-
-		public ProofD createProof(BigInteger challenge) {
-			if (Z == null) {
-				throw new RuntimeException("Not committed yet");
-			}
-
-			IdemixSystemParameters params = issuer_pk.getSystemParameters();
-
-			BigInteger c = challenge;
-			if (c == null) {
-				c = Crypto.sha256Hash(Crypto.asn1Encode(context, A, Z, nonce1));
-			}
-
-			BigInteger e_prime = rand_sig.get_e().subtract(Crypto.TWO.pow(params.get_l_e() - 1));
-			BigInteger e_response = e_commit.add(c.multiply(e_prime));
-			BigInteger v_response = v_commit.add(c.multiply(rand_sig.get_v()));
-
-			HashMap<Integer, BigInteger> a_responses = new HashMap<>();
-			for(Integer i : undisclosed_attributes) {
-				a_responses.put(i, a_commits.get(i).add(c.multiply(attributes.get(i))));
-			}
-
-			HashMap<Integer, BigInteger> a_disclosed = new HashMap<>();
-			for(Integer i : disclosed_attributes) {
-				a_disclosed.put(i, attributes.get(i));
-			}
-
-			return new ProofD(c, A, e_response, v_response, a_responses, a_disclosed);
-		}
 	}
 
 	@Override

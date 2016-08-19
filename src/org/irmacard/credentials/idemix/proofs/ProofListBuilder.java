@@ -38,7 +38,9 @@ import org.irmacard.credentials.idemix.util.Crypto;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -64,11 +66,16 @@ public class ProofListBuilder {
 	private List<IdemixCredential> credentials = new ArrayList<>();
 	private List<BigInteger> toHash = new ArrayList<>();
 	private List<BigInteger> toHashU = new ArrayList<>();
-	private List<IdemixCredential.Commitment> commitments = new ArrayList<>();
+
+	private List<ProofBuilder> builders = new ArrayList<>();
+	private List<Commitments> commitments = new ArrayList<>();
+	private List<Randomizers> randomizers = new ArrayList<>();
+
 	private List<CredentialBuilder.Commitment> proofUcommitments = new ArrayList<>();
 
 	private BigInteger secret;
-	private BigInteger skCommitment;
+
+	private Map<String, BigInteger> fixed;
 
 	public ProofListBuilder(BigInteger context, BigInteger nonce) {
 		this.context = context;
@@ -77,21 +84,40 @@ public class ProofListBuilder {
 		// The secret key may be used across credentials supporting different attribute sizes.
 		// So we should take it, and hence also its commitment, to fit within the smallest,
 		// otherwise we cannot perform the range proof showing that it is not too large.
-		this.skCommitment = new BigInteger(new IdemixSystemParameters1024().get_l_m_commit(), new Random());
+		fixed = new HashMap<String, BigInteger>();
+		fixed.put(ProofBuilder.USER_SECRET_KEY,
+		        new BigInteger(new IdemixSystemParameters1024().get_l_m_commit(), new SecureRandom());
 
 		toHash.add(context);
+	}
+
+	/**
+	 * Add a generic proofbuilder
+	 */
+	public ProofListBuilder addProof(ProofBuilder builder) {
+		Randomizers rand = builder.generateRandomizers(fixed);
+		Commitments coms = builder.calculateCommitments(rand);
+
+		builders.add(builder);
+		randomizers.add(rand);
+		commitments.add(coms);
+
+		// TODO: Do we still need to do this here?
+		toHash.addAll(coms.asList());
+
+		return this;
 	}
 
 	/**
 	 * Add a proof for the specified credential and attributes.
 	 */
 	public ProofListBuilder addProofD(IdemixCredential credential, List<Integer> disclosed_attributes) {
-		IdemixCredential.Commitment commitment = credential.commit(disclosed_attributes, context, nonce, skCommitment);
+		ProofDBuilder builder = new ProofDBuilder(credential, disclosed_attributes);
 
+		// TODO: Do we still need these?
 		credentials.add(credential);
-		commitments.add(commitment);
-		toHash.add(commitment.getA());
-		toHash.add(commitment.getZ());
+
+		addProof(builder);
 
 		return this;
 	}
@@ -110,7 +136,7 @@ public class ProofListBuilder {
 			builder.setSecret(sk);
 		}
 
-		return addProofU(builder.commit(nonce, skCommitment));
+		return addProofU(builder.commit(nonce, fixed.get(ProofBuilder.USER_SECRET_KEY)));
 	}
 
 	/**
@@ -142,7 +168,7 @@ public class ProofListBuilder {
 		ProofList proofs = new ProofList();
 
 		for (int i = 0; i < credentials.size(); ++i) {
-			proofs.add(commitments.get(i).createProof(challenge));
+			proofs.add(builders.get(i).createProof(challenge, randomizers.get(i)));
 			proofs.addPublicKey(credentials.get(i).getPublicKey());
 		}
 
@@ -182,6 +208,6 @@ public class ProofListBuilder {
 	}
 
 	public BigInteger getSecretKeyCommitment() {
-		return skCommitment;
+		return fixed.get(ProofBuilder.USER_SECRET_KEY);
 	}
 }

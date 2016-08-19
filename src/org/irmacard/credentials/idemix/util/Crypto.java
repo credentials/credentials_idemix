@@ -34,6 +34,9 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.security.SecureRandom;
 
@@ -97,10 +100,14 @@ public class Crypto {
 	 * @param values	The BigIntegers to include inthe ASN.1 encoding
 	 */
 	public static byte[] asn1Encode(BigInteger... values) {
+		return asn1Encode(Arrays.asList(values));
+	}
+
+	public static byte[] asn1Encode(List<BigInteger> values) {
 		ASN1EncodableVector vector = new ASN1EncodableVector();
 
 		// Store the number of values in the sequence too
-		vector.add(new ASN1Integer(values.length));
+		vector.add(new ASN1Integer(values.size()));
 
 		for(BigInteger value : values) {
 			vector.add(new ASN1Integer(value));
