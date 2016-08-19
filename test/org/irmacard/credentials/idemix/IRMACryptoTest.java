@@ -285,13 +285,11 @@ public class IRMACryptoTest {
 		BigInteger context = new BigInteger(params.get_l_h(), rnd);
 		BigInteger nonce1 = new BigInteger(params.get_l_statzk(), rnd);
 
-		System.out.println("Calling combined proofs stuffs");
 		ProofList collection = new ProofListBuilder(context, nonce1)
 				.addProofD(cred1, Arrays.asList(1, 2))
 				.addProofD(cred2, Arrays.asList(1, 3))
 				.build();
 
-		System.out.println("Checking combined proofs stuffs");
 		assertTrue("Combined disclosure proofs should verify", collection.verify(context, nonce1, true));
 	}
 
