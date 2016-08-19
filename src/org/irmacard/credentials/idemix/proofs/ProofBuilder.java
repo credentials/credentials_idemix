@@ -40,9 +40,10 @@ import java.util.Map;
 import org.irmacard.credentials.idemix.util.Crypto;
 
 /**
- * The idea of proof builders: keep as little state as possible. In practice, this means
- * that they only take the common proof information and the private prover information as
- * input. They do not keep track of ephemeral values generated on the fly.
+ * Proof builders create the proofs for our IRMA protocols. They do not contain much state,
+ * they only keep track of the common proof information, the private prover information
+ * and the randomizers that are required for the proof. A user must generate randomizers
+ * before attempting to build a proof.
  *
  * @author wouter
  *
@@ -50,20 +51,21 @@ import org.irmacard.credentials.idemix.util.Crypto;
 public abstract class ProofBuilder {
 	public static final String USER_SECRET_KEY = "user-secret-key";
 
-	public abstract Randomizers generateRandomizers(Map<String, BigInteger> fixed);
-	public abstract Commitments calculateCommitments(Randomizers rand);
-	public abstract Proof createProof(BigInteger challenge, Randomizers rand);
+	public abstract ProofBuilder generateRandomizers(Map<String, BigInteger> fixed);
+	public abstract Commitments calculateCommitments();
+	public abstract Proof createProof(BigInteger challenge);
 
-	public Randomizers generateRandomizers() {
+	public ProofBuilder generateRandomizers() {
 		HashMap<String, BigInteger> h = new HashMap<>();
-		return generateRandomizers(h);
+		generateRandomizers(h);
+		return this;
 	}
 
 	public Proof createProof(BigInteger context, BigInteger nonce1) {
-		Randomizers rand = generateRandomizers();
-		Commitments coms = calculateCommitments(rand);
+		generateRandomizers();
+		Commitments coms = calculateCommitments();
 		BigInteger challenge = calculateChallenge(context, nonce1, coms);
-		return createProof(challenge, rand);
+		return createProof(challenge);
 	}
 
 	public static BigInteger calculateChallenge(BigInteger context, BigInteger nonce1, Commitments c) {

@@ -49,6 +49,8 @@ public class ProofDBuilder extends ProofBuilder {
 	private List<Integer> disclosed_attributes;
 	private List<Integer> undisclosed_attributes;
 
+	private ProofDRandomizers rand;
+
 	class ProofDRandomizers implements Randomizers {
 		private BigInteger e_randomizer;
 		private BigInteger v_randomizer;
@@ -73,7 +75,7 @@ public class ProofDBuilder extends ProofBuilder {
 	}
 
 	@Override
-	public Randomizers generateRandomizers(Map<String, BigInteger> fixed) {
+	public ProofBuilder generateRandomizers(Map<String, BigInteger> fixed) {
 		SecureRandom rnd = new SecureRandom();
 		ProofDRandomizers rand = new ProofDRandomizers();
 
@@ -93,12 +95,12 @@ public class ProofDBuilder extends ProofBuilder {
 
 		rand.rand_sig = credential.getSignature().randomize(issuer_pk);
 
-		return rand;
+		this.rand = rand;
+		return this;
 	}
 
 	@Override
-	public Commitments calculateCommitments(Randomizers r) {
-		ProofDRandomizers rand = castRandomizer(r);
+	public Commitments calculateCommitments() {
 		ProofDCommitments coms = new ProofDCommitments();
 
 		IdemixPublicKey issuer_pk = credential.getPublicKey();
@@ -119,9 +121,7 @@ public class ProofDBuilder extends ProofBuilder {
 		return coms;
 	}
 
-	public Proof createProof(BigInteger challenge, Randomizers r) {
-		ProofDRandomizers rand = castRandomizer(r);
-
+	public Proof createProof(BigInteger challenge) {
 		IdemixPublicKey issuer_pk = credential.getPublicKey();
 		IdemixSystemParameters params = issuer_pk.getSystemParameters();
 
@@ -157,13 +157,5 @@ public class ProofDBuilder extends ProofBuilder {
 			}
 		}
 		return undisclosed_attributes;
-	}
-
-	private static ProofDRandomizers castRandomizer(Randomizers rand) {
-		if(rand instanceof ProofDRandomizers) {
-			return (ProofDRandomizers) rand;
-		} else {
-			throw new RuntimeException("ProofDRandomizers of incorrect type");
-		}
 	}
 }

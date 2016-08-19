@@ -68,8 +68,6 @@ public class ProofListBuilder {
 	private List<BigInteger> toHashU = new ArrayList<>();
 
 	private List<ProofBuilder> builders = new ArrayList<>();
-	private List<Commitments> commitments = new ArrayList<>();
-	private List<Randomizers> randomizers = new ArrayList<>();
 
 	private List<CredentialBuilder.Commitment> proofUcommitments = new ArrayList<>();
 
@@ -95,14 +93,11 @@ public class ProofListBuilder {
 	 * Add a generic proofbuilder
 	 */
 	public ProofListBuilder addProof(ProofBuilder builder) {
-		Randomizers rand = builder.generateRandomizers(fixed);
-		Commitments coms = builder.calculateCommitments(rand);
-
+		builder.generateRandomizers(fixed);
 		builders.add(builder);
-		randomizers.add(rand);
-		commitments.add(coms);
 
 		// TODO: Do we still need to do this here?
+		Commitments coms = builder.calculateCommitments();
 		toHash.addAll(coms.asList());
 
 		return this;
@@ -168,7 +163,7 @@ public class ProofListBuilder {
 		ProofList proofs = new ProofList();
 
 		for (int i = 0; i < credentials.size(); ++i) {
-			proofs.add(builders.get(i).createProof(challenge, randomizers.get(i)));
+			proofs.add(builders.get(i).createProof(challenge));
 			proofs.addPublicKey(credentials.get(i).getPublicKey());
 		}
 
