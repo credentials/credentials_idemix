@@ -158,4 +158,9 @@ public class ProofDBuilder extends ProofBuilder {
 		}
 		return undisclosed_attributes;
 	}
+
+	@Override
+	public IdemixPublicKey getPublicKey() {
+		return credential.getPublicKey();
+	}
 }

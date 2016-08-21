@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.irmacard.credentials.idemix.IdemixPublicKey;
 import org.irmacard.credentials.idemix.util.Crypto;
 
 /**
@@ -54,6 +55,7 @@ public abstract class ProofBuilder {
 	public abstract ProofBuilder generateRandomizers(Map<String, BigInteger> fixed);
 	public abstract Commitments calculateCommitments();
 	public abstract Proof createProof(BigInteger challenge);
+	public abstract IdemixPublicKey getPublicKey();
 
 	public ProofBuilder generateRandomizers() {
 		HashMap<String, BigInteger> h = new HashMap<>();

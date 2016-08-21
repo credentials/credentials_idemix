@@ -64,12 +64,8 @@ public class ProofListBuilder {
 	private BigInteger nonce;
 
 	private List<IdemixCredential> credentials = new ArrayList<>();
-	private List<BigInteger> toHash = new ArrayList<>();
-	private List<BigInteger> toHashU = new ArrayList<>();
 
 	private List<ProofBuilder> builders = new ArrayList<>();
-
-	private List<CredentialBuilder.Commitment> proofUcommitments = new ArrayList<>();
 
 	private BigInteger secret;
 
@@ -84,9 +80,7 @@ public class ProofListBuilder {
 		// otherwise we cannot perform the range proof showing that it is not too large.
 		fixed = new HashMap<String, BigInteger>();
 		fixed.put(ProofBuilder.USER_SECRET_KEY,
-		        new BigInteger(new IdemixSystemParameters1024().get_l_m_commit(), new SecureRandom());
-
-		toHash.add(context);
+		        new BigInteger(new IdemixSystemParameters1024().get_l_m_commit(), new SecureRandom()));
 	}
 
 	/**
@@ -95,10 +89,6 @@ public class ProofListBuilder {
 	public ProofListBuilder addProof(ProofBuilder builder) {
 		builder.generateRandomizers(fixed);
 		builders.add(builder);
-
-		// TODO: Do we still need to do this here?
-		Commitments coms = builder.calculateCommitments();
-		toHash.addAll(coms.asList());
 
 		return this;
 	}
@@ -131,18 +121,8 @@ public class ProofListBuilder {
 			builder.setSecret(sk);
 		}
 
-		return addProofU(builder.commit(nonce, fixed.get(ProofBuilder.USER_SECRET_KEY)));
-	}
-
-	/**
-	 * Add a proof for the commitment to the secret key and v_prime for issuing.
-	 */
-	private ProofListBuilder addProofU(CredentialBuilder.Commitment commitment) {
-		this.proofUcommitments.add(commitment);
-		toHashU.add(commitment.getU());
-		toHashU.add(commitment.getUcommit());
-
-		return this;
+		ProofBuilder pb = new ProofUBuilder(builder);
+		return addProof(pb);
 	}
 
 	/**
@@ -150,26 +130,25 @@ public class ProofListBuilder {
 	 * @throws RuntimeException if no proofs have been added yet
 	 */
 	public ProofList build() {
-		if (proofUcommitments.size() == 0 && credentials.size() == 0) { // Nothing to do? Probably a mistake
+		List<BigInteger> toHash = new ArrayList<>();
+		if (builders.size() == 0) { // Nothing to do? Probably a mistake
 			throw new RuntimeException("No proofs have been added, can't build an empty proof collection");
 		}
 
-		toHash.addAll(toHashU);
+		toHash.add(context);
+		for(ProofBuilder builder : builders) {
+			Commitments coms = builder.calculateCommitments();
+			toHash.addAll(coms.asList());
+		}
 		toHash.add(nonce);
-		BigInteger[] toHashArray = toHash.toArray(new BigInteger[toHash.size()]);
 
-		BigInteger challenge = Crypto.sha256Hash(Crypto.asn1Encode(toHashArray));
+		BigInteger challenge = Crypto.sha256Hash(Crypto.asn1Encode(toHash));
 
 		ProofList proofs = new ProofList();
 
-		for (int i = 0; i < credentials.size(); ++i) {
-			proofs.add(builders.get(i).createProof(challenge));
-			proofs.addPublicKey(credentials.get(i).getPublicKey());
-		}
-
-		for (CredentialBuilder.Commitment commitment : proofUcommitments) {
-			proofs.add(commitment.createProof(challenge));
-			proofs.addPublicKey(commitment.getPublicKey());
+		for(ProofBuilder builder : builders) {
+			proofs.add(builder.createProof(challenge));
+			proofs.addPublicKey(builder.getPublicKey());
 		}
 
 		return proofs;
@@ -190,13 +169,17 @@ public class ProofListBuilder {
 	/**
 	 * Gets the secret key of one of the credentials or commitments. If no credentials or commitments
 	 * have been added yet, returns null.
+	 *
+	 * TODO: This whole thing with getSecretKey() (and when it is called) seems like
+	 * a messy hack to not have to give secret keys to CredentialBuilders in the first
+	 * place, seems like this should be solved elsewhere.
 	 */
 	public BigInteger getSecretKey() {
 		if (secret == null) {
 			if (credentials != null && credentials.size() > 0)
 				secret = credentials.get(0).getAttribute(0);
-			if (proofUcommitments != null && proofUcommitments.size() > 0)
-				secret = proofUcommitments.get(0).getSecretKey();
+			//if (proofUcommitments != null && proofUcommitments.size() > 0)
+			//	secret = proofUcommitments.get(0).getSecretKey();
 		}
 
 		return secret;
