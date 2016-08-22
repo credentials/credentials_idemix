@@ -61,12 +61,15 @@ public class ProofPBuilder extends ProofBuilder {
 
 		@Override
 		public Commitments mergeProofPCommitments(ProofPCommitments coms) {
-			// TODO Auto-generated method stub
-			return null;
+			return this;
 		}
 
 		public BigInteger getPcommit() {
 			return Pcommit;
+		}
+
+		public BigInteger getP() {
+			return P;
 		}
 	}
 

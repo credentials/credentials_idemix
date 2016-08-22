@@ -51,13 +51,13 @@ public class CredentialBuilder {
 	private BigInteger U;
 
 	// Immutable Input
-	private final IdemixPublicKey pk;
-	private final List<BigInteger> attributes;
-	private final BigInteger context;
+	protected final IdemixPublicKey pk;
+	protected final List<BigInteger> attributes;
+	protected final BigInteger context;
 
 	// Derived immutable state
-	private final IdemixSystemParameters params;
-	private final BigInteger n;
+	protected final IdemixSystemParameters params;
+	protected final BigInteger n;
 
 	public CredentialBuilder(IdemixPublicKey pk, List<BigInteger> attrs, BigInteger context) {
 		this.pk = pk;
@@ -94,9 +94,7 @@ public class CredentialBuilder {
 			BigInteger nonce1) {
 
 		setSecret(secret);
-
 		ProofU proofU = proveCommitment(nonce1);
-		n_2 = createReceiverNonce();
 
 		return new IssueCommitmentMessage(proofU, n_2);
 	}

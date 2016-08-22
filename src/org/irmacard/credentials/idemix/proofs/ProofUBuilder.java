@@ -69,6 +69,7 @@ public class ProofUBuilder extends ProofBuilder {
 
 		@Override
 		public Commitments mergeProofPCommitments(ProofPBuilder.ProofPCommitments coms) {
+			U = U.multiply(coms.getP()).mod(pk.getModulus());
 			U_commit = U_commit.multiply(coms.getPcommit()).mod(pk.getModulus());
 			return this;
 		}
@@ -95,7 +96,7 @@ public class ProofUBuilder extends ProofBuilder {
 	}
 
 	@Override
-	public Commitments calculateCommitments() {
+	public ProofUCommitments calculateCommitments() {
 		ProofUCommitments coms = new ProofUCommitments(cb.getPublicKey());
 		IdemixPublicKey pk = cb.getPublicKey();
 		BigInteger n = pk.getModulus();
@@ -111,7 +112,7 @@ public class ProofUBuilder extends ProofBuilder {
 	}
 
 	@Override
-	public Proof createProof(BigInteger challenge) {
+	public ProofU createProof(BigInteger challenge) {
 		BigInteger s_response = rand.s_commit.add(challenge.multiply(cb.getSecret()));
 		BigInteger v_prime_response = rand.v_prime_commit.add(challenge.multiply(cb.getVPrime()));
 

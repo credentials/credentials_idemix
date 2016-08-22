@@ -127,4 +127,10 @@ public class ProofU implements Proof {
 	public BigInteger get_s_response() {
 		return s_response;
 	}
+
+	public ProofU mergeProofP(ProofP proofp, IdemixPublicKey pk) {
+		this.U = this.U.multiply(proofp.getP()).mod(pk.getModulus());
+		this.s_response = this.s_response.add(proofp.getSecretKeyResponse());
+		return this;
+	}
 }

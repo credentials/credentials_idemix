@@ -333,6 +333,87 @@ public class IRMACryptoTest {
 	}
 
 	@Test
+	public void testDistributedIssanceAndVerify() throws CredentialsException {
+		SecureRandom rnd = new SecureRandom();
+		IdemixSystemParameters params = pk.getSystemParameters();
+
+		BigInteger context = new BigInteger(params.get_l_h(), rnd);
+		BigInteger n_1 = new BigInteger(params.get_l_statzk(), rnd);
+		BigInteger secret = new BigInteger(params.get_l_m(), rnd);
+
+		// Generate shared private key
+		BigInteger x_user = new BigInteger(params.get_l_m() - 1, rnd);
+		BigInteger x_cloud = new BigInteger(params.get_l_m() - 1, rnd);
+		BigInteger x = x_user.add(x_cloud);
+
+		// ****************
+		// *** ISSUANCE ***
+		// ****************
+
+		// User: setup issuance
+		DistributedCredentialBuilder cb = new DistributedCredentialBuilder(pk, attributes, context);
+		cb.setSecret(x_user);
+		ProofUBuilder ubuilder = new ProofUBuilder(cb);
+		ubuilder.generateRandomizers();
+		Commitments ucoms = ubuilder.calculateCommitments();
+
+		// Server: start proofP
+		ProofPBuilder pbuilder = new ProofPBuilder(x_cloud, pk);
+		pbuilder.generateRandomizers();
+		ProofPBuilder.ProofPCommitments pcoms = pbuilder.calculateCommitments();
+
+		// User: combine ProofU and ProofP commitments
+		ucoms.mergeProofPCommitments(pcoms);
+		BigInteger challenge = ucoms.calculateChallenge(context, n_1);
+
+		// User and server finish proof
+		ProofU proofu = ubuilder.createProof(challenge);
+		ProofP proofp = pbuilder.createProof(challenge);
+
+		// User: combine proofs, create issuer message
+		proofu.mergeProofP(proofp, pk);
+		assertTrue("Combined ProofU should be a valid proof", proofu.verify(pk, context, n_1));
+
+		// Update state of DistributedCredentialBuilder
+		cb.addPublicSK(proofp.getP());
+
+		IssueCommitmentMessage commit_msg = new IssueCommitmentMessage(proofu, cb.getNonce2());
+
+		IdemixIssuer issuer = new IdemixIssuer(pk, sk, context);
+		IssueSignatureMessage msg = issuer.issueSignature(commit_msg, attributes, n_1);
+		IdemixDistributedCredential cred = cb.constructCredential(msg);
+
+		// ******************
+		// *** DISCLOSURE ***
+		// ******************
+		List<Integer> disclosed = Arrays.asList(1, 2);
+		BigInteger nonce1 = new BigInteger(params.get_l_statzk(), rnd);
+
+		// User side
+		ProofDBuilder dbuilder = new ProofDBuilder(cred, disclosed);
+		dbuilder.generateRandomizers();
+		Commitments dcoms = dbuilder.calculateCommitments();
+
+		// Server side (reusing ProofPBuilder)
+		pbuilder.generateRandomizers();
+		pcoms = pbuilder.calculateCommitments();
+
+		// User: Merge commitments, and calculate the challenge
+		dcoms.mergeProofPCommitments(pcoms);
+		challenge = dcoms.calculateChallenge(context, nonce1);
+
+		// User and server finish proof
+		ProofD proofd = dbuilder.createProof(challenge);
+		proofp = pbuilder.createProof(challenge);
+
+		// User: combine proofs
+		proofd.mergeProofP(proofp);
+
+		assertTrue("Distributed proof of disclosure should verify",
+				proofd.verify(pk, context, nonce1));
+	}
+
+	@Test
 	public void testCombinedShowingProof() {
 		CLSignature signature1 = CLSignature.signMessageBlock(sk, pk, attributes);
 		IdemixCredential cred1 = new IdemixCredential(pk, attributes, signature1);
