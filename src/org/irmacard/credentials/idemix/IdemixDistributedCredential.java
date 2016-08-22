@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, the IRMA Team
+ * Copyright (c) 2015, the IRMA Team
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,25 +28,27 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
-package org.irmacard.credentials.idemix.proofs;
+package org.irmacard.credentials.idemix;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.List;
 
-import org.irmacard.credentials.idemix.util.Crypto;
+public class IdemixDistributedCredential extends IdemixCredential {
+	List<BigInteger> public_sks;
 
-public abstract class Commitments {
-	public abstract List<BigInteger> asList();
+	public IdemixDistributedCredential(IdemixPublicKey issuer_pk,
+			List<BigInteger> public_sks,
+			List<BigInteger> attributes, CLSignature signature) {
+		super(issuer_pk, attributes, signature);
 
-	public abstract Commitments mergeProofPCommitments(ProofPBuilder.ProofPCommitments coms);
+		this.public_sks = public_sks;
+	}
 
-	public BigInteger calculateChallenge(BigInteger context, BigInteger nonce1) {
-		List<BigInteger> lst = new ArrayList<>();
-		lst.add(context);
-		lst.addAll(asList());
-		lst.add(nonce1);
-		return Crypto.sha256Hash(Crypto.asn1Encode(lst));
+	public IdemixDistributedCredential(IdemixPublicKey issuer_pk,
+			BigInteger secret, List<BigInteger> public_sks,
+			List<BigInteger> attributes, CLSignature signature) {
+		super(issuer_pk, secret, attributes, signature);
+
+		this.public_sks = public_sks;
 	}
 }

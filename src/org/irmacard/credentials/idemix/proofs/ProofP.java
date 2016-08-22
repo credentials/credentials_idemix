@@ -1,0 +1,113 @@
+/*
+ * Copyright (c) 2015, the IRMA Team
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ *  Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ *  Neither the name of the IRMA project nor the names of its
+ *   contributors may be used to endorse or promote products derived from
+ *   this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+package org.irmacard.credentials.idemix.proofs;
+
+import java.math.BigInteger;
+import java.util.Arrays;
+import java.util.List;
+
+import org.irmacard.credentials.idemix.IdemixPublicKey;
+import org.irmacard.credentials.idemix.IdemixSystemParameters;
+import org.irmacard.credentials.idemix.util.Crypto;
+
+public class ProofP implements Proof {
+	private BigInteger P;
+	private BigInteger c;
+	private BigInteger s_response;
+
+	public ProofP(BigInteger P, BigInteger c, BigInteger s_response) {
+		this.P = P;
+		this.c = c;
+		this.s_response = s_response;
+	}
+
+	@Override
+	public boolean verify(IdemixPublicKey pk, BigInteger context,
+			BigInteger nonce) {
+		return verify(pk, context, nonce, null);
+	}
+
+	@Override
+	public boolean verify(IdemixPublicKey pk, BigInteger context,
+			BigInteger nonce, BigInteger challenge) {
+		IdemixSystemParameters params = pk.getSystemParameters();
+
+		// Recalculate hash
+		BigInteger c_prime = challenge;
+		if (c_prime == null) {
+			BigInteger P_commit = reconstructP_commit(pk);
+			c_prime = Crypto.sha256Hash(Crypto.asn1Encode(context, P, P_commit, nonce));
+		}
+
+		boolean matched = c.compareTo(c_prime) == 0;
+
+		if(!matched) {
+			System.out.println("Hash doesn't match");
+		}
+
+		return matched;
+	}
+
+	@Override
+	public List<BigInteger> getChallengeContribution(IdemixPublicKey pk) {
+		return Arrays.asList(P, reconstructP_commit(pk));
+	}
+
+	@Override
+	public IdemixPublicKey extractPublicKey() {
+		return null;
+	}
+
+	@Override
+	public BigInteger get_c() {
+		return c;
+	}
+
+	@Override
+	public BigInteger getSecretKeyResponse() {
+		return s_response;
+	}
+
+	public BigInteger getP() {
+		return P;
+	}
+
+	public BigInteger reconstructP_commit(IdemixPublicKey pk) {
+		BigInteger n = pk.getModulus();
+
+		// Reconstruct U_commit
+		// U_commit = P^{-c} * R_0^{s_response}
+		BigInteger Uc = P.modPow(this.c.negate(), n);
+		BigInteger R0s = pk.getGeneratorR(0).modPow(this.s_response, n);
+
+		return Uc.multiply(R0s).mod(n);
+	}
+}

@@ -40,6 +40,7 @@ import org.irmacard.credentials.idemix.CLSignature;
 import org.irmacard.credentials.idemix.CredentialBuilder;
 import org.irmacard.credentials.idemix.IdemixPublicKey;
 import org.irmacard.credentials.idemix.IdemixSystemParameters;
+import org.irmacard.credentials.idemix.proofs.ProofPBuilder.ProofPCommitments;
 import org.irmacard.credentials.idemix.util.Crypto;
 
 public class ProofUBuilder extends ProofBuilder {
@@ -52,13 +53,24 @@ public class ProofUBuilder extends ProofBuilder {
 		private BigInteger s_commit;
 	}
 
-	class ProofUCommitments implements Commitments {
+	class ProofUCommitments extends Commitments {
 		private BigInteger U;
 		private BigInteger U_commit;
+		private IdemixPublicKey pk;
+
+		public ProofUCommitments(IdemixPublicKey pk) {
+			this.pk = pk;
+		}
 
 		public List<BigInteger> asList() {
 			List<BigInteger> lst = Arrays.asList(U, U_commit);
 			return lst;
+		}
+
+		@Override
+		public Commitments mergeProofPCommitments(ProofPBuilder.ProofPCommitments coms) {
+			U_commit = U_commit.multiply(coms.getPcommit()).mod(pk.getModulus());
+			return this;
 		}
 	}
 
@@ -84,7 +96,7 @@ public class ProofUBuilder extends ProofBuilder {
 
 	@Override
 	public Commitments calculateCommitments() {
-		ProofUCommitments coms = new ProofUCommitments();
+		ProofUCommitments coms = new ProofUCommitments(cb.getPublicKey());
 		IdemixPublicKey pk = cb.getPublicKey();
 		BigInteger n = pk.getModulus();
 

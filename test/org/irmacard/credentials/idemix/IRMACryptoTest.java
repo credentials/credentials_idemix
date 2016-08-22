@@ -34,6 +34,7 @@ import org.junit.Test;
 import java.io.File;
 import java.math.BigInteger;
 import java.net.URI;
+import java.security.SecureRandom;
 import java.util.*;
 
 import static org.junit.Assert.*;
@@ -270,6 +271,65 @@ public class IRMACryptoTest {
 		ProofD proof = cred.createDisclosureProof(disclosed, context, nonce1);
 
 		assertTrue("Proof of disclosure should verify", proof.verify(pk, context, nonce1));
+	}
+
+	@Test
+	public void testDistributedShowingProof() {
+		List<BigInteger> attrs = new ArrayList<>();
+		IdemixSystemParameters params = pk.getSystemParameters();
+		SecureRandom srnd = new SecureRandom();
+
+		// Generate shared private key
+		BigInteger x_user = new BigInteger(params.get_l_m() - 1, srnd);
+		BigInteger x_cloud = new BigInteger(params.get_l_m() - 1, srnd);
+		BigInteger x = x_user.add(x_cloud);
+
+		// Standard context and nonce
+		BigInteger context = new BigInteger(params.get_l_h(), srnd);
+		BigInteger nonce1 = new BigInteger(params.get_l_statzk(), srnd);
+
+		// Generate public variant of cloud key
+		List<BigInteger> public_sks = new ArrayList<>();
+		BigInteger pk_cloud = pk.getGeneratorR(0).modPow(x_cloud, pk.getModulus());
+		public_sks.add(pk_cloud);
+
+		BigInteger U = pk.getGeneratorR(0).modPow(x, pk.getModulus());
+		CLSignature signature = CLSignature.signMessageBlockAndCommitment(sk, pk, U, attributes);
+
+		attrs.add(x_user);
+		attrs.addAll(attributes);
+		assertTrue("Distributed signature should verify",
+				signature.verifyDistributed(pk, attrs, public_sks));
+
+		IdemixDistributedCredential cred = new IdemixDistributedCredential(pk,
+				public_sks, attrs, signature);
+		List<Integer> disclosed = Arrays.asList(1, 2);
+
+		// Now build a disclosure proof (we need to build using a distributed variant)
+
+		// User side
+		ProofDBuilder builder = new ProofDBuilder(cred, disclosed);
+		builder.generateRandomizers();
+		Commitments coms = builder.calculateCommitments();
+
+		// Server side
+		ProofPBuilder pb = new ProofPBuilder(x_cloud, pk);
+		pb.generateRandomizers();
+		ProofPBuilder.ProofPCommitments pcoms = pb.calculateCommitments();
+
+		// User: Merge commitments, and calculate the challenge
+		coms.mergeProofPCommitments(pcoms);
+		BigInteger challenge = coms.calculateChallenge(context, nonce1);
+
+		// User and server finish proof
+		ProofD proof = builder.createProof(challenge);
+		ProofP proofp = pb.createProof(challenge);
+
+		// User: combine proofs
+		proof.mergeProofP(proofp);
+
+		assertTrue("Distributed proof of disclosure should verify",
+				proof.verify(pk, context, nonce1));
 	}
 
 	@Test

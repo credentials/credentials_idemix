@@ -66,16 +66,7 @@ public abstract class ProofBuilder {
 	public Proof createProof(BigInteger context, BigInteger nonce1) {
 		generateRandomizers();
 		Commitments coms = calculateCommitments();
-		BigInteger challenge = calculateChallenge(context, nonce1, coms);
+		BigInteger challenge = coms.calculateChallenge(context, nonce1);
 		return createProof(challenge);
-	}
-
-	public static BigInteger calculateChallenge(BigInteger context, BigInteger nonce1, Commitments c) {
-		List<BigInteger> lst = new ArrayList<>();
-		lst.add(context);
-		lst.addAll(c.asList());
-		lst.add(nonce1);
-
-		return Crypto.sha256Hash(Crypto.asn1Encode(lst));
 	}
 }

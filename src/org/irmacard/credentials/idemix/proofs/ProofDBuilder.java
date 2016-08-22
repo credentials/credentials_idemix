@@ -58,13 +58,25 @@ public class ProofDBuilder extends ProofBuilder {
 		private CLSignature rand_sig;
 	}
 
-	class ProofDCommitments implements Commitments {
+	class ProofDCommitments extends Commitments {
 		private BigInteger A;
 		private BigInteger Z;
+
+		private IdemixPublicKey pk;
+
+		public ProofDCommitments(IdemixPublicKey pk) {
+			this.pk = pk;
+		}
 
 		public List<BigInteger> asList() {
 			List<BigInteger> lst = Arrays.asList(A, Z);
 			return lst;
+		}
+
+		@Override
+		public Commitments mergeProofPCommitments(ProofPBuilder.ProofPCommitments coms) {
+			Z = Z.multiply(coms.getPcommit()).mod(pk.getModulus());
+			return this;
 		}
 	}
 
@@ -100,8 +112,8 @@ public class ProofDBuilder extends ProofBuilder {
 	}
 
 	@Override
-	public Commitments calculateCommitments() {
-		ProofDCommitments coms = new ProofDCommitments();
+	public ProofDCommitments calculateCommitments() {
+		ProofDCommitments coms = new ProofDCommitments(credential.getPublicKey());
 
 		IdemixPublicKey issuer_pk = credential.getPublicKey();
 		BigInteger n = issuer_pk.getModulus();
@@ -121,7 +133,7 @@ public class ProofDBuilder extends ProofBuilder {
 		return coms;
 	}
 
-	public Proof createProof(BigInteger challenge) {
+	public ProofD createProof(BigInteger challenge) {
 		IdemixPublicKey issuer_pk = credential.getPublicKey();
 		IdemixSystemParameters params = issuer_pk.getSystemParameters();
 
