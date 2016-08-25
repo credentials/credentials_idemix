@@ -75,4 +75,13 @@ public interface Proof {
 	 * Gets the response for the secret key of this proof.
 	 */
 	BigInteger getSecretKeyResponse();
+
+	/**
+	 * Combine the existing proof with a ProofP for just the secret key
+	 *
+	 * @param p the proof p to combine
+	 * @param pk the public key corresponding to this proof
+	 * @return The merged proof (although the object is updated)
+	 */
+	Proof mergeProofP(ProofP p, IdemixPublicKey pk);
 }

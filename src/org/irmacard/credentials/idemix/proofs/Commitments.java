@@ -33,14 +33,17 @@ package org.irmacard.credentials.idemix.proofs;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.irmacard.credentials.idemix.util.Crypto;
+import org.irmacard.credentials.info.PublicKeyIdentifier;
 
 public abstract class Commitments {
 	public abstract List<BigInteger> asList();
 
-	public abstract Commitments mergeProofPCommitments(ProofPBuilder.ProofPCommitments coms);
+	public abstract Commitments mergeProofPCommitments(
+			ProofPCommitmentMap cmap);
 
 	public BigInteger calculateChallenge(BigInteger context, BigInteger nonce1) {
 		List<BigInteger> lst = new ArrayList<>();

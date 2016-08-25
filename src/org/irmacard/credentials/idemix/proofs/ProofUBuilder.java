@@ -42,6 +42,7 @@ import org.irmacard.credentials.idemix.IdemixPublicKey;
 import org.irmacard.credentials.idemix.IdemixSystemParameters;
 import org.irmacard.credentials.idemix.proofs.ProofPBuilder.ProofPCommitments;
 import org.irmacard.credentials.idemix.util.Crypto;
+import org.irmacard.credentials.info.PublicKeyIdentifier;
 
 public class ProofUBuilder extends ProofBuilder {
 	private CredentialBuilder cb;
@@ -68,9 +69,12 @@ public class ProofUBuilder extends ProofBuilder {
 		}
 
 		@Override
-		public Commitments mergeProofPCommitments(ProofPBuilder.ProofPCommitments coms) {
-			U = U.multiply(coms.getP()).mod(pk.getModulus());
-			U_commit = U_commit.multiply(coms.getPcommit()).mod(pk.getModulus());
+		public Commitments mergeProofPCommitments(ProofPCommitmentMap map) {
+			if(map.containsKey(pk.getIdentifier())) {
+				ProofPBuilder.ProofPCommitments coms = map.get(pk.getIdentifier());
+				U = U.multiply(coms.getP()).mod(pk.getModulus());
+				U_commit = U_commit.multiply(coms.getPcommit()).mod(pk.getModulus());
+			}
 			return this;
 		}
 	}

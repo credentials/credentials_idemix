@@ -110,4 +110,8 @@ public class ProofP implements Proof {
 
 		return Uc.multiply(R0s).mod(n);
 	}
+
+	public ProofP mergeProofP(ProofP p, IdemixPublicKey pk) {
+		throw new RuntimeException("Can't merge proofP's with proofP's");
+	}
 }

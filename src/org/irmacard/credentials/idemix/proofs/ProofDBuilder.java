@@ -43,6 +43,7 @@ import org.irmacard.credentials.idemix.IdemixCredential;
 import org.irmacard.credentials.idemix.IdemixPublicKey;
 import org.irmacard.credentials.idemix.IdemixSystemParameters;
 import org.irmacard.credentials.idemix.util.Crypto;
+import org.irmacard.credentials.info.PublicKeyIdentifier;
 
 public class ProofDBuilder extends ProofBuilder {
 	private IdemixCredential credential;
@@ -74,8 +75,12 @@ public class ProofDBuilder extends ProofBuilder {
 		}
 
 		@Override
-		public Commitments mergeProofPCommitments(ProofPBuilder.ProofPCommitments coms) {
-			Z = Z.multiply(coms.getPcommit()).mod(pk.getModulus());
+		public Commitments mergeProofPCommitments(
+				ProofPCommitmentMap map) {
+			if(map.containsKey(pk.getIdentifier())) {
+				ProofPBuilder.ProofPCommitments coms = map.get(pk.getIdentifier());
+				Z = Z.multiply(coms.getPcommit()).mod(pk.getModulus());
+			}
 			return this;
 		}
 	}

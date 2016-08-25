@@ -69,6 +69,9 @@ public class IRMACryptoTest {
 		try {
 			sk = new IdemixSecretKey(p, q);
 			pk = new IdemixPublicKey(n, Z, S, R);
+			pk.setCounter(1);
+			pk.setIssuerIdentifier(new IssuerIdentifier("irma-test.TestIssuer"));
+			IdemixKeyStore.getInstance().setPublicKey(pk.getIssuerIdentifier(), pk, 1);
 		} catch (InfoException e) {}
 	}
 
@@ -318,7 +321,9 @@ public class IRMACryptoTest {
 		ProofPBuilder.ProofPCommitments pcoms = pb.calculateCommitments();
 
 		// User: Merge commitments, and calculate the challenge
-		coms.mergeProofPCommitments(pcoms);
+		ProofPCommitmentMap cmap = new ProofPCommitmentMap();
+		cmap.put(pk.getIdentifier(), pcoms);
+		coms.mergeProofPCommitments(cmap);
 		BigInteger challenge = coms.calculateChallenge(context, nonce1);
 
 		// User and server finish proof
@@ -326,7 +331,7 @@ public class IRMACryptoTest {
 		ProofP proofp = pb.createProof(challenge);
 
 		// User: combine proofs
-		proof.mergeProofP(proofp);
+		proof.mergeProofP(proofp, pk);
 
 		assertTrue("Distributed proof of disclosure should verify",
 				proof.verify(pk, context, nonce1));
@@ -363,7 +368,9 @@ public class IRMACryptoTest {
 		ProofPBuilder.ProofPCommitments pcoms = pbuilder.calculateCommitments();
 
 		// User: combine ProofU and ProofP commitments
-		ucoms.mergeProofPCommitments(pcoms);
+		ProofPCommitmentMap cmap = new ProofPCommitmentMap();
+		cmap.put(pk.getIdentifier(), pcoms);
+		ucoms.mergeProofPCommitments(cmap);
 		BigInteger challenge = ucoms.calculateChallenge(context, n_1);
 
 		// User and server finish proof
@@ -399,7 +406,8 @@ public class IRMACryptoTest {
 		pcoms = pbuilder.calculateCommitments();
 
 		// User: Merge commitments, and calculate the challenge
-		dcoms.mergeProofPCommitments(pcoms);
+		cmap.put(pk.getIdentifier(), pcoms);
+		dcoms.mergeProofPCommitments(cmap);
 		challenge = dcoms.calculateChallenge(context, nonce1);
 
 		// User and server finish proof
@@ -407,7 +415,7 @@ public class IRMACryptoTest {
 		proofp = pbuilder.createProof(challenge);
 
 		// User: combine proofs
-		proofd.mergeProofP(proofp);
+		proofd.mergeProofP(proofp, pk);
 
 		assertTrue("Distributed proof of disclosure should verify",
 				proofd.verify(pk, context, nonce1));
@@ -432,6 +440,63 @@ public class IRMACryptoTest {
 				.build();
 
 		assertTrue("Combined disclosure proofs should verify", collection.verify(context, nonce1, true));
+	}
+
+	@Test
+	public void testCombinedDistributedShowingProof() throws InfoException, KeyException {
+		IdemixSystemParameters params = pk.getSystemParameters();
+		SecureRandom srnd = new SecureRandom();
+
+		// Generate shared private key
+		BigInteger x_user = new BigInteger(params.get_l_m() - 1, srnd);
+		BigInteger x_cloud = new BigInteger(params.get_l_m() - 1, srnd);
+		BigInteger x = x_user.add(x_cloud);
+
+		// Standard context and nonce
+		BigInteger context = new BigInteger(params.get_l_h(), srnd);
+		BigInteger nonce1 = new BigInteger(params.get_l_statzk(), srnd);
+
+		// Generate public variant of cloud key
+		List<BigInteger> public_sks = new ArrayList<>();
+		BigInteger pk_cloud = pk.getGeneratorR(0).modPow(x_cloud, pk.getModulus());
+		public_sks.add(pk_cloud);
+
+		List<BigInteger> attrs = new ArrayList<>();
+		attrs.add(x_user);
+		attrs.addAll(attributes);
+
+		BigInteger U = pk.getGeneratorR(0).modPow(x, pk.getModulus());
+		CLSignature signature1 = CLSignature.signMessageBlockAndCommitment(sk, pk, U, attributes);
+		IdemixDistributedCredential cred1 = new IdemixDistributedCredential(pk,
+				public_sks, attrs, signature1);
+
+		CLSignature signature2 = CLSignature.signMessageBlockAndCommitment(sk, pk, U, attributes);
+		IdemixDistributedCredential cred2 = new IdemixDistributedCredential(pk,
+				public_sks, attrs, signature2);
+
+		// User side
+		ProofListBuilder builder = new ProofListBuilder(context, nonce1)
+				.addProofD(cred1, Arrays.asList(1, 2))
+				.addProofD(cred2, Arrays.asList(1, 3));
+		builder.generateRandomizers();
+		List<PublicKeyIdentifier> pkids = builder.getPublicKeyIdentifiers();
+
+		// Server side
+		ProofPListBuilder pbuilder = new ProofPListBuilder(pkids, x_cloud);
+		pbuilder.generateRandomizers();
+		ProofPCommitmentMap plistcom = pbuilder.calculateCommitments();
+
+		// User side: merge commitments, calculate challenge
+		ProofListBuilder.Commitment com = builder.calculateCommitments();
+		com.mergeProofPCommitments(plistcom);
+		BigInteger challenge = com.calculateChallenge(context, nonce1);
+
+		// Server & User side: calculate responses
+		ProofP proofp = pbuilder.build(challenge);
+		ProofList collection = builder.createProofList(challenge, proofp);
+
+		assertTrue("Combined disclosure proofs should verify",
+				collection.verify(context, nonce1, true));
 	}
 
 	@Test

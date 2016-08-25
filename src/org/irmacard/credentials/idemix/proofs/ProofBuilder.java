@@ -51,6 +51,7 @@ import org.irmacard.credentials.idemix.util.Crypto;
  */
 public abstract class ProofBuilder {
 	public static final String USER_SECRET_KEY = "user-secret-key";
+	public static final String CLOUD_SECRET_KEY = "cloud-secret-key";
 
 	public abstract ProofBuilder generateRandomizers(Map<String, BigInteger> fixed);
 	public abstract Commitments calculateCommitments();

@@ -76,7 +76,7 @@ public class IdemixKeyStoreDeserializer {
 	}
 
 	public IdemixPublicKey loadPublicKey(IssuerIdentifier issuer, int counter) throws InfoException {
-		return new IdemixPublicKey(fileReader.retrieveFile(getPublicKeyPath(issuer, counter)));
+		return new IdemixPublicKey(fileReader.retrieveFile(getPublicKeyPath(issuer, counter)), issuer);
 	}
 
 	public IdemixSecretKey loadPrivateKey(IssuerIdentifier issuer, int counter) throws InfoException {

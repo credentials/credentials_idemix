@@ -33,6 +33,9 @@ package org.irmacard.credentials.idemix;
 import org.irmacard.credentials.PublicKey;
 import org.irmacard.credentials.info.ConfigurationParser;
 import org.irmacard.credentials.info.InfoException;
+import org.irmacard.credentials.info.IssuerDescription;
+import org.irmacard.credentials.info.IssuerIdentifier;
+import org.irmacard.credentials.info.PublicKeyIdentifier;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -54,6 +57,7 @@ public class IdemixPublicKey extends ConfigurationParser implements PublicKey {
 	private List<BigInteger> R;
 
 	private transient IdemixSystemParameters systemParameters;
+	private IssuerIdentifier issuer;
 
 	private int counter;
 	private Date expiryDate;
@@ -119,6 +123,12 @@ public class IdemixPublicKey extends ConfigurationParser implements PublicKey {
 		this(new ByteArrayInputStream(xml.getBytes()));
 	}
 
+	public IdemixPublicKey(InputStream retrieveFile, IssuerIdentifier issuer)
+			throws InfoException {
+		this(retrieveFile);
+		this.issuer = issuer;
+	}
+
 	private void init(Document d) throws InfoException {
 		n = new BigInteger(getFirstTagText(d, "n"));
 		Z = new BigInteger(getFirstTagText(d, "Z"));
@@ -176,6 +186,10 @@ public class IdemixPublicKey extends ConfigurationParser implements PublicKey {
 		return "Public key: " + R.get(0);
 	}
 
+	public void setCounter(int counter) {
+		this.counter = counter;
+	}
+
 	@Override
 	public int getCounter() {
 		return counter;
@@ -192,5 +206,17 @@ public class IdemixPublicKey extends ConfigurationParser implements PublicKey {
 	@Override
 	public boolean isValidOn(Date date) {
 		return expiryDate.after(date);
+	}
+
+	public void setIssuerIdentifier(IssuerIdentifier issuer) {
+		this.issuer = issuer;
+	}
+
+	public IssuerIdentifier getIssuerIdentifier() {
+		return issuer;
+	}
+
+	public PublicKeyIdentifier getIdentifier() {
+		return new PublicKeyIdentifier(issuer, counter);
 	}
 }

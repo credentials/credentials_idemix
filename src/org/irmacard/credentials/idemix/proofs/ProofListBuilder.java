@@ -33,7 +33,9 @@ package org.irmacard.credentials.idemix.proofs;
 import org.irmacard.credentials.idemix.CredentialBuilder;
 import org.irmacard.credentials.idemix.IdemixCredential;
 import org.irmacard.credentials.idemix.IdemixSystemParameters1024;
+import org.irmacard.credentials.idemix.proofs.ProofPBuilder.ProofPCommitments;
 import org.irmacard.credentials.idemix.util.Crypto;
+import org.irmacard.credentials.info.PublicKeyIdentifier;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
@@ -42,6 +44,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * <p>A builder for {@link ProofList}s, for creating cryptographically bound proofs of knowledge. It works as
@@ -71,6 +75,27 @@ public class ProofListBuilder {
 
 	private Map<String, BigInteger> fixed;
 
+	public class Commitment extends Commitments {
+		List<Commitments> coms = new ArrayList<>();
+
+		@Override
+		public List<BigInteger> asList() {
+			List<BigInteger> res = new ArrayList<>();
+			for(Commitments c : coms) {
+				res.addAll(c.asList());
+			}
+			return res;
+		}
+
+		public Commitments mergeProofPCommitments(
+				ProofPCommitmentMap map) {
+			for(Commitments c : coms) {
+				c.mergeProofPCommitments(map);
+			}
+			return this;
+		}
+	}
+
 	public ProofListBuilder(BigInteger context, BigInteger nonce) {
 		this.context = context;
 		this.nonce = nonce;
@@ -87,9 +112,7 @@ public class ProofListBuilder {
 	 * Add a generic proofbuilder
 	 */
 	public ProofListBuilder addProof(ProofBuilder builder) {
-		builder.generateRandomizers(fixed);
 		builders.add(builder);
-
 		return this;
 	}
 
@@ -112,6 +135,8 @@ public class ProofListBuilder {
 	 * key and v_prime for issuing. If the builder does not yet have a secret key, we generate one.
 	 */
 	public ProofListBuilder addCredentialBuilder(CredentialBuilder builder) {
+		// TODO: it seems that this is here to ensure that new CredentialBuilders also have a key set
+		// I'm doubting whether this is really the correct place to handle that
 		if (builder.getSecret() == null) {
 			BigInteger sk = getSecretKey();
 			if (sk == null) {
@@ -125,29 +150,49 @@ public class ProofListBuilder {
 		return addProof(pb);
 	}
 
+	public void generateRandomizers() {
+		for(ProofBuilder builder : builders) {
+			builder.generateRandomizers(fixed);
+		}
+	}
+
+	public ProofListBuilder.Commitment calculateCommitments() {
+		ProofListBuilder.Commitment com = new ProofListBuilder.Commitment();
+		for(ProofBuilder builder : builders) {
+			com.coms.add(builder.calculateCommitments());
+		}
+		return com;
+	}
+
 	/**
 	 * Completes the proofs, and returns a new {@link ProofList} that contains them.
 	 * @throws RuntimeException if no proofs have been added yet
 	 */
 	public ProofList build() {
-		List<BigInteger> toHash = new ArrayList<>();
 		if (builders.size() == 0) { // Nothing to do? Probably a mistake
 			throw new RuntimeException("No proofs have been added, can't build an empty proof collection");
 		}
 
-		toHash.add(context);
-		for(ProofBuilder builder : builders) {
-			Commitments coms = builder.calculateCommitments();
-			toHash.addAll(coms.asList());
-		}
-		toHash.add(nonce);
+		generateRandomizers();
+		Commitment com = calculateCommitments();
+		BigInteger challenge = com.calculateChallenge(context, nonce);
+		return createProofList(challenge);
+	}
 
-		BigInteger challenge = Crypto.sha256Hash(Crypto.asn1Encode(toHash));
+	public ProofList createProofList(BigInteger challenge) {
+		return createProofList(challenge, null);
+	}
 
+	public ProofList createProofList(BigInteger challenge, ProofP proofp) {
 		ProofList proofs = new ProofList();
 
 		for(ProofBuilder builder : builders) {
-			proofs.add(builder.createProof(challenge));
+			Proof p = builder.createProof(challenge);
+			if(proofp != null) {
+				p.mergeProofP(proofp, builder.getPublicKey());
+			}
+
+			proofs.add(p);
 			proofs.addPublicKey(builder.getPublicKey());
 		}
 
@@ -187,5 +232,17 @@ public class ProofListBuilder {
 
 	public BigInteger getSecretKeyCommitment() {
 		return fixed.get(ProofBuilder.USER_SECRET_KEY);
+	}
+
+	public List<PublicKeyIdentifier> getPublicKeyIdentifiers() {
+		// TODO maybe deal with non-distributed creds differently?
+
+		// Note: the TreeSet ensures the identifiers are sorted
+		TreeSet<PublicKeyIdentifier> set = new TreeSet<>();
+
+		for(ProofBuilder builder : builders) {
+			set.add(builder.getPublicKey().getIdentifier());
+		}
+		return new ArrayList<PublicKeyIdentifier>(set);
 	}
 }

@@ -33,11 +33,13 @@ package org.irmacard.credentials.idemix.proofs;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.irmacard.credentials.idemix.IdemixPublicKey;
 import org.irmacard.credentials.idemix.IdemixSystemParameters;
+import org.irmacard.credentials.info.PublicKeyIdentifier;
 
 public class ProofPBuilder extends ProofBuilder {
 	private BigInteger s;
@@ -60,8 +62,10 @@ public class ProofPBuilder extends ProofBuilder {
 		}
 
 		@Override
-		public Commitments mergeProofPCommitments(ProofPCommitments coms) {
-			return this;
+		public Commitments mergeProofPCommitments(
+				ProofPCommitmentMap map) {
+			// For now we do not need this, we might never need it
+			throw new RuntimeException("Not yet implemented!");
 		}
 
 		public BigInteger getPcommit() {

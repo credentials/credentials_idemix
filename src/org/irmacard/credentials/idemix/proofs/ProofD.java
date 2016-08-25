@@ -192,7 +192,7 @@ public class ProofD implements Proof {
 		return a_disclosed;
 	}
 
-	public ProofD mergeProofP(ProofP proofp) {
+	public ProofD mergeProofP(ProofP proofp, IdemixPublicKey pk) {
 		BigInteger s_response = this.a_responses.get(0).add(proofp.getSecretKeyResponse());
 		this.a_responses.put(0, s_response);
 		return this;
