@@ -40,6 +40,9 @@ import org.irmacard.credentials.CredentialsException;
 import org.irmacard.credentials.idemix.messages.IssueCommitmentMessage;
 import org.irmacard.credentials.idemix.messages.IssueSignatureMessage;
 import org.irmacard.credentials.idemix.proofs.ProofListBuilder;
+import org.irmacard.credentials.idemix.proofs.ProofPBuilder;
+import org.irmacard.credentials.idemix.proofs.ProofPCommitmentMap;
+import org.irmacard.credentials.idemix.proofs.ProofPListBuilder;
 import org.irmacard.credentials.idemix.proofs.ProofU;
 import org.irmacard.credentials.idemix.proofs.ProofUBuilder;
 import org.irmacard.credentials.idemix.util.Crypto;
@@ -59,6 +62,11 @@ public class DistributedCredentialBuilder extends CredentialBuilder {
 
 	public void addPublicSK(BigInteger public_sk) {
 		public_sks.add(public_sk);
+	}
+
+	public void addPublicSK(ProofPCommitmentMap map) {
+		ProofPBuilder.ProofPCommitments coms = map.get(pk.getIdentifier());
+		addPublicSK(coms.getP());
 	}
 
 	public IdemixDistributedCredential constructCredential(IssueSignatureMessage msg)

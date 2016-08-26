@@ -69,9 +69,9 @@ public class IRMACryptoTest {
 		try {
 			sk = new IdemixSecretKey(p, q);
 			pk = new IdemixPublicKey(n, Z, S, R);
-			pk.setCounter(1);
+			pk.setCounter(0);
 			pk.setIssuerIdentifier(new IssuerIdentifier("irma-test.TestIssuer"));
-			IdemixKeyStore.getInstance().setPublicKey(pk.getIssuerIdentifier(), pk, 1);
+			IdemixKeyStore.getInstance().setPublicKey(pk.getIssuerIdentifier(), pk, 0);
 		} catch (InfoException e) {}
 	}
 
@@ -576,6 +576,110 @@ public class IRMACryptoTest {
 		List<Integer> disclosed = Arrays.asList(1, 3);
 		ProofD proof = cred2.createDisclosureProof(disclosed, context, n_1);
 		assertTrue("Proof of disclosure should verify", proof.verify(pk, context, n_1));
+	}
+
+	@Test
+	public void testDistributedBoundIssanceAndVerify() throws CredentialsException, InfoException, KeyException {
+		SecureRandom rnd = new SecureRandom();
+		IdemixSystemParameters params = pk.getSystemParameters();
+
+		BigInteger context = new BigInteger(params.get_l_h(), rnd);
+		BigInteger n_1 = new BigInteger(params.get_l_statzk(), rnd);
+
+		// Generate shared private key
+		BigInteger x_user = new BigInteger(params.get_l_m() - 1, rnd);
+		BigInteger x_cloud = new BigInteger(params.get_l_m() - 1, rnd);
+		BigInteger x = x_user.add(x_cloud);
+
+		// ************************************
+		// *** Generate existing credential ***
+		// ************************************
+
+		// Generate public variant of cloud key
+		List<BigInteger> public_sks = new ArrayList<>();
+		BigInteger pk_cloud = pk.getGeneratorR(0).modPow(x_cloud, pk.getModulus());
+		public_sks.add(pk_cloud);
+
+		List<BigInteger> attrs = new ArrayList<>();
+		attrs.add(x_user);
+		attrs.addAll(attributes);
+
+		BigInteger U = pk.getGeneratorR(0).modPow(x, pk.getModulus());
+		CLSignature signature1 = CLSignature.signMessageBlockAndCommitment(sk, pk, U, attributes);
+		IdemixDistributedCredential cred1 = new IdemixDistributedCredential(pk,
+				public_sks, attrs, signature1);
+
+		// ****************
+		// *** ISSUANCE ***
+		// ****************
+
+		// User: setup issuance
+		DistributedCredentialBuilder cb = new DistributedCredentialBuilder(pk, attributes, context);
+		cb.setSecret(x_user);
+
+		// User side
+		ProofListBuilder builder = new ProofListBuilder(context, n_1)
+				.addProofD(cred1, Arrays.asList(1, 2))
+				.addCredentialBuilder(cb);
+		builder.generateRandomizers();
+		List<PublicKeyIdentifier> pkids = builder.getPublicKeyIdentifiers();
+
+		// Server side
+		ProofPListBuilder pbuilder = new ProofPListBuilder(pkids, x_cloud);
+		pbuilder.generateRandomizers();
+		ProofPCommitmentMap plistcom = pbuilder.calculateCommitments();
+
+		// User side: merge commitments, calculate challenge
+		ProofListBuilder.Commitment com = builder.calculateCommitments();
+		com.mergeProofPCommitments(plistcom);
+		BigInteger challenge = com.calculateChallenge(context, n_1);
+
+		// Server & User side: calculate responses
+		ProofP proofp = pbuilder.build(challenge);
+		ProofList collection = builder.createProofList(challenge, proofp);
+
+		assertTrue("ProofList should verify", collection.verify(context, n_1, true));
+
+		// Update state of DistributedCredentialBuilder
+		cb.addPublicSK(plistcom);
+
+		IssueCommitmentMessage commit_msg = new IssueCommitmentMessage(collection, cb.getNonce2());
+
+		IdemixIssuer issuer = new IdemixIssuer(pk, sk, context);
+		IssueSignatureMessage msg = issuer.issueSignature(commit_msg, attributes, n_1);
+		IdemixDistributedCredential cred2 = cb.constructCredential(msg);
+
+		// ******************
+		// *** DISCLOSURE ***
+		// ******************
+		List<Integer> disclosed = Arrays.asList(1, 2);
+		BigInteger nonce1 = new BigInteger(params.get_l_statzk(), rnd);
+
+		// User side
+		ProofDBuilder dbuilder = new ProofDBuilder(cred2, disclosed);
+		dbuilder.generateRandomizers();
+		Commitments dcoms = dbuilder.calculateCommitments();
+
+		// Server side
+		ProofPBuilder simplepbuilder = new ProofPBuilder(x_cloud, pk);
+		simplepbuilder.generateRandomizers();
+		ProofPBuilder.ProofPCommitments pcoms = simplepbuilder.calculateCommitments();
+
+		// User: Merge commitments, and calculate the challenge
+		ProofPCommitmentMap cmap = new ProofPCommitmentMap();
+		cmap.put(pk.getIdentifier(), pcoms);
+		dcoms.mergeProofPCommitments(cmap);
+		challenge = dcoms.calculateChallenge(context, nonce1);
+
+		// User and server finish proof
+		ProofD proofd = dbuilder.createProof(challenge);
+		proofp = simplepbuilder.createProof(challenge);
+
+		// User: combine proofs
+		proofd.mergeProofP(proofp, pk);
+
+		assertTrue("Distributed proof of disclosure should verify",
+				proofd.verify(pk, context, nonce1));
 	}
 
 	@Test

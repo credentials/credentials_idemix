@@ -61,6 +61,8 @@ public class ProofPListBuilder {
 		// per construction, so will all the proofs be the same
 		// hence, we only need to return one proof.
 		
+		// FIXME: this response is only valid for the first pk
+		// not for any of the other keys, not so nice
 		ProofPBuilder builder = builders.get(0);
 		return builder.createProof(challenge);
 	}
