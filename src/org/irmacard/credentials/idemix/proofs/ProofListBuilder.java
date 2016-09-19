@@ -41,6 +41,7 @@ import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -69,7 +70,7 @@ public class ProofListBuilder {
 
 	private List<IdemixCredential> credentials = new ArrayList<>();
 
-	private List<ProofBuilder> builders = new ArrayList<>();
+	private List<ProofBuilder> builders = new LinkedList<>();
 
 	private BigInteger secret;
 
@@ -112,7 +113,12 @@ public class ProofListBuilder {
 	 * Add a generic proofbuilder
 	 */
 	public ProofListBuilder addProof(ProofBuilder builder) {
-		builders.add(builder);
+		// FIXME: the api-server expects proofU's to be at the end, proofD's at the beginning
+		if(builder instanceof ProofDBuilder) {
+			builders.add(0, builder);
+		} else {
+			builders.add(builder);
+		}
 		return this;
 	}
 
@@ -194,6 +200,9 @@ public class ProofListBuilder {
 
 			proofs.add(p);
 			proofs.addPublicKey(builder.getPublicKey());
+			if(builder.getPublicKey() == null) {
+				System.out.println("Builder for proof " + p + " is null!");
+			}
 		}
 
 		return proofs;
