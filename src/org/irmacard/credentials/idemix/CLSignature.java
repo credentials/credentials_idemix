@@ -134,6 +134,11 @@ public class CLSignature {
 	}
 
 	public boolean verify(IdemixPublicKey pk, List<BigInteger> ms) {
+		return verifyDistributed(pk, ms, null);
+	}
+
+	public boolean verifyDistributed(IdemixPublicKey pk, List<BigInteger> ms,
+			List<BigInteger> public_sks) {
 		IdemixSystemParameters params = pk.getSystemParameters();
 		BigInteger n = pk.getModulus();
 
@@ -147,9 +152,18 @@ public class CLSignature {
 
 		// Q = A^e * R * S^v
 		BigInteger R = Crypto.representToBases(pk.getGeneratorsR(), ms, n);
+
+		// Add in the public_sks
+		if(public_sks != null) {
+			for(BigInteger public_sk : public_sks) {
+				R = R.multiply(public_sk).mod(n);
+			}
+		}
+
 		BigInteger Ae = this.A.modPow(e, n);
 		BigInteger Sv = pk.getGeneratorS().modPow(this.v, n);
 		BigInteger Q = Ae.multiply(R).multiply(Sv).mod(n);
+
 
 		return pk.getGeneratorZ().equals(Q);
 	}

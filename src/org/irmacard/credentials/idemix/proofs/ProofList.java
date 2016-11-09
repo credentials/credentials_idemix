@@ -37,7 +37,6 @@ import java.util.List;
 import org.irmacard.credentials.idemix.IdemixPublicKey;
 import org.irmacard.credentials.idemix.info.IdemixKeyStore;
 import org.irmacard.credentials.idemix.util.Crypto;
-import org.irmacard.credentials.info.InfoException;
 import org.irmacard.credentials.info.KeyException;
 
 /**

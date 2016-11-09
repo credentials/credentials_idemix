@@ -28,34 +28,27 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.irmacard.credentials.idemix.info;
+package org.irmacard.credentials.idemix;
 
-import org.irmacard.credentials.info.DescriptionStore;
-import org.irmacard.credentials.info.InfoException;
-import org.irmacard.credentials.info.IssuerDescription;
-import org.irmacard.credentials.info.IssuerIdentifier;
-import org.irmacard.credentials.info.StoreException;
+import java.math.BigInteger;
+import java.util.List;
 
-public class KeyTreeWalker {
-	private IdemixKeyStoreDeserializer deserializer;
+public class IdemixDistributedCredential extends IdemixCredential {
+	List<BigInteger> public_sks;
 
-	public KeyTreeWalker(IdemixKeyStoreDeserializer deserializer) {
-		this.deserializer = deserializer;
+	public IdemixDistributedCredential(IdemixPublicKey issuer_pk,
+			List<BigInteger> public_sks,
+			List<BigInteger> attributes, CLSignature signature) {
+		super(issuer_pk, attributes, signature);
+
+		this.public_sks = public_sks;
 	}
 
-	public void deserializeIdemixKeyStore(IdemixKeyStore store) throws InfoException {
-		DescriptionStore ds = DescriptionStore.getInstance();
+	public IdemixDistributedCredential(IdemixPublicKey issuer_pk,
+			BigInteger secret, List<BigInteger> public_sks,
+			List<BigInteger> attributes, CLSignature signature) {
+		super(issuer_pk, secret, attributes, signature);
 
-		for (IssuerDescription id : ds.getIssuerDescriptions()) {
-			IssuerIdentifier issuer = id.getIdentifier();
-
-			for (int i : deserializer.getPublicKeyCounters(issuer)) {
-				// We expect this public key here, throw exception if it's not here
-				store.setPublicKey(issuer, deserializer.loadPublicKey(issuer, i), i);
-				try {
-					store.setSecretKey(issuer, deserializer.loadPrivateKey(issuer, i), i);
-				} catch (InfoException e) { /* ignore absence of public or private key */ }
-			}
-		}
+		this.public_sks = public_sks;
 	}
 }

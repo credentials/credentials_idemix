@@ -33,13 +33,20 @@ package org.irmacard.credentials.idemix.proofs;
 import org.irmacard.credentials.idemix.CredentialBuilder;
 import org.irmacard.credentials.idemix.IdemixCredential;
 import org.irmacard.credentials.idemix.IdemixSystemParameters1024;
+import org.irmacard.credentials.idemix.proofs.ProofPBuilder.ProofPCommitments;
 import org.irmacard.credentials.idemix.util.Crypto;
+import org.irmacard.credentials.info.PublicKeyIdentifier;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * <p>A builder for {@link ProofList}s, for creating cryptographically bound proofs of knowledge. It works as
@@ -62,13 +69,33 @@ public class ProofListBuilder {
 	private BigInteger nonce;
 
 	private List<IdemixCredential> credentials = new ArrayList<>();
-	private List<BigInteger> toHash = new ArrayList<>();
-	private List<BigInteger> toHashU = new ArrayList<>();
-	private List<IdemixCredential.Commitment> commitments = new ArrayList<>();
-	private List<CredentialBuilder.Commitment> proofUcommitments = new ArrayList<>();
+
+	private List<ProofBuilder> builders = new LinkedList<>();
 
 	private BigInteger secret;
-	private BigInteger skCommitment;
+
+	private Map<String, BigInteger> fixed;
+
+	public class Commitment extends Commitments {
+		List<Commitments> coms = new ArrayList<>();
+
+		@Override
+		public List<BigInteger> asList() {
+			List<BigInteger> res = new ArrayList<>();
+			for(Commitments c : coms) {
+				res.addAll(c.asList());
+			}
+			return res;
+		}
+
+		public Commitments mergeProofPCommitments(
+				ProofPCommitmentMap map) {
+			for(Commitments c : coms) {
+				c.mergeProofPCommitments(map);
+			}
+			return this;
+		}
+	}
 
 	public ProofListBuilder(BigInteger context, BigInteger nonce) {
 		this.context = context;
@@ -77,21 +104,34 @@ public class ProofListBuilder {
 		// The secret key may be used across credentials supporting different attribute sizes.
 		// So we should take it, and hence also its commitment, to fit within the smallest,
 		// otherwise we cannot perform the range proof showing that it is not too large.
-		this.skCommitment = new BigInteger(new IdemixSystemParameters1024().get_l_m_commit(), new Random());
+		fixed = new HashMap<String, BigInteger>();
+		fixed.put(ProofBuilder.USER_SECRET_KEY,
+		        new BigInteger(new IdemixSystemParameters1024().get_l_m_commit(), new SecureRandom()));
+	}
 
-		toHash.add(context);
+	/**
+	 * Add a generic proofbuilder
+	 */
+	public ProofListBuilder addProof(ProofBuilder builder) {
+		// FIXME: the api-server expects proofU's to be at the end, proofD's at the beginning
+		if(builder instanceof ProofDBuilder) {
+			builders.add(0, builder);
+		} else {
+			builders.add(builder);
+		}
+		return this;
 	}
 
 	/**
 	 * Add a proof for the specified credential and attributes.
 	 */
 	public ProofListBuilder addProofD(IdemixCredential credential, List<Integer> disclosed_attributes) {
-		IdemixCredential.Commitment commitment = credential.commit(disclosed_attributes, context, nonce, skCommitment);
+		ProofDBuilder builder = new ProofDBuilder(credential, disclosed_attributes);
 
+		// TODO: Do we still need these?
 		credentials.add(credential);
-		commitments.add(commitment);
-		toHash.add(commitment.getA());
-		toHash.add(commitment.getZ());
+
+		addProof(builder);
 
 		return this;
 	}
@@ -101,6 +141,8 @@ public class ProofListBuilder {
 	 * key and v_prime for issuing. If the builder does not yet have a secret key, we generate one.
 	 */
 	public ProofListBuilder addCredentialBuilder(CredentialBuilder builder) {
+		// TODO: it seems that this is here to ensure that new CredentialBuilders also have a key set
+		// I'm doubting whether this is really the correct place to handle that
 		if (builder.getSecret() == null) {
 			BigInteger sk = getSecretKey();
 			if (sk == null) {
@@ -110,18 +152,22 @@ public class ProofListBuilder {
 			builder.setSecret(sk);
 		}
 
-		return addProofU(builder.commit(nonce, skCommitment));
+		ProofBuilder pb = new ProofUBuilder(builder);
+		return addProof(pb);
 	}
 
-	/**
-	 * Add a proof for the commitment to the secret key and v_prime for issuing.
-	 */
-	private ProofListBuilder addProofU(CredentialBuilder.Commitment commitment) {
-		this.proofUcommitments.add(commitment);
-		toHashU.add(commitment.getU());
-		toHashU.add(commitment.getUcommit());
+	public void generateRandomizers() {
+		for(ProofBuilder builder : builders) {
+			builder.generateRandomizers(fixed);
+		}
+	}
 
-		return this;
+	public ProofListBuilder.Commitment calculateCommitments() {
+		ProofListBuilder.Commitment com = new ProofListBuilder.Commitment();
+		for(ProofBuilder builder : builders) {
+			com.coms.add(builder.calculateCommitments());
+		}
+		return com;
 	}
 
 	/**
@@ -129,26 +175,34 @@ public class ProofListBuilder {
 	 * @throws RuntimeException if no proofs have been added yet
 	 */
 	public ProofList build() {
-		if (proofUcommitments.size() == 0 && credentials.size() == 0) { // Nothing to do? Probably a mistake
+		if (builders.size() == 0) { // Nothing to do? Probably a mistake
 			throw new RuntimeException("No proofs have been added, can't build an empty proof collection");
 		}
 
-		toHash.addAll(toHashU);
-		toHash.add(nonce);
-		BigInteger[] toHashArray = toHash.toArray(new BigInteger[toHash.size()]);
+		generateRandomizers();
+		Commitment com = calculateCommitments();
+		BigInteger challenge = com.calculateChallenge(context, nonce);
+		return createProofList(challenge);
+	}
 
-		BigInteger challenge = Crypto.sha256Hash(Crypto.asn1Encode(toHashArray));
+	public ProofList createProofList(BigInteger challenge) {
+		return createProofList(challenge, null);
+	}
 
+	public ProofList createProofList(BigInteger challenge, ProofP proofp) {
 		ProofList proofs = new ProofList();
 
-		for (int i = 0; i < credentials.size(); ++i) {
-			proofs.add(commitments.get(i).createProof(challenge));
-			proofs.addPublicKey(credentials.get(i).getPublicKey());
-		}
+		for(ProofBuilder builder : builders) {
+			Proof p = builder.createProof(challenge);
+			if(proofp != null) {
+				p.mergeProofP(proofp, builder.getPublicKey());
+			}
 
-		for (CredentialBuilder.Commitment commitment : proofUcommitments) {
-			proofs.add(commitment.createProof(challenge));
-			proofs.addPublicKey(commitment.getPublicKey());
+			proofs.add(p);
+			proofs.addPublicKey(builder.getPublicKey());
+			if(builder.getPublicKey() == null) {
+				System.out.println("Builder for proof " + p + " is null!");
+			}
 		}
 
 		return proofs;
@@ -169,19 +223,35 @@ public class ProofListBuilder {
 	/**
 	 * Gets the secret key of one of the credentials or commitments. If no credentials or commitments
 	 * have been added yet, returns null.
+	 *
+	 * TODO: This whole thing with getSecretKey() (and when it is called) seems like
+	 * a messy hack to not have to give secret keys to CredentialBuilders in the first
+	 * place, seems like this should be solved elsewhere.
 	 */
 	public BigInteger getSecretKey() {
 		if (secret == null) {
 			if (credentials != null && credentials.size() > 0)
 				secret = credentials.get(0).getAttribute(0);
-			if (proofUcommitments != null && proofUcommitments.size() > 0)
-				secret = proofUcommitments.get(0).getSecretKey();
+			//if (proofUcommitments != null && proofUcommitments.size() > 0)
+			//	secret = proofUcommitments.get(0).getSecretKey();
 		}
 
 		return secret;
 	}
 
 	public BigInteger getSecretKeyCommitment() {
-		return skCommitment;
+		return fixed.get(ProofBuilder.USER_SECRET_KEY);
+	}
+
+	public List<PublicKeyIdentifier> getPublicKeyIdentifiers() {
+		// TODO maybe deal with non-distributed creds differently?
+
+		// Note: the TreeSet ensures the identifiers are sorted
+		TreeSet<PublicKeyIdentifier> set = new TreeSet<>();
+
+		for(ProofBuilder builder : builders) {
+			set.add(builder.getPublicKey().getIdentifier());
+		}
+		return new ArrayList<PublicKeyIdentifier>(set);
 	}
 }

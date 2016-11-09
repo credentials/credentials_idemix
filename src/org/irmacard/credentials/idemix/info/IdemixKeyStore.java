@@ -127,6 +127,10 @@ public class IdemixKeyStore extends KeyStore {
 		throw new KeyException("Public key " + counter + " for issuer " + issuer + " not found");
 	}
 
+	public IdemixPublicKey getPublicKey(PublicKeyIdentifier pkid) throws KeyException {
+		return getPublicKey(pkid.getIssuer(), pkid.getCounter());
+	}
+
 	@Override
 	public void removePublicKeys(IssuerIdentifier issuer) {
 		for (Iterator<IssuerIdentifier> it = publicKeys.keySet().iterator(); it.hasNext(); )

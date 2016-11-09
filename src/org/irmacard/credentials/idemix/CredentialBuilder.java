@@ -40,6 +40,7 @@ import org.irmacard.credentials.idemix.messages.IssueCommitmentMessage;
 import org.irmacard.credentials.idemix.messages.IssueSignatureMessage;
 import org.irmacard.credentials.idemix.proofs.ProofListBuilder;
 import org.irmacard.credentials.idemix.proofs.ProofU;
+import org.irmacard.credentials.idemix.proofs.ProofUBuilder;
 import org.irmacard.credentials.idemix.util.Crypto;
 
 public class CredentialBuilder {
@@ -50,13 +51,13 @@ public class CredentialBuilder {
 	private BigInteger U;
 
 	// Immutable Input
-	private final IdemixPublicKey pk;
-	private final List<BigInteger> attributes;
-	private final BigInteger context;
+	protected final IdemixPublicKey pk;
+	protected final List<BigInteger> attributes;
+	protected final BigInteger context;
 
 	// Derived immutable state
-	private final IdemixSystemParameters params;
-	private final BigInteger n;
+	protected final IdemixSystemParameters params;
+	protected final BigInteger n;
 
 	public CredentialBuilder(IdemixPublicKey pk, List<BigInteger> attrs, BigInteger context) {
 		this.pk = pk;
@@ -65,6 +66,7 @@ public class CredentialBuilder {
 
 		this.params = pk.getSystemParameters();
 		this.n = pk.getModulus();
+		this.n_2 = createReceiverNonce();
 	}
 
 	public CredentialBuilder(IdemixPublicKey pk, List<BigInteger> attrs, BigInteger context, BigInteger nonce2) {
@@ -92,9 +94,7 @@ public class CredentialBuilder {
 			BigInteger nonce1) {
 
 		setSecret(secret);
-
 		ProofU proofU = proveCommitment(nonce1);
-		n_2 = createReceiverNonce();
 
 		return new IssueCommitmentMessage(proofU, n_2);
 	}
@@ -133,6 +133,10 @@ public class CredentialBuilder {
 		return s;
 	}
 
+	public BigInteger getVPrime() {
+		return v_prime;
+	}
+
 	public BigInteger getNonce2() {
 		return n_2;
 	}
@@ -157,8 +161,8 @@ public class CredentialBuilder {
 	}
 
 	protected ProofU proveCommitment(BigInteger n_1) {
-		Commitment commitment = commit(n_1, null);
-		return commitment.createProof(null);
+		ProofUBuilder pb = new ProofUBuilder(this);
+		return (ProofU) pb.createProof(context, n_1);
 	}
 
 	public static BigInteger createReceiverNonce(IdemixSystemParameters params) {
@@ -173,67 +177,11 @@ public class CredentialBuilder {
 		return createReceiverNonce(pk);
 	}
 
+	/*
 	public Commitment commit(BigInteger nonce1, BigInteger skCommit) {
 		if (n_2 == null)
 			n_2 = createReceiverNonce();
 
 		return new Commitment(nonce1, skCommit);
-	}
-
-	/**
-	 * Container for a commitment for the proof of knowledge of the secret key and v_prime. See the
-	 * {@link ProofListBuilder} class for more information.
-	 */
-	public class Commitment {
-		BigInteger s_commit;
-		BigInteger v_prime_commit;
-		BigInteger n_1;
-		BigInteger U_commit;
-
-		private Commitment(BigInteger nonce1, BigInteger skCommit) {
-			// FIXME Not according to protocol, should be signed values
-			//BigInteger s_commit = Crypto.randomSignedInteger(params.l_s_commit);
-			//BigInteger v_prime_commit = Crypto.randomSignedInteger(params.l_v_prime_commit);
-
-			this.n_1 = nonce1;
-			this.v_prime_commit = Crypto.randomUnsignedInteger(params.get_l_v_prime_commit());
-			this.s_commit = skCommit;
-			if (s_commit == null) {
-				s_commit = Crypto.randomUnsignedInteger(params.get_l_s_commit());
-			}
-
-			// U_commit = S^{v_prime_commit} * R_0^{s_commit}
-			BigInteger Sv = pk.getGeneratorS().modPow(v_prime_commit, n);
-			BigInteger R0s = pk.getGeneratorR(0).modPow(s_commit, n);
-			U_commit = Sv.multiply(R0s).mod(n);
-		}
-
-		public ProofU createProof(BigInteger challenge) {
-			BigInteger c = challenge;
-			if (c == null) {
-				c = Crypto.sha256Hash(Crypto.asn1Encode(context, commitmentToSecret(), U_commit, n_1));
-			}
-
-			BigInteger s_response = s_commit.add(c.multiply(s));
-			BigInteger v_prime_response = v_prime_commit.add(c.multiply(v_prime));
-
-			return new ProofU(getU(), c, v_prime_response, s_response);
-		}
-
-		public BigInteger getU() {
-			return commitmentToSecret();
-		}
-
-		public BigInteger getUcommit() {
-			return U_commit;
-		}
-
-		public IdemixPublicKey getPublicKey() {
-			return pk;
-		}
-
-		public BigInteger getSecretKey() {
-			return s;
-		}
-	}
+	}*/
 }

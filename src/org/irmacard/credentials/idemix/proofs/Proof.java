@@ -31,7 +31,6 @@
 package org.irmacard.credentials.idemix.proofs;
 
 import org.irmacard.credentials.idemix.IdemixPublicKey;
-import org.irmacard.credentials.info.InfoException;
 import org.irmacard.credentials.info.KeyException;
 
 import java.math.BigInteger;
@@ -63,6 +62,7 @@ public interface Proof {
 	/**
 	 * Returns the public key against which the proof should verify.
 	 * @return The {@link IdemixPublicKey}, or null if it could not be determined from this proof
+	 * @throws KeyException
 	 */
 	IdemixPublicKey extractPublicKey() throws KeyException;
 
@@ -75,4 +75,13 @@ public interface Proof {
 	 * Gets the response for the secret key of this proof.
 	 */
 	BigInteger getSecretKeyResponse();
+
+	/**
+	 * Combine the existing proof with a ProofP for just the secret key
+	 *
+	 * @param p the proof p to combine
+	 * @param pk the public key corresponding to this proof
+	 * @return The merged proof (although the object is updated)
+	 */
+	Proof mergeProofP(ProofP p, IdemixPublicKey pk);
 }

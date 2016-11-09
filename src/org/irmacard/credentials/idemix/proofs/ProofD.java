@@ -191,4 +191,10 @@ public class ProofD implements Proof {
 	public HashMap<Integer, BigInteger> get_a_disclosed() {
 		return a_disclosed;
 	}
+
+	public ProofD mergeProofP(ProofP proofp, IdemixPublicKey pk) {
+		BigInteger s_response = this.a_responses.get(0).add(proofp.getSecretKeyResponse());
+		this.a_responses.put(0, s_response);
+		return this;
+	}
 }

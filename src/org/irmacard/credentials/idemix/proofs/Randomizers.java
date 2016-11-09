@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, the IRMA Team
+ * Copyright (c) 2016, the IRMA Team
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,34 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.irmacard.credentials.idemix.info;
+package org.irmacard.credentials.idemix.proofs;
 
-import org.irmacard.credentials.info.DescriptionStore;
-import org.irmacard.credentials.info.InfoException;
-import org.irmacard.credentials.info.IssuerDescription;
-import org.irmacard.credentials.info.IssuerIdentifier;
-import org.irmacard.credentials.info.StoreException;
+public interface Randomizers {
 
-public class KeyTreeWalker {
-	private IdemixKeyStoreDeserializer deserializer;
-
-	public KeyTreeWalker(IdemixKeyStoreDeserializer deserializer) {
-		this.deserializer = deserializer;
-	}
-
-	public void deserializeIdemixKeyStore(IdemixKeyStore store) throws InfoException {
-		DescriptionStore ds = DescriptionStore.getInstance();
-
-		for (IssuerDescription id : ds.getIssuerDescriptions()) {
-			IssuerIdentifier issuer = id.getIdentifier();
-
-			for (int i : deserializer.getPublicKeyCounters(issuer)) {
-				// We expect this public key here, throw exception if it's not here
-				store.setPublicKey(issuer, deserializer.loadPublicKey(issuer, i), i);
-				try {
-					store.setSecretKey(issuer, deserializer.loadPrivateKey(issuer, i), i);
-				} catch (InfoException e) { /* ignore absence of public or private key */ }
-			}
-		}
-	}
 }

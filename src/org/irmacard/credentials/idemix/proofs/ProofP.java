@@ -38,44 +38,33 @@ import org.irmacard.credentials.idemix.IdemixPublicKey;
 import org.irmacard.credentials.idemix.IdemixSystemParameters;
 import org.irmacard.credentials.idemix.util.Crypto;
 
-/**
- * Represents a proof of correctness of the commitment in the first phase of the
- * issuance protocol.
- */
-public class ProofU implements Proof {
-	private BigInteger U;
+public class ProofP implements Proof {
+	private BigInteger P;
 	private BigInteger c;
-	private BigInteger v_prime_response;
 	private BigInteger s_response;
 
-	public ProofU(BigInteger U, BigInteger c, BigInteger v_prime_response, BigInteger s_response) {
-		this.U = U;
+	public ProofP(BigInteger P, BigInteger c, BigInteger s_response) {
+		this.P = P;
 		this.c = c;
-		this.v_prime_response = v_prime_response;
 		this.s_response = s_response;
 	}
 
-	public boolean verify(IdemixPublicKey pk, BigInteger context, BigInteger nonce) {
+	@Override
+	public boolean verify(IdemixPublicKey pk, BigInteger context,
+			BigInteger nonce) {
 		return verify(pk, context, nonce, null);
 	}
 
-	public boolean verify(IdemixPublicKey pk, BigInteger context, BigInteger nonce, BigInteger challenge) {
+	@Override
+	public boolean verify(IdemixPublicKey pk, BigInteger context,
+			BigInteger nonce, BigInteger challenge) {
 		IdemixSystemParameters params = pk.getSystemParameters();
-
-		// Check range of v_prime_response
-		BigInteger maximum = Crypto.TWO.pow(params.get_l_v_prime_commit() + 1).subtract(BigInteger.ONE);
-		BigInteger minimum = maximum.negate();
-		if (!(v_prime_response.compareTo(minimum) >= 0 && v_prime_response
-				.compareTo(maximum) <= 0)) {
-			System.out.println("Range check on v_prime_response failed");
-			return false;
-		}
 
 		// Recalculate hash
 		BigInteger c_prime = challenge;
 		if (c_prime == null) {
-			BigInteger U_commit = reconstructU_commit(pk);
-			c_prime = Crypto.sha256Hash(Crypto.asn1Encode(context, U, U_commit, nonce));
+			BigInteger P_commit = reconstructP_commit(pk);
+			c_prime = Crypto.sha256Hash(Crypto.asn1Encode(context, P, P_commit, nonce));
 		}
 
 		boolean matched = c.compareTo(c_prime) == 0;
@@ -89,7 +78,7 @@ public class ProofU implements Proof {
 
 	@Override
 	public List<BigInteger> getChallengeContribution(IdemixPublicKey pk) {
-		return Arrays.asList(U, reconstructU_commit(pk));
+		return Arrays.asList(P, reconstructP_commit(pk));
 	}
 
 	@Override
@@ -98,39 +87,31 @@ public class ProofU implements Proof {
 	}
 
 	@Override
-	public BigInteger getSecretKeyResponse() {
-		return get_s_response();
-	}
-
-	public BigInteger reconstructU_commit(IdemixPublicKey pk) {
-		BigInteger n = pk.getModulus();
-
-		// Reconstruct U_commit
-		// U_commit = U^{-c} * S^{v_prime_response} * R_0^{s_response}
-		BigInteger Uc = U.modPow(this.c.negate(), n);
-		BigInteger Sv = pk.getGeneratorS().modPow(this.v_prime_response, n);
-		BigInteger R0s = pk.getGeneratorR(0).modPow(this.s_response, n);
-
-		return Uc.multiply(Sv).multiply(R0s).mod(n);
-	}
-
-	public BigInteger getU() { return U; }
-
 	public BigInteger get_c() {
 		return c;
 	}
 
-	public BigInteger get_v_prime_response() {
-		return v_prime_response;
-	}
-
-	public BigInteger get_s_response() {
+	@Override
+	public BigInteger getSecretKeyResponse() {
 		return s_response;
 	}
 
-	public ProofU mergeProofP(ProofP proofp, IdemixPublicKey pk) {
-		this.U = this.U.multiply(proofp.getP()).mod(pk.getModulus());
-		this.s_response = this.s_response.add(proofp.getSecretKeyResponse());
-		return this;
+	public BigInteger getP() {
+		return P;
+	}
+
+	public BigInteger reconstructP_commit(IdemixPublicKey pk) {
+		BigInteger n = pk.getModulus();
+
+		// Reconstruct U_commit
+		// U_commit = P^{-c} * R_0^{s_response}
+		BigInteger Uc = P.modPow(this.c.negate(), n);
+		BigInteger R0s = pk.getGeneratorR(0).modPow(this.s_response, n);
+
+		return Uc.multiply(R0s).mod(n);
+	}
+
+	public ProofP mergeProofP(ProofP p, IdemixPublicKey pk) {
+		throw new RuntimeException("Can't merge proofP's with proofP's");
 	}
 }

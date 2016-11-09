@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, the IRMA Team
+ * Copyright (c) 2016, the IRMA Team
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,34 +28,46 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.irmacard.credentials.idemix.info;
 
-import org.irmacard.credentials.info.DescriptionStore;
-import org.irmacard.credentials.info.InfoException;
-import org.irmacard.credentials.info.IssuerDescription;
-import org.irmacard.credentials.info.IssuerIdentifier;
-import org.irmacard.credentials.info.StoreException;
+package org.irmacard.credentials.idemix.proofs;
 
-public class KeyTreeWalker {
-	private IdemixKeyStoreDeserializer deserializer;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-	public KeyTreeWalker(IdemixKeyStoreDeserializer deserializer) {
-		this.deserializer = deserializer;
+import org.irmacard.credentials.idemix.IdemixPublicKey;
+import org.irmacard.credentials.idemix.util.Crypto;
+
+/**
+ * Proof builders create the proofs for our IRMA protocols. They do not contain much state,
+ * they only keep track of the common proof information, the private prover information
+ * and the randomizers that are required for the proof. A user must generate randomizers
+ * before attempting to build a proof.
+ *
+ * @author wouter
+ *
+ */
+public abstract class ProofBuilder {
+	public static final String USER_SECRET_KEY = "user-secret-key";
+	public static final String CLOUD_SECRET_KEY = "cloud-secret-key";
+
+	public abstract ProofBuilder generateRandomizers(Map<String, BigInteger> fixed);
+	public abstract Commitments calculateCommitments();
+	public abstract Proof createProof(BigInteger challenge);
+	public abstract IdemixPublicKey getPublicKey();
+
+	public ProofBuilder generateRandomizers() {
+		HashMap<String, BigInteger> h = new HashMap<>();
+		generateRandomizers(h);
+		return this;
 	}
 
-	public void deserializeIdemixKeyStore(IdemixKeyStore store) throws InfoException {
-		DescriptionStore ds = DescriptionStore.getInstance();
-
-		for (IssuerDescription id : ds.getIssuerDescriptions()) {
-			IssuerIdentifier issuer = id.getIdentifier();
-
-			for (int i : deserializer.getPublicKeyCounters(issuer)) {
-				// We expect this public key here, throw exception if it's not here
-				store.setPublicKey(issuer, deserializer.loadPublicKey(issuer, i), i);
-				try {
-					store.setSecretKey(issuer, deserializer.loadPrivateKey(issuer, i), i);
-				} catch (InfoException e) { /* ignore absence of public or private key */ }
-			}
-		}
+	public Proof createProof(BigInteger context, BigInteger nonce1) {
+		generateRandomizers();
+		Commitments coms = calculateCommitments();
+		BigInteger challenge = coms.calculateChallenge(context, nonce1);
+		return createProof(challenge);
 	}
 }
