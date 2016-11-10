@@ -46,10 +46,18 @@ public abstract class Commitments {
 			ProofPCommitmentMap cmap);
 
 	public BigInteger calculateChallenge(BigInteger context, BigInteger nonce1) {
+		return calculateChallenge(context, nonce1, false);
+	}
+
+	public BigInteger calculateChallenge(BigInteger context, BigInteger nonce1, boolean isSig) {
 		List<BigInteger> lst = new ArrayList<>();
 		lst.add(context);
 		lst.addAll(asList());
 		lst.add(nonce1);
-		return Crypto.sha256Hash(Crypto.asn1Encode(lst));
+
+		if (isSig)
+			return Crypto.sha256Hash(Crypto.asn1SigEncode(lst));
+		else
+			return Crypto.sha256Hash(Crypto.asn1Encode(lst));
 	}
 }

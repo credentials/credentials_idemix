@@ -61,6 +61,16 @@ public class ProofList extends ArrayList<Proof> {
 
 	transient private List<IdemixPublicKey> publicKeys = new ArrayList<>();
 
+	// Boolean to indicate that we have a signature instead of disclosure proof,
+	// used to retain backwards compatibility (defaulting to DisclosureProof)
+	transient private boolean isSig = false;
+
+	public ProofList() {}
+
+	public ProofList(boolean isSig) {
+		this.isSig = isSig;
+	}
+
 	/**
 	 * Helper function to populate the public key array for the disclosure proofs, by extracting the credential id
 	 * from the metadata attribute and looking up the corresponding public key for each credential in the
@@ -168,7 +178,11 @@ public class ProofList extends ArrayList<Proof> {
 		toHash.add(nonce);
 
 		BigInteger[] toHashArray = toHash.toArray(new BigInteger[toHash.size()]);
-		return Crypto.sha256Hash(Crypto.asn1Encode(toHashArray));
+		if (isSig) {
+			return Crypto.sha256Hash(Crypto.asn1SigEncode(toHashArray));
+		} else {
+			return Crypto.sha256Hash(Crypto.asn1Encode(toHashArray));
+		}
 	}
 
 	/**
@@ -213,6 +227,28 @@ public class ProofList extends ArrayList<Proof> {
 
 	public void setPublicKey(int i, IdemixPublicKey pk) {
 		publicKeys.set(i, pk);
+	}
+
+	/**
+	 * Set isSig to true to indicate that this is an IRMA signature instead of disclosure proof
+	 */
+	public void setSig() {
+		isSig = true;
+	}
+
+	/**
+	 * Make a signature a disclosure proof again, only used for unit test to test domain separation
+	 */
+	public void unsetSig() {
+		isSig = false;
+	}
+
+	/**
+	 * Check whether this ProofList indicates an IRMA signature
+	 * @return
+	 */
+	public boolean isSig() {
+		return isSig;
 	}
 
 	public int getProofDCount() {

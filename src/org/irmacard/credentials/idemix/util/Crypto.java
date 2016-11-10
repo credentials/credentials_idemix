@@ -40,6 +40,7 @@ import java.util.Collections;
 import java.util.List;
 import java.security.SecureRandom;
 
+import org.bouncycastle.asn1.ASN1Boolean;
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.DERSequence;
@@ -97,7 +98,7 @@ public class Crypto {
 	 *
 	 * Note that the number of elements is added as a first number in the sequence.
 	 *
-	 * @param values	The BigIntegers to include inthe ASN.1 encoding
+	 * @param values	The BigIntegers to include in the ASN.1 encoding
 	 */
 	public static byte[] asn1Encode(BigInteger... values) {
 		return asn1Encode(Arrays.asList(values));
@@ -113,18 +114,46 @@ public class Crypto {
 			vector.add(new ASN1Integer(value));
 		}
 
-		DERSequence seq = new DERSequence(vector);
-		byte[] encoding = null;
+		return finishAsn1Encoding(new DERSequence(vector));
+	}
 
+	/**
+	 * @param values	The BigIntegers to include in the ASN.1 encoding
+	 *
+	 * @return asn1 encoded signature that can be used as a challenge
+	 */
+	public static byte[] asn1SigEncode(BigInteger... values) {
+		return asn1SigEncode(Arrays.asList(values));
+	}
+
+	public static byte[] asn1SigEncode(List<BigInteger> values) {
+		ASN1EncodableVector vector = new ASN1EncodableVector();
+
+		// Start with a boolean set to true to indicate that this is a signature
+		vector.add(ASN1Boolean.getInstance(true));
+
+		// Store the number of values in the sequence too
+		vector.add(new ASN1Integer(values.size()));
+
+		for(BigInteger value : values) {
+			vector.add(new ASN1Integer(value));
+		}
+
+		return finishAsn1Encoding(new DERSequence(vector));
+	}
+
+	/**
+	 * Convert DERSequence into byte array
+	 * @throws RuntimeException if something goes completely wrong
+	 */
+	private static byte[] finishAsn1Encoding(DERSequence seq) {
 		try {
-			encoding = seq.getEncoded();
+			return seq.getEncoded();
 		} catch (IOException e) {
 			// IOException indicates encoding failure, this should never happen;
 			e.printStackTrace();
 			throw new RuntimeException("DER encoding failed");
 		}
-
-		return encoding;
 	}
 
 	/**

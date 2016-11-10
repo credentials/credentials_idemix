@@ -97,9 +97,16 @@ public class ProofListBuilder {
 		}
 	}
 
+	private final boolean isSig;
+
 	public ProofListBuilder(BigInteger context, BigInteger nonce) {
+		this(context, nonce, false);
+	}
+
+	public ProofListBuilder(BigInteger context, BigInteger nonce, boolean isSig) {
 		this.context = context;
 		this.nonce = nonce;
+		this.isSig = isSig;
 
 		// The secret key may be used across credentials supporting different attribute sizes.
 		// So we should take it, and hence also its commitment, to fit within the smallest,
@@ -121,6 +128,7 @@ public class ProofListBuilder {
 		}
 		return this;
 	}
+
 
 	/**
 	 * Add a proof for the specified credential and attributes.
@@ -181,7 +189,7 @@ public class ProofListBuilder {
 
 		generateRandomizers();
 		Commitment com = calculateCommitments();
-		BigInteger challenge = com.calculateChallenge(context, nonce);
+		BigInteger challenge = com.calculateChallenge(context, nonce, isSig);
 		return createProofList(challenge);
 	}
 
@@ -190,7 +198,7 @@ public class ProofListBuilder {
 	}
 
 	public ProofList createProofList(BigInteger challenge, ProofP proofp) {
-		ProofList proofs = new ProofList();
+		ProofList proofs = new ProofList(isSig);
 
 		for(ProofBuilder builder : builders) {
 			Proof p = builder.createProof(challenge);
