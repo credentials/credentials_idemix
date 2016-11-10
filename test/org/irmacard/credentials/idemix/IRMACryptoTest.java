@@ -559,7 +559,7 @@ public class IRMACryptoTest {
 				.build();
 
 		// Make sure we're verifying this signature as disclosure proof
-		collection.unsetSig();
+		collection.setSig(false);
 
 		assertTrue("Combined signature should NOT verify as disclosure proof", !collection
 				.verify(context, nonce1, true));

@@ -232,20 +232,12 @@ public class ProofList extends ArrayList<Proof> {
 	/**
 	 * Set isSig to true to indicate that this is an IRMA signature instead of disclosure proof
 	 */
-	public void setSig() {
-		isSig = true;
-	}
-
-	/**
-	 * Make a signature a disclosure proof again, only used for unit test to test domain separation
-	 */
-	public void unsetSig() {
-		isSig = false;
+	public void setSig(boolean sig) {
+		isSig = sig;
 	}
 
 	/**
 	 * Check whether this ProofList indicates an IRMA signature
-	 * @return
 	 */
 	public boolean isSig() {
 		return isSig;
