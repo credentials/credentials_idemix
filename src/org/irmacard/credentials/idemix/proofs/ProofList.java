@@ -31,9 +31,7 @@
 package org.irmacard.credentials.idemix.proofs;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 import org.irmacard.credentials.Attributes;
 import org.irmacard.credentials.CredentialsException;
@@ -157,17 +155,39 @@ public class ProofList extends ArrayList<Proof> {
 		return true;
 	}
 
+	public boolean isValid() {
+		return isValidOn(Calendar.getInstance().getTime());
+	}
+
+	/**
+	 * @return true only if all containing {@link ProofD}'s are valid on the specified date.
+	 */
+	public boolean isValidOn(Date date) {
+		try {
+			for (Proof proof : this) {
+				if (!(proof instanceof ProofD))
+					continue;
+
+				// This throws an IllegalArgumentException if the metadata attribute is missing or the cred type is unknown
+				Attributes disclosed = new Attributes(((ProofD) proof).getDisclosedAttributes());
+				if (!disclosed.isValidOn(date))
+					return false;
+			}
+
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
 	/**
 	 * Returns all attributes contained in the disclosure proofs. Also checks the validity date
 	 * of the metadata attribute of each disclosure proof. NOTE: this does not check the validity
 	 * of the containing proofs! Use {@link #verify(BigInteger, BigInteger, boolean)} for that.
 	 * @throws IllegalArgumentException If one of the proofs has no metadata attribute,
 	 *                                  or is from an unknown credential type
-	 * @throws CredentialsException If one of the disclosure proofs is expired,
-	 *                              or the corresponding Idemix public key could is unknown
 	 */
-	public HashMap<AttributeIdentifier, String> getAttributes()
-	throws IllegalArgumentException, CredentialsException {
+	public HashMap<AttributeIdentifier, String> getAttributes() {
 		HashMap<AttributeIdentifier, String> attributes = new HashMap<>();
 
 		for (Proof proof : this) {
@@ -176,15 +196,6 @@ public class ProofList extends ArrayList<Proof> {
 
 			// This throws an IllegalArgumentException if the metadata attribute is missing or the cred type is unknown
 			Attributes disclosed = new Attributes(((ProofD) proof).getDisclosedAttributes());
-
-			// Verify validity, extract credential id from metadata attribute
-			try {
-				if (!disclosed.isValid())
-					throw new CredentialsException("Invalid credential");
-			} catch (InfoException|KeyException e) {
-				throw new CredentialsException("Invalid credential");
-			}
-
 			CredentialIdentifier credId = disclosed.getCredentialIdentifier();
 
 			// For each of the disclosed attributes in this proof, see if they satisfy one of

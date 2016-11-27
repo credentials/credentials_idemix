@@ -34,6 +34,7 @@ import org.irmacard.credentials.idemix.IdemixPublicKey;
 import org.irmacard.credentials.info.KeyException;
 
 import java.math.BigInteger;
+import java.util.Date;
 import java.util.List;
 
 /**
