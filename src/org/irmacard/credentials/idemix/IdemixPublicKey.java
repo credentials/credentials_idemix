@@ -123,6 +123,11 @@ public class IdemixPublicKey extends ConfigurationParser implements PublicKey {
 		this(new ByteArrayInputStream(xml.getBytes()));
 	}
 
+	public IdemixPublicKey(String xml, IssuerIdentifier issuer) throws InfoException {
+		this(new ByteArrayInputStream(xml.getBytes()));
+		this.issuer = issuer;
+	}
+
 	public IdemixPublicKey(InputStream retrieveFile, IssuerIdentifier issuer)
 			throws InfoException {
 		this(retrieveFile);

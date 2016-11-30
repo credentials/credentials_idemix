@@ -199,7 +199,7 @@ public class IdemixKeyStore extends KeyStore {
 
 		String pkXml = DescriptionStore.inputStreamToString(
 				DescriptionStore.doHttpRequest(url + String.format(PUBLIC_KEY_FILE, counter)));
-		IdemixPublicKey pk = new IdemixPublicKey(pkXml);
+		IdemixPublicKey pk = new IdemixPublicKey(pkXml, issuer);
 
 		setPublicKey(issuer, pk, counter);
 		if (serializer != null)
