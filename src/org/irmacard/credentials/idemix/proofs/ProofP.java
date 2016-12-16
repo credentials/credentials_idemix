@@ -34,6 +34,7 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
 
+import de.henku.jpaillier.KeyPair;
 import org.irmacard.credentials.idemix.IdemixPublicKey;
 import org.irmacard.credentials.idemix.IdemixSystemParameters;
 import org.irmacard.credentials.idemix.util.Crypto;
@@ -94,6 +95,10 @@ public class ProofP implements Proof {
 	@Override
 	public BigInteger getSecretKeyResponse() {
 		return s_response;
+	}
+
+	public void decrypt(KeyPair keyPair) {
+		s_response = keyPair.decrypt(s_response);
 	}
 
 	public BigInteger getP() {

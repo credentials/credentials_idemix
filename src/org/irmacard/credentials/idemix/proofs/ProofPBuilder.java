@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import de.henku.jpaillier.PublicKey;
 import org.irmacard.credentials.idemix.IdemixPublicKey;
 import org.irmacard.credentials.idemix.IdemixSystemParameters;
 import org.irmacard.credentials.info.PublicKeyIdentifier;
@@ -112,7 +113,19 @@ public class ProofPBuilder extends ProofBuilder {
 
 	@Override
 	public ProofP createProof(BigInteger challenge) {
-		BigInteger s_response = rand.s_randomizer.add(challenge.multiply(s));
+		return createProof(challenge, (PublicKey) null);
+	}
+
+	public ProofP createProof(BigInteger challenge, PublicKey publicKey) {
+		BigInteger s_response;
+
+		if (publicKey == null) {
+			s_response = rand.s_randomizer.add(challenge.multiply(s));
+		} else {
+			s_response = publicKey.encrypt(rand.s_randomizer).multiply(
+					challenge.modPow(s, publicKey.getnSquared())).mod(publicKey.getnSquared());
+		}
+
 		return new ProofP(P, challenge, s_response);
 	}
 

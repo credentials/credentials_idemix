@@ -8,6 +8,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import de.henku.jpaillier.PublicKey;
 import org.irmacard.credentials.idemix.IdemixPublicKey;
 import org.irmacard.credentials.idemix.info.IdemixKeyStore;
 import org.irmacard.credentials.idemix.proofs.ProofPBuilder.ProofPCommitments;
@@ -57,6 +58,10 @@ public class ProofPListBuilder {
 	}
 
 	public ProofP build(BigInteger challenge) {
+		return build(challenge, null);
+	}
+
+	public ProofP build(BigInteger challenge, PublicKey publicKey) {
 		// Nice fact, since the randomizers are all the same
 		// per construction, so will all the proofs be the same
 		// hence, we only need to return one proof.
@@ -64,6 +69,6 @@ public class ProofPListBuilder {
 		// FIXME: this response is only valid for the first pk
 		// not for any of the other keys, not so nice
 		ProofPBuilder builder = builders.get(0);
-		return builder.createProof(challenge);
+		return builder.createProof(challenge, publicKey);
 	}
 }
