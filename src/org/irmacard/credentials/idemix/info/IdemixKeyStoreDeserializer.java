@@ -62,8 +62,6 @@ public class IdemixKeyStoreDeserializer {
 
 	public ArrayList<Integer> getPublicKeyCounters(IssuerIdentifier issuer) throws InfoException {
 		String[] files = fileReader.list(issuer.getPath(false) + "/PublicKeys");
-		if (files == null || files.length == 0)
-			throw new InfoException("No keys found for issuer " + issuer);
 
 		ArrayList<Integer> counters = new ArrayList<>(files.length);
 		for (String filename : files) {

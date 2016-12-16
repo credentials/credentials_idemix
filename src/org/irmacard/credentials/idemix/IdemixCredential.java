@@ -31,21 +31,16 @@
 package org.irmacard.credentials.idemix;
 
 import org.irmacard.credentials.Attributes;
-import org.irmacard.credentials.idemix.proofs.ProofBuilder;
+import org.irmacard.credentials.idemix.info.IdemixKeyStore;
 import org.irmacard.credentials.idemix.proofs.ProofD;
 import org.irmacard.credentials.idemix.proofs.ProofDBuilder;
-import org.irmacard.credentials.idemix.proofs.ProofListBuilder;
-import org.irmacard.credentials.idemix.util.Crypto;
+import org.irmacard.credentials.info.CredentialIdentifier;
+import org.irmacard.credentials.info.KeyException;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
@@ -54,7 +49,7 @@ import java.util.Vector;
  */
 public class IdemixCredential {
 	private CLSignature signature;
-	private IdemixPublicKey issuer_pk;
+	transient private IdemixPublicKey issuer_pk;
 	private List<BigInteger> attributes;
 
 	private transient int hashCode = 0;
@@ -71,6 +66,20 @@ public class IdemixCredential {
 	}
 
 	public IdemixPublicKey getPublicKey() {
+		if (issuer_pk == null) {
+			try {
+				Attributes attrs = getAllAttributes();
+				CredentialIdentifier credId = attrs.getCredentialIdentifier();
+				if (credId == null)
+					return null;
+				issuer_pk = IdemixKeyStore.getInstance().getPublicKey(
+						credId.getIssuerIdentifier(), attrs.getKeyCounter()
+				);
+			} catch (KeyException e) {
+				return null;
+			}
+		}
+
 		return issuer_pk;
 	}
 
