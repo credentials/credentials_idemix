@@ -33,6 +33,7 @@ package org.irmacard.credentials.idemix.messages;
 import java.math.BigInteger;
 
 import org.irmacard.credentials.idemix.proofs.ProofList;
+import org.irmacard.credentials.idemix.proofs.ProofP;
 import org.irmacard.credentials.idemix.proofs.ProofU;
 
 /**
@@ -43,6 +44,7 @@ import org.irmacard.credentials.idemix.proofs.ProofU;
 public class IssueCommitmentMessage {
 	private ProofU proofU;
 	private ProofList combinedProofs;
+	private ProofP proofP;
 	private BigInteger n_2;
 
 	public IssueCommitmentMessage(ProofU proofU, BigInteger n_2) {
@@ -56,6 +58,11 @@ public class IssueCommitmentMessage {
 		this.n_2 = n_2;
 	}
 
+	public IssueCommitmentMessage(ProofList combinedProofs, BigInteger n_2, ProofP proofP) {
+		this(combinedProofs, n_2);
+		this.proofP = proofP;
+	}
+
 	public ProofU getCommitmentProof() {
 		return proofU;
 	}
@@ -66,5 +73,9 @@ public class IssueCommitmentMessage {
 
 	public ProofList getCombinedProofs() {
 		return combinedProofs;
+	}
+
+	public ProofP getProofP() {
+		return proofP;
 	}
 }
