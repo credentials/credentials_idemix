@@ -119,7 +119,8 @@ public class ProofPBuilder extends ProofBuilder {
 	public ProofP createProof(BigInteger challenge, PublicKey publicKey) {
 		BigInteger s_response;
 
-		if (publicKey == null) {
+		// Even if we have a public key, the challenge might be unencrypted
+		if (publicKey == null || ! isPaillierCiphertext(challenge)) {
 			s_response = rand.s_randomizer.add(challenge.multiply(s));
 		} else {
 			s_response = publicKey.encrypt(rand.s_randomizer).multiply(
@@ -127,6 +128,16 @@ public class ProofPBuilder extends ProofBuilder {
 		}
 
 		return new ProofP(P, challenge, s_response);
+	}
+
+	/**
+	 * Dirty way of deciding if this is a Paillier ciphertext, or a plaintext integer:
+	 * even with a Paillier public key of 1024 bits, which is so unsafe that we would
+	 * never use it, a Paillier ciphertext would be larger than 2048 bits, while an IRMA
+	 * challenge will never be that long.
+	 */
+	private static boolean isPaillierCiphertext(BigInteger challenge) {
+		return challenge.bitLength() > 2000;
 	}
 
 	@Override
