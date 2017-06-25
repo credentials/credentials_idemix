@@ -1,7 +1,6 @@
 bin
 .classpath
 .project
-irma_configuration
 lib/*.jar
 credentials_idemix.*jar
 .gradle/

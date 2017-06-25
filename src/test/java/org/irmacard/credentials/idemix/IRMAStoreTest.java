@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.io.File;
 import java.math.BigInteger;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -24,15 +25,19 @@ import org.irmacard.credentials.info.InfoException;
 import org.irmacard.credentials.info.IssuerIdentifier;
 import org.irmacard.credentials.info.KeyException;
 import org.irmacard.credentials.info.PublicKeyIdentifier;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class IRMAStoreTest {
-	@Test
-	public void AttributesTest() throws InfoException, KeyException {
-		URI core = new File(System.getProperty("user.dir")).toURI().resolve("irma_configuration/");
+	@BeforeClass
+	public static void initializeInformation() throws InfoException, URISyntaxException {
+		URI core = IRMACryptoTest.class.getClassLoader().getResource("irma_configuration/").toURI();
 		DescriptionStore.initialize(new DescriptionStoreDeserializer(core));
 		IdemixKeyStore.initialize(new IdemixKeyStoreDeserializer(core));
-		
+	}
+
+	@Test
+	public void AttributesTest() throws InfoException, KeyException, URISyntaxException {
 		IssuerIdentifier issuer = new IssuerIdentifier("irma-demo.MijnOverheid");
 		IdemixPublicKey pk = IdemixKeyStore.getInstance().getPublicKey(
 				new PublicKeyIdentifier(issuer, 1));
@@ -75,5 +80,12 @@ public class IRMAStoreTest {
 		assertTrue("Key counters should match", disclosed.getKeyCounter() == keyCounter);
 		assertTrue("Validity duration should match", disclosed.getValidityDuration() == duration);
 		assertTrue("Issuing dates should match", disclosed.getSigningDate().equals(time));
+	}
+
+	@Test
+	public void checkSystemParameters() {
+		assertTrue(new IdemixSystemParameters1024().isValid());
+		assertTrue(new IdemixSystemParameters2048().isValid());
+		assertTrue(new IdemixSystemParameters4096().isValid());
 	}
 }

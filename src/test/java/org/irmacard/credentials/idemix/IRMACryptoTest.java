@@ -30,9 +30,9 @@ import org.irmacard.credentials.idemix.util.Crypto;
 import org.irmacard.credentials.info.*;
 import org.junit.Test;
 
-import java.io.File;
 import java.math.BigInteger;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.SecureRandom;
 import java.util.*;
 
@@ -52,14 +52,14 @@ public class IRMACryptoTest {
 
 	static {
 		try {
-			URI core = new File(System.getProperty("user.dir")).toURI().resolve("irma_configuration/");
+			URI core = IRMACryptoTest.class.getClassLoader().getResource("irma_configuration/").toURI();
 			DescriptionStore.initialize(new DescriptionStoreDeserializer(core));
 			IdemixKeyStore.initialize(new IdemixKeyStoreDeserializer(core));
 
 			IssuerIdentifier mo = new IssuerIdentifier("irma-demo.MijnOverheid");
 			sk = IdemixKeyStore.getInstance().getSecretKey(mo, 1);
 			pk = IdemixKeyStore.getInstance().getPublicKey(mo, 1);
-		} catch (InfoException|KeyException e) {
+		} catch (InfoException|KeyException|URISyntaxException e) {
 			e.printStackTrace();
 		}
 	}
@@ -443,6 +443,10 @@ public class IRMACryptoTest {
 
 	@Test
 	public void testCombinedDistributedShowingProof() throws InfoException, KeyException {
+		IssuerIdentifier pbdf = new IssuerIdentifier("pbdf.pbdf");
+		IdemixPublicKey pk = IdemixKeyStore.getInstance().getPublicKey(pbdf, 0);
+		IdemixSecretKey sk = IdemixKeyStore.getInstance().getSecretKey(pbdf, 0);
+
 		IdemixSystemParameters params = pk.getSystemParameters();
 		SecureRandom srnd = new SecureRandom();
 
@@ -492,7 +496,6 @@ public class IRMACryptoTest {
 
 		// Server & User side: calculate responses
 		ProofP proofp = pbuilder.build(challenge);
-		// TODO: irma-demo has no kss, goes wrong here
 		ProofList collection = builder.createProofList(challenge, proofp);
 
 		assertTrue("Combined disclosure proofs should verify",
@@ -632,6 +635,10 @@ public class IRMACryptoTest {
 
 	@Test
 	public void testDistributedBoundIssanceAndVerify() throws CredentialsException, InfoException, KeyException {
+		IssuerIdentifier pbdf = new IssuerIdentifier("pbdf.pbdf");
+		IdemixPublicKey pk = IdemixKeyStore.getInstance().getPublicKey(pbdf, 0);
+		IdemixSecretKey sk = IdemixKeyStore.getInstance().getSecretKey(pbdf, 0);
+
 		SecureRandom rnd = new SecureRandom();
 		IdemixSystemParameters params = pk.getSystemParameters();
 
