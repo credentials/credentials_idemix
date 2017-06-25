@@ -43,11 +43,3 @@ It will then be found by other gradle build scripts.
 Gradle automatically runs the tests if the code has changed. If you want to force them to rerun use
 
     gradle cleanTest test
-
-## Using the library
-
-Before using the library you need to setup `irma_configuration`.
-
-### irma_configuration
-
-Download or link the `irma_configuration` project to a location within your tree. In particular the tests below assume that `irma_configuration` is placed in the root of this project. See the [irma_configuration](https://github.com/credentials/irma_configuration/) project for the specifics.
