@@ -35,13 +35,13 @@ public class IRMAStoreTest {
 		
 		IssuerIdentifier issuer = new IssuerIdentifier("irma-demo.MijnOverheid");
 		IdemixPublicKey pk = IdemixKeyStore.getInstance().getPublicKey(
-				new PublicKeyIdentifier(issuer, 0));
-		IdemixSecretKey sk = IdemixKeyStore.getInstance().getSecretKey(issuer, 0);
+				new PublicKeyIdentifier(issuer, 1));
+		IdemixSecretKey sk = IdemixKeyStore.getInstance().getSecretKey(issuer, 1);
 
 		CredentialIdentifier ageLower = new CredentialIdentifier("irma-demo.MijnOverheid.ageLower");
 		Date time = new Date(Calendar.getInstance().getTimeInMillis()
 				/ Attributes.EXPIRY_FACTOR * Attributes.EXPIRY_FACTOR);
-		short keyCounter = 0;
+		short keyCounter = 1;
 		short duration = 10;
 
 		Attributes attributes = new Attributes();
