@@ -5,12 +5,6 @@ apply plugin: 'maven'
 version = '0.17.3'
 group = 'org.irmacard.credentials'
 
-// Our directory structure differs from the default
-sourceSets {
-    main.java.srcDir 'src'
-    test.java.srcDir 'test'
-}
-
 repositories {
     mavenLocal()
     maven {
