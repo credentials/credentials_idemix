@@ -33,20 +33,11 @@ package org.irmacard.credentials.idemix.proofs;
 import org.irmacard.credentials.idemix.CredentialBuilder;
 import org.irmacard.credentials.idemix.IdemixCredential;
 import org.irmacard.credentials.idemix.IdemixSystemParameters1024;
-import org.irmacard.credentials.idemix.proofs.ProofPBuilder.ProofPCommitments;
-import org.irmacard.credentials.idemix.util.Crypto;
 import org.irmacard.credentials.info.PublicKeyIdentifier;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * <p>A builder for {@link ProofList}s, for creating cryptographically bound proofs of knowledge. It works as
@@ -202,7 +193,7 @@ public class ProofListBuilder {
 
 		for(ProofBuilder builder : builders) {
 			Proof p = builder.createProof(challenge);
-			if(proofp != null) {
+			if(proofp != null && builder.getPublicKey().getIssuerIdentifier().getSchemeManager().hasKeyshareServer()) {
 				p.mergeProofP(proofp, builder.getPublicKey());
 			}
 

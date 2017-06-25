@@ -62,12 +62,13 @@ public class ProofPListBuilder {
 	}
 
 	public ProofP build(BigInteger challenge, PublicKey publicKey) {
-		// Nice fact, since the randomizers are all the same
-		// per construction, so will all the proofs be the same
-		// hence, we only need to return one proof.
-		
-		// FIXME: this response is only valid for the first pk
-		// not for any of the other keys, not so nice
+		// Nice fact: since the randomizers are all the same
+		// per construction, so will all the s_response-s be.
+		// The BigInteger P = R_0^secret mod n will differ, as R_0 and n differ
+		// per issuer. But this integer is only relevant during issuing.
+		// FIXME: Here, we only return one ProofP.
+		// This means that we do not support one issuing server issuing two credentials
+		// using two distinct Idemix issuing keys!
 		ProofPBuilder builder = builders.get(0);
 		return builder.createProof(challenge, publicKey);
 	}

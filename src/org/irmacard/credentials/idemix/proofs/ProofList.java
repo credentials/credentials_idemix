@@ -30,18 +30,17 @@
 
 package org.irmacard.credentials.idemix.proofs;
 
-import java.math.BigInteger;
-import java.util.*;
-
 import org.irmacard.credentials.Attributes;
-import org.irmacard.credentials.CredentialsException;
 import org.irmacard.credentials.idemix.IdemixPublicKey;
 import org.irmacard.credentials.idemix.info.IdemixKeyStore;
 import org.irmacard.credentials.idemix.util.Crypto;
 import org.irmacard.credentials.info.AttributeIdentifier;
 import org.irmacard.credentials.info.CredentialIdentifier;
-import org.irmacard.credentials.info.InfoException;
 import org.irmacard.credentials.info.KeyException;
+import org.irmacard.credentials.info.SchemeManager;
+
+import java.math.BigInteger;
+import java.util.*;
 
 /**
  * <p>A collection of proofs of knowledge, for one or more disclosure proofs, or for the commitment to the private key
@@ -97,20 +96,32 @@ public class ProofList extends ArrayList<Proof> {
 	 * Checks if the contained proofs are cryptographically bound with respect to the specified context and nonce.
 	 */
 	public boolean isBound(BigInteger context, BigInteger nonce) {
-		BigInteger challenge, response;
-
 		if (size() == 0)
 			return true; // All proofs (i.e. none) are bound to all other proofs (i.e. none)
 
-		challenge = get(0).get_c();
-		response = get(0).getSecretKeyResponse();
+		BigInteger challenge = reconstructChallenge(context, nonce);
+		HashMap<String, BigInteger> responses = new HashMap<>();
 
-		for (Proof proof : this) {
-			if (!challenge.equals(proof.get_c()) || !response.equals(proof.getSecretKeyResponse()))
+		for (int i=0; i < size(); ++i) {
+			if (!challenge.equals(get(i).get_c()))
 				return false;
+
+			// If the secret key comes from a credential whose scheme manager has a keyshare server,
+			// then the secretkey = userpart + keysharepart.
+			// So, we can only expect two secret key responses to be equal if their credentials
+			// are both associated to either no keyshare server, or the same keyshare server.
+			SchemeManager manager = publicKeys.get(i).getIssuerIdentifier().getSchemeManager();
+			String managerName = manager == null || !manager.hasKeyshareServer() ? "" : manager.getName();
+			if (!responses.containsKey(managerName)) {
+				// First response from this keyshare server that we're checking
+				responses.put(managerName, get(i).getSecretKeyResponse());
+			} else {
+				if (!responses.get(managerName).equals(get(i).getSecretKeyResponse()))
+					return false;
+			}
 		}
 
-		return challenge.equals(reconstructChallenge(context, nonce));
+		return true;
 	}
 
 	/**
