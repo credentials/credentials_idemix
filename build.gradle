@@ -2,7 +2,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'maven'
 
-version = '0.17.3'
+version = '0.18.0'
 group = 'org.irmacard.credentials'
 
 repositories {
@@ -15,7 +15,7 @@ repositories {
 
 dependencies {
     compile "org.bouncycastle:bcprov-jdk15on:1.52"
-    compile "org.irmacard.credentials:credentials_api:0.17.2"
+    compile "org.irmacard.credentials:credentials_api:0.18.0"
     compile "de.henku.jpaillier:jpaillier:0.1.2"
 
     testCompile "junit:junit:4.11"
