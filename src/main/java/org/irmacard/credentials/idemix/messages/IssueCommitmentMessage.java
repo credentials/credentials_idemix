@@ -30,10 +30,11 @@
 
 package org.irmacard.credentials.idemix.messages;
 
-import java.math.BigInteger;
-
 import org.irmacard.credentials.idemix.proofs.ProofList;
 import org.irmacard.credentials.idemix.proofs.ProofU;
+
+import java.math.BigInteger;
+import java.util.Map;
 
 /**
  * Encapsulates the messages sent by the receiver to the issuer in the second
@@ -44,6 +45,7 @@ public class IssueCommitmentMessage {
 	private ProofU proofU;
 	private ProofList combinedProofs;
 	private String proofPJwt;
+	private Map<String, String> proofPJwts;
 	private BigInteger n_2;
 
 	public IssueCommitmentMessage(ProofU proofU, BigInteger n_2) {
@@ -62,6 +64,11 @@ public class IssueCommitmentMessage {
 		this.proofPJwt = proofPJwt;
 	}
 
+	public IssueCommitmentMessage(ProofList combinedProofs, BigInteger n_2, Map<String, String> proofPJwts) {
+		this(combinedProofs, n_2);
+		this.proofPJwts = proofPJwts;
+	}
+
 	public ProofU getCommitmentProof() {
 		return proofU;
 	}
@@ -76,5 +83,9 @@ public class IssueCommitmentMessage {
 
 	public String getProofPJwt() {
 		return proofPJwt;
+	}
+
+	public String getProofPJwt(String manager) {
+		return proofPJwts.get(manager);
 	}
 }
