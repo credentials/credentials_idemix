@@ -16,7 +16,7 @@ External dependencies:
 
 Internal dependencies:
 
- * [credentials_api](https://github.com/credentials/credentials_api), the abstract IRMA credentials API
+ * [credentials_api](https://github.com/privacybydesign/credentials_api), the abstract IRMA credentials API
 
 For running the tests:
 
