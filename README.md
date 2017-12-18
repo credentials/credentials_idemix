@@ -1,8 +1,6 @@
 # Credentials Idemix
 
-The Credentials Idemix library implements IRMA credentials at a mathematical level.
-
-To actually communicate to an IRMA client such as a smart card or the [IRMA Android app](https://github.com/credentials/irma_android_cardemu), you would need a library such as [idemix_terminal](https://github.com/credentials/idemix_terminal/) or [irma_api_common](https://github.com/credentials/irma_api_common/), respectively, so normally you will want to use one of those libaries instead of including this one directly.
+The Credentials Idemix library implements IRMA credentials at a mathematical level. It is used by [irma_api_server](https://github.com/privacyby_design/irma_api_server) via [irma_api_common](https://github.com/credentials/irma_api_common).
 
 This library itself works in two layers. The first layer implements the bare Idemix credentials. However, IRMA is more than just Idemix credentials, in particular we always include a validity date and the credential's semantics. We validate this in an IRMA layer on top of the bare Idemix credentials.
 
