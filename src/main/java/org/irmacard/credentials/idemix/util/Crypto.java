@@ -30,20 +30,18 @@
 
 package org.irmacard.credentials.idemix.util;
 
-import java.io.IOException;
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.security.SecureRandom;
-
 import org.bouncycastle.asn1.ASN1Boolean;
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.DERSequence;
+
+import java.io.IOException;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.util.Arrays;
+import java.util.List;
 
 public class Crypto {
 	public static final BigInteger TWO = new BigInteger("2");
@@ -218,7 +216,7 @@ public class Crypto {
 	 * @return			representation of the exponents in terms of the bases
 	 */
 	public static BigInteger representToBases(List<BigInteger> bases,
-			List<BigInteger> exps, BigInteger modulus) {
+			List<BigInteger> exps, BigInteger modulus, int maxMessageLength) {
 
 		if (bases.size() < exps.size()) {
 			throw new RuntimeException("Not enough bases to represent exponents");
@@ -226,9 +224,14 @@ public class Crypto {
 
 		BigInteger r = BigInteger.ONE;
 		BigInteger tmp;
+		BigInteger exponent;
 		for (int i = 0; i < exps.size(); i++) {
-			// tmp = bases_i ^ exps_i (mod modulus)
-			tmp = bases.get(i).modPow(exps.get(i), modulus);
+			exponent = exps.get(i);
+			if (exponent.bitLength() > maxMessageLength)
+				exponent = Crypto.sha256Hash(exponent.toByteArray());
+
+			// tmp = bases_i ^ exps_i (mod modulus), with exps_i hashed if it exceeds maxMessageLength
+			tmp = bases.get(i).modPow(exponent, modulus);
 
 			// r = r * tmp (mod modulus)
 			r = r.multiply(tmp).mod(modulus);

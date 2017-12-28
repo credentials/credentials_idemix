@@ -36,7 +36,6 @@ import org.irmacard.credentials.idemix.IdemixSystemParameters;
 import org.irmacard.credentials.idemix.info.IdemixKeyStore;
 import org.irmacard.credentials.idemix.util.Crypto;
 import org.irmacard.credentials.info.CredentialIdentifier;
-import org.irmacard.credentials.info.InfoException;
 import org.irmacard.credentials.info.KeyException;
 
 import java.math.BigInteger;
@@ -146,7 +145,8 @@ public class ProofD implements Proof {
 		for(Entry<Integer, BigInteger> entry : a_disclosed.entrySet()) {
 			Integer idx = entry.getKey();
 			BigInteger attribute = entry.getValue();
-
+			if (attribute.bitLength() > params.get_l_m())
+				attribute = Crypto.sha256Hash(attribute.toByteArray());
 			BigInteger tmp = pk.getGeneratorR(idx).modPow(attribute, n);
 			numerator = numerator.multiply(tmp).mod(n);
 		}

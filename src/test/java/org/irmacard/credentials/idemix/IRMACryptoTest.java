@@ -826,4 +826,26 @@ public class IRMACryptoTest {
 		ProofD proof = cred.createDisclosureProof(disclosed, context, n_1);
 		assertTrue("Proof of disclosure should verify", proof.verify(pk, context, n_1));
 	}
+
+	@Test
+	public void testBigAttributes() throws Exception {
+		String attr = "This is a very long attribute: its size of 132 bytes exceeds the maximum message length of all currently supported public key sizes.";
+		List<BigInteger> attributes = Arrays.asList(
+				new BigInteger(1, "alpha".getBytes()),
+				new BigInteger(1, "beta".getBytes()),
+				new BigInteger(1, attr.getBytes()));
+		CLSignature signature = CLSignature.signMessageBlock(sk, pk, attributes);
+		IdemixCredential cred = new IdemixCredential(pk, attributes, signature);
+
+		// Don't disclose large attribute
+		assertTrue(
+			cred.createDisclosureProof(Collections.singletonList(1), BigInteger.TEN, BigInteger.TEN)
+					.verify(pk, BigInteger.TEN, BigInteger.TEN)
+		);
+		// Disclose large attribute
+		assertTrue(
+				cred.createDisclosureProof(Collections.singletonList(2), BigInteger.TEN, BigInteger.TEN)
+						.verify(pk, BigInteger.TEN, BigInteger.TEN)
+		);
+	}
 }

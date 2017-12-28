@@ -109,7 +109,7 @@ public class CLSignature {
 		BigInteger n = pk.getModulus();
 		IdemixSystemParameters params = pk.getSystemParameters();
 
-		BigInteger R = Crypto.representToBases(Rs, ms, n);
+		BigInteger R = Crypto.representToBases(Rs, ms, n, params.get_l_m());
 
 		SecureRandom rnd = new SecureRandom();
 
@@ -151,7 +151,7 @@ public class CLSignature {
 		}
 
 		// Q = A^e * R * S^v
-		BigInteger R = Crypto.representToBases(pk.getGeneratorsR(), ms, n);
+		BigInteger R = Crypto.representToBases(pk.getGeneratorsR(), ms, n, params.get_l_m());
 
 		// Add in the public_sks
 		if(public_sks != null) {

@@ -30,20 +30,15 @@
 
 package org.irmacard.credentials.idemix.proofs;
 
-import java.math.BigInteger;
-import java.security.SecureRandom;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Vector;
-
 import org.irmacard.credentials.idemix.CLSignature;
 import org.irmacard.credentials.idemix.IdemixCredential;
 import org.irmacard.credentials.idemix.IdemixPublicKey;
 import org.irmacard.credentials.idemix.IdemixSystemParameters;
 import org.irmacard.credentials.idemix.util.Crypto;
-import org.irmacard.credentials.info.PublicKeyIdentifier;
+
+import java.math.BigInteger;
+import java.security.SecureRandom;
+import java.util.*;
 
 public class ProofDBuilder extends ProofBuilder {
 	private IdemixCredential credential;
@@ -154,8 +149,11 @@ public class ProofDBuilder extends ProofBuilder {
 
 		HashMap<Integer, BigInteger> a_responses = new HashMap<>();
 		for(Integer i : undisclosed_attributes) {
+			BigInteger exponent = credential.getAttribute(i);
+			if (exponent.bitLength() > params.get_l_m())
+				exponent = Crypto.sha256Hash(exponent.toByteArray());
 			a_responses.put(i, rand.a_randomizers.get(i).
-					add(c.multiply(credential.getAttribute(i))));
+					add(c.multiply(exponent)));
 		}
 
 		HashMap<Integer, BigInteger> a_disclosed = new HashMap<>();
